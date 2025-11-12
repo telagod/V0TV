@@ -7,28 +7,28 @@
 
   <p>
     <a href="https://github.com/telagod/V0TV/releases">
-      <img src="https://img.shields.io/github/v/release/telagod/V0TV?style=flat-square&logo=github&color=blue" alt="Release" />
+      <img src="https://img.shields.io/github/v/release/telagod/V0TV?logo=github&color=blue&style=flat-square" alt="Release" />
     </a>
     <a href="https://github.com/telagod/V0TV/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/telagod/V0TV?style=flat-square&color=green" alt="License" />
+      <img src="https://img.shields.io/github/license/telagod/V0TV?color=green&style=flat-square" alt="License" />
     </a>
     <a href="https://github.com/telagod/V0TV/stargazers">
-      <img src="https://img.shields.io/github/stars/telagod/V0TV?style=flat-square&logo=github" alt="Stars" />
+      <img src="https://img.shields.io/github/stars/telagod/V0TV?logo=github&style=flat-square" alt="Stars" />
     </a>
     <a href="https://github.com/telagod/V0TV/network/members">
-      <img src="https://img.shields.io/github/forks/telagod/V0TV?style=flat-square&logo=github" alt="Forks" />
+      <img src="https://img.shields.io/github/forks/telagod/V0TV?logo=github&style=flat-square" alt="Forks" />
     </a>
   </p>
 
   <p>
     <a href="https://github.com/telagod/V0TV/actions">
-      <img src="https://img.shields.io/github/actions/workflow/status/telagod/V0TV/code-quality.yml?branch=main&style=flat-square&logo=github&label=代码质量" alt="Code Quality" />
+      <img src="https://img.shields.io/github/actions/workflow/status/telagod/V0TV/code-quality.yml?branch=main&label=代码质量&logo=github&style=flat-square" alt="Code Quality" />
     </a>
     <a href="https://github.com/telagod/V0TV/issues">
-      <img src="https://img.shields.io/github/issues/telagod/V0TV?style=flat-square&logo=github" alt="Issues" />
+      <img src="https://img.shields.io/github/issues/telagod/V0TV?logo=github&style=flat-square" alt="Issues" />
     </a>
     <a href="https://github.com/telagod/V0TV/pulls">
-      <img src="https://img.shields.io/github/issues-pr/telagod/V0TV?style=flat-square&logo=github" alt="Pull Requests" />
+      <img src="https://img.shields.io/github/issues-pr/telagod/V0TV?logo=github&style=flat-square" alt="Pull Requests" />
     </a>
   </p>
 
