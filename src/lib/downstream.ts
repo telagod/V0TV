@@ -618,7 +618,7 @@ async function handleSpecialSourceDetail(
   }
 
   // 去重并清理链接前缀
-  let cleanedMatches = Array.from(new Set(matches)).map((link: string) => {
+  const cleanedMatches = Array.from(new Set(matches)).map((link: string) => {
     link = link.substring(1); // 去掉开头的 $
     const parenIndex = link.indexOf('(');
     return parenIndex > 0 ? link.substring(0, parenIndex) : link;

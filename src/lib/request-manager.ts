@@ -241,7 +241,7 @@ class CircuitBreaker {
 
 class RequestQueue {
   private queue: RequestQueueItem[] = [];
-  private running: number = 0;
+  private running = 0;
   private hostConcurrency: Map<string, number> = new Map();
 
   async add<T>(fn: () => Promise<T>, host: string): Promise<T> {

@@ -11,7 +11,7 @@ import type { KeyboardShortcut } from '../types/player.types';
  */
 export function useKeyboardShortcuts(
   shortcuts: KeyboardShortcut[],
-  enabled: boolean = true,
+  enabled = true,
 ): void {
   useEffect(() => {
     if (!enabled) return;
