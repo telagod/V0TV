@@ -152,6 +152,7 @@ export interface DoubanResult {
 
 // 资源站配置
 export interface ApiSite {
+  key: string;
   api: string;
   name: string;
   detail?: string;
