@@ -1,8 +1,43 @@
-# Cloudflare Workers 部署故障排除
+# Cloudflare Pages 部署故障排除
 
 ## 常见问题
 
-### 1. 部署失败：`wrangler: not found`
+### 1. 部署失败：`Workers-specific command in a Pages project`
+
+#### 错误信息
+```
+✘ [ERROR] It looks like you've run a Workers-specific command in a Pages project.
+For Pages, please run `wrangler pages deploy` instead.
+```
+
+#### 原因
+Cloudflare Pages 项目配置中设置了错误的 **Deploy command**。
+
+#### 解决方法
+
+**访问项目设置并删除 Deploy command**：
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. 点击左侧菜单 **Workers & Pages**
+3. 找到你的项目（例如：`V0TV`），点击进入
+4. 点击顶部 **Settings** 标签页
+5. 找到 **Builds & deployments** 部分
+
+**正确配置**：
+
+| 配置项 | 正确值 |
+|--------|--------|
+| **Build command** | `pnpm run build` |
+| **Build output directory** | `.next` |
+| **Deploy command** | **删除/留空** ❌ |
+
+**重要**：**Deploy command 字段必须留空或删除**，Cloudflare Pages 会自动部署构建输出。
+
+保存后点击 **Retry deployment**。
+
+---
+
+### 2. 部署失败：`wrangler: not found`
 
 #### 错误信息
 ```
