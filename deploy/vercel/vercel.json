@@ -1,0 +1,33 @@
+{
+  "buildCommand": "pnpm install && pnpm run build",
+  "devCommand": "pnpm run dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "PASSWORD": {
+      "description": "访问密码（必填）",
+      "value": ""
+    },
+    "USERNAME": {
+      "description": "管理员用户名（多用户时需要）",
+      "value": "admin"
+    },
+    "NEXT_PUBLIC_STORAGE_TYPE": {
+      "description": "存储类型：localstorage 或 upstash",
+      "value": "localstorage"
+    },
+    "NEXT_PUBLIC_ENABLE_REGISTER": {
+      "description": "是否允许用户注册",
+      "value": "false"
+    },
+    "UPSTASH_URL": {
+      "description": "Upstash Redis URL（使用upstash存储时需要）",
+      "value": ""
+    },
+    "UPSTASH_TOKEN": {
+      "description": "Upstash Redis Token（使用upstash存储时需要）",
+      "value": ""
+    }
+  }
+}

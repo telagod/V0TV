@@ -1,0 +1,19 @@
+# Cloudflare Workers/Pages 配置文件
+name = "v0tv"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".vercel/output/static"
+
+# D1 数据库绑定（可选，用于多用户和数据同步）
+# 如需使用，请取消注释并填入你的数据库ID
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "v0tv-db"
+# database_id = "your-database-id-here"
+
+# 环境变量（生产环境）
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# 环境变量（预览环境）
+[env.preview]
+vars = { ENVIRONMENT = "preview" }

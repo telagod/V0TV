@@ -94,12 +94,26 @@ export interface IStorage {
   setAdminConfig(config: AdminConfig): Promise<void>;
 }
 
+// 播放源数据结构
+export interface PlaySource {
+  name: string;        // 播放源名称（如 dytt, dyttm3u8, 量子, 非凡等）
+  episodes: string[];  // 集数列表（M3U8链接）
+  priority: number;    // 优先级（1最高，数字越小优先级越高）
+  quality?: string;    // 画质标签（如果API提供，如"高清"、"标清"等）
+}
+
 // 搜索结果数据结构
 export interface SearchResult {
   id: string;
   title: string;
   poster: string;
+
+  // ✅ 新增：支持多播放源
+  playSources: PlaySource[];
+
+  // 保留：主播放源（向后兼容，自动取 playSources[0]）
   episodes: string[];
+
   source: string;
   source_name: string;
   class?: string;

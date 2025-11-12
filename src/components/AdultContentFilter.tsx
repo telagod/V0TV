@@ -68,18 +68,21 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
       if (response.ok) {
         const newState = !isEnabled;
         setIsEnabled(newState);
-        
-        // 强制刷新用户设置缓存 - 向搜索API发送一个空请求来刷新设置
+
+        // 刷新用户设置缓存 - 使用专用API
         try {
-          await fetch('/api/search?q=_cache_refresh_', {
+          await fetch('/api/user/refresh-cache', {
+            method: 'POST',
             headers: {
               'Authorization': `Bearer ${userName}`,
             },
           });
-        } catch {
-          // 忽略刷新缓存的错误
+          console.log('[成人内容过滤] 缓存刷新成功');
+        } catch (refreshError) {
+          // 缓存刷新失败不影响设置更新
+          console.warn('[成人内容过滤] 缓存刷新失败:', refreshError);
         }
-        
+
         onUpdate?.(newState);
       } else {
         const errorData = await response.json();

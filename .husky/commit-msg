@@ -1,5 +1,0 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-# 禁用commitlint检查，让提交更自由
-echo "✅ 提交消息检查已跳过"
