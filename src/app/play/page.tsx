@@ -148,6 +148,7 @@ function PlayPageClient() {
     year: videoData.videoYear,
     poster: videoData.videoCover,
     totalEpisodes: videoData.totalEpisodes,
+    sourceName: videoData.detail?.source_name || '',
   });
 
   // ============================================================================

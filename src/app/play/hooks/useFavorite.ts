@@ -19,13 +19,14 @@ interface UseFavoriteOptions {
   year: string;
   poster: string;
   totalEpisodes: number;
+  sourceName: string;
 }
 
 /**
  * 收藏功能Hook
  */
 export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
-  const { source, id, title, year, poster, totalEpisodes } = options;
+  const { source, id, title, year, poster, totalEpisodes, sourceName } = options;
 
   const [favorited, setFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,13 +67,13 @@ export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
       } else {
         // 添加收藏
         await saveFavorite(source, id, {
-          source,
-          id,
           title,
+          source_name: sourceName,
           year,
-          poster,
-          totalEpisodes,
-          addedAt: Date.now(),
+          cover: poster,
+          total_episodes: totalEpisodes,
+          save_time: Date.now(),
+          search_title: title,
         });
         setFavorited(true);
       }
@@ -81,7 +82,7 @@ export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
     } finally {
       setLoading(false);
     }
-  }, [source, id, title, year, poster, totalEpisodes, favorited, loading]);
+  }, [source, id, title, year, poster, totalEpisodes, sourceName, favorited, loading]);
 
   return {
     favorited,
