@@ -1,0 +1,59 @@
+name: 代码质量检查
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    name: 检查代码质量
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 生成运行时配置
+        run: pnpm run gen:runtime && pnpm run gen:manifest
+
+      - name: ESLint 检查
+        run: pnpm run lint
+        continue-on-error: false
+
+      - name: TypeScript 类型检查
+        run: pnpm run typecheck
+        continue-on-error: false
+
+      - name: Prettier 格式检查
+        run: pnpm run format:check
+        continue-on-error: false
+
+      - name: 构建检查
+        run: pnpm run build
+        env:
+          # 设置必需的环境变量以通过构建
+          PASSWORD: test_password_for_build
+        continue-on-error: false
+
+      - name: 检查完成
+        run: echo "✅ 所有代码质量检查已通过！"

@@ -21,6 +21,18 @@
   </p>
 
   <p>
+    <a href="https://github.com/telagod/V0TV/actions/workflows/code-quality.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/telagod/V0TV/code-quality.yml?branch=main&style=flat-square&logo=github&label=代码质量" alt="Code Quality" />
+    </a>
+    <a href="https://github.com/telagod/V0TV/issues">
+      <img src="https://img.shields.io/github/issues/telagod/V0TV?style=flat-square&logo=github" alt="Issues" />
+    </a>
+    <a href="https://github.com/telagod/V0TV/pulls">
+      <img src="https://img.shields.io/github/issues-pr/telagod/V0TV?style=flat-square&logo=github" alt="Pull Requests" />
+    </a>
+  </p>
+
+  <p>
     <strong>基于 Next.js 14 · TypeScript · Tailwind CSS 构建</strong>
   </p>
 
