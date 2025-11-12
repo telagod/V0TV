@@ -101,9 +101,9 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
               try {
                 if (!source.episodes || source.episodes.length === 0) {
                   return {
-                    key: `${source.source}-${source.id}`,
-                    speed: 0,
-                    latency: 0,
+                    quality: '未知',
+                    loadSpeed: '0',
+                    pingTime: 0,
                     score: 0,
                   };
                 }
@@ -112,16 +112,16 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
                 const info = await getVideoResolutionFromM3u8(testUrl);
 
                 return {
-                  key: `${source.source}-${source.id}`,
-                  speed: info.loadSpeed ? parseFloat(info.loadSpeed) : 0,
-                  latency: info.pingTime || 0,
+                  quality: info.quality || '未知',
+                  loadSpeed: info.loadSpeed || '0',
+                  pingTime: info.pingTime || 0,
                   score: calculateScore(info),
                 };
               } catch {
                 return {
-                  key: `${source.source}-${source.id}`,
-                  speed: 0,
-                  latency: 0,
+                  quality: '未知',
+                  loadSpeed: '0',
+                  pingTime: 0,
                   score: 0,
                 };
               }

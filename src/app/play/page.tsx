@@ -278,6 +278,7 @@ function PlayPageClient() {
       await switchSource({
         newSource,
         newId,
+        newTitle,
         preserveProgress: true,
       });
     },
@@ -368,16 +369,17 @@ function PlayPageClient() {
   // 预计算视频信息（用于换源时显示）
   // ============================================================================
   const precomputedVideoInfo = useMemo(() => {
-    return availableSources.reduce((acc, source) => {
+    const infoMap = new Map<string, { title: string; year: string; episodes: number; quality: string }>();
+    availableSources.forEach((source) => {
       const key = `${source.source}-${source.id}`;
-      acc[key] = {
+      infoMap.set(key, {
         title: source.title,
         year: source.year,
         episodes: source.episodes?.length || 0,
-        quality: source.quality || '',
-      };
-      return acc;
-    }, {} as Record<string, any>);
+        quality: source.playSources?.[0]?.quality || '',
+      });
+    });
+    return infoMap;
   }, [availableSources]);
 
   // ============================================================================

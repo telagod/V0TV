@@ -8,11 +8,17 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
 
-// 定义视频信息类型
+// 定义视频信息类型（包含基本信息和测速信息）
 interface VideoInfo {
+  // 基本信息（来自搜索结果）
+  title?: string;
+  year?: string;
+  episodes?: number;
+
+  // 测速信息（来自实时检测）
   quality: string;
-  loadSpeed: string;
-  pingTime: number;
+  loadSpeed?: string;
+  pingTime?: number;
   hasError?: boolean;
 }
 

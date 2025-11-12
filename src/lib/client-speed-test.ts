@@ -36,6 +36,7 @@ interface SpeedTestResult {
   loadSpeed: string;
   pingTime: number;
   hasError?: boolean;
+  score?: number; // 添加可选的 score 字段
 }
 
 interface SourceWithKey {
