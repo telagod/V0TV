@@ -33,6 +33,9 @@ jobs:
       - name: 生成运行时配置
         run: pnpm run gen:runtime && pnpm run gen:manifest
 
+      - name: 格式化生成的文件
+        run: pnpm run format
+
       - name: ESLint 检查
         run: pnpm run lint
         continue-on-error: false
