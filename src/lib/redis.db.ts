@@ -15,7 +15,7 @@ import {
 const SEARCH_HISTORY_LIMIT = 20;
 
 // 数据类型转换辅助函数
-function ensureString(value: any): string {
+function ensureString(value: unknown): string {
   return String(value);
 }
 
@@ -31,7 +31,7 @@ async function withRetry<T>(
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await operation();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const isLastAttempt = i === maxRetries - 1;
       const isConnectionError =
         err.message?.includes('Connection') ||

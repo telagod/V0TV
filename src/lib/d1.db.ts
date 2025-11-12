@@ -1,4 +1,4 @@
-/* eslint-disable no-console, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable no-console, @typescript-eslint/no-non-null-assertion */
 
 import { AdminConfig } from './admin.types';
 import {
@@ -12,6 +12,32 @@ import {
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
 
+// D1数据库行类型
+interface D1PlayRecordRow {
+  key: string;
+  username: string;
+  title: string;
+  source_name: string;
+  cover: string;
+  year: string;
+  index_episode: number;
+  total_episodes: number;
+  play_time: number;
+  total_time: number;
+  save_time: number;
+  search_title?: string;
+}
+
+interface D1FavoriteRow {
+  username: string;
+  video_id: string;
+  video_title: string;
+  video_year: string;
+  video_cover: string;
+  source_key: string;
+  save_time: number;
+}
+
 // D1 数据库接口
 interface D1Database {
   prepare(sql: string): D1PreparedStatement;
@@ -20,13 +46,13 @@ interface D1Database {
 }
 
 interface D1PreparedStatement {
-  bind(...values: any[]): D1PreparedStatement;
-  first<T = any>(colName?: string): Promise<T | null>;
+  bind(...values: unknown[]): D1PreparedStatement;
+  first<T = unknown>(colName?: string): Promise<T | null>;
   run(): Promise<D1Result>;
-  all<T = any>(): Promise<D1Result<T>>;
+  all<T = unknown>(): Promise<D1Result<T>>;
 }
 
-interface D1Result<T = any> {
+interface D1Result<T = unknown> {
   results: T[];
   success: boolean;
   error?: string;
@@ -136,11 +162,11 @@ export class D1Storage implements IStorage {
           'SELECT * FROM play_records WHERE username = ? ORDER BY save_time DESC'
         )
         .bind(userName)
-        .all<any>();
+        .all<D1PlayRecordRow>();
 
       const records: Record<string, PlayRecord> = {};
 
-      result.results.forEach((row: any) => {
+      result.results.forEach((row) => {
         records[row.key] = {
           title: row.title,
           source_name: row.source_name,
@@ -241,11 +267,11 @@ export class D1Storage implements IStorage {
           'SELECT * FROM favorites WHERE username = ? ORDER BY save_time DESC'
         )
         .bind(userName)
-        .all<any>();
+        .all<D1FavoriteRow>();
 
       const favorites: Record<string, Favorite> = {};
 
-      result.results.forEach((row: any) => {
+      result.results.forEach((row) => {
         favorites[row.key] = {
           title: row.title,
           source_name: row.source_name,

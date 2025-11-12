@@ -101,17 +101,17 @@ class Logger {
   private static isDev = process.env.NODE_ENV === 'development';
   private static minLevel = LogLevel.DEBUG;
 
-  static debug(category: string, message: string, data?: any): void {
+  static debug(category: string, message: string, data?: unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.DEBUG) return;
     console.log(`[${category}] ${message}`, data !== undefined ? data : '');
   }
 
-  static info(category: string, message: string, data?: any): void {
+  static info(category: string, message: string, data?: unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.INFO) return;
     console.log(`[${category}] ${message}`, data !== undefined ? data : '');
   }
 
-  static warn(category: string, message: string, data?: any): void {
+  static warn(category: string, message: string, data?: unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.WARN) return;
     console.warn(
       `[${category}] ⚠️  ${message}`,
@@ -119,7 +119,7 @@ class Logger {
     );
   }
 
-  static error(category: string, message: string, error?: any): void {
+  static error(category: string, message: string, error?: Error | unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.ERROR) return;
     console.error(
       `[${category}] ❌ ${message}`,
@@ -127,7 +127,7 @@ class Logger {
     );
   }
 
-  static success(category: string, message: string, data?: any): void {
+  static success(category: string, message: string, data?: unknown): void {
     if (!this.isDev) return;
     console.log(`[${category}] ✅ ${message}`, data !== undefined ? data : '');
   }

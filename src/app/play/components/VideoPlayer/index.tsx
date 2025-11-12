@@ -7,6 +7,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useVideoPlayer } from '../../hooks/useVideoPlayer';
+import type { ArtPlayerInstance } from '../../types/player.types';
 
 interface VideoPlayerProps {
   /** 视频URL */
@@ -24,7 +25,7 @@ interface VideoPlayerProps {
   /** 播放器准备就绪回调 */
   onReady?: () => void;
   /** 播放器实例创建回调 */
-  onPlayerCreated?: (player: any) => void;
+  onPlayerCreated?: (player: ArtPlayerInstance) => void;
   /** 时间更新回调 */
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   /** 播放结束回调 */
@@ -32,7 +33,7 @@ interface VideoPlayerProps {
   /** 暂停回调 */
   onPause?: () => void;
   /** 错误回调 */
-  onError?: (error: any) => void;
+  onError?: (error: Error | string) => void;
   /** 音量变化回调 */
   onVolumeChange?: (volume: number) => void;
   /** 下一集按钮点击回调 */

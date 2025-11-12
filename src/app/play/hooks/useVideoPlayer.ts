@@ -35,7 +35,7 @@ interface UseVideoPlayerOptions {
   /** 暂停回调 */
   onPause?: () => void;
   /** 错误回调 */
-  onError?: (error: any) => void;
+  onError?: (error: Error | string) => void;
   /** 音量变化回调 */
   onVolumeChange?: (volume: number) => void;
   /** 下一集按钮点击回调 */
@@ -172,25 +172,31 @@ export function useVideoPlayer(
 
             ensureVideoSource(video, url);
 
-            hls.on(Hls.Events.ERROR, function (event: any, data: any) {
-              console.error('HLS Error:', event, data);
-              if (data.fatal) {
-                switch (data.type) {
-                  case Hls.ErrorTypes.NETWORK_ERROR:
-                    console.log('网络错误，尝试恢复...');
-                    hls.startLoad();
-                    break;
-                  case Hls.ErrorTypes.MEDIA_ERROR:
-                    console.log('媒体错误，尝试恢复...');
-                    hls.recoverMediaError();
-                    break;
-                  default:
-                    console.log('无法恢复的错误');
-                    hls.destroy();
-                    break;
+            hls.on(
+              Hls.Events.ERROR,
+              function (
+                _event: string,
+                data: { fatal?: boolean; type?: string; details?: string }
+              ) {
+                console.error('HLS Error:', _event, data);
+                if (data.fatal) {
+                  switch (data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                      console.log('网络错误，尝试恢复...');
+                      hls.startLoad();
+                      break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                      console.log('媒体错误，尝试恢复...');
+                      hls.recoverMediaError();
+                      break;
+                    default:
+                      console.log('无法恢复的错误');
+                      hls.destroy();
+                      break;
+                  }
                 }
               }
-            });
+            );
           },
         },
         icons: {
@@ -246,7 +252,7 @@ export function useVideoPlayer(
         // 视频可播放时触发
       };
 
-      const handleError = (err: any) => {
+      const handleError = (err: Error | string) => {
         console.error('播放器错误:', err);
         onError?.(err);
       };

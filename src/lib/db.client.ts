@@ -366,12 +366,12 @@ const cacheManager = HybridCacheManager.getInstance();
  */
 async function handleDatabaseOperationFailure(
   dataType: 'playRecords' | 'favorites' | 'searchHistory',
-  error: any
+  error: unknown
 ): Promise<void> {
   console.error(`数据库操作失败 (${dataType}):`, error);
 
   try {
-    let freshData: any;
+    let freshData: Record<string, PlayRecord> | Record<string, Favorite> | string[];
     let eventName: string;
 
     switch (dataType) {

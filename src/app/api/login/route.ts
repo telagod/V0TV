@@ -1,9 +1,17 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 
+// Auth数据接口
+interface AuthData {
+  role: 'owner' | 'admin' | 'user';
+  password?: string;
+  username?: string;
+  signature?: string;
+  timestamp?: number;
+}
 
 // 读取存储类型环境变量，默认 localstorage
 const STORAGE_TYPE =
@@ -48,7 +56,7 @@ async function generateAuthCookie(
   role?: 'owner' | 'admin' | 'user',
   includePassword = false
 ): Promise<string> {
-  const authData: any = { role: role || 'user' };
+  const authData: AuthData = { role: role || 'user' };
 
   // 只在需要时包含 password
   if (includePassword && password) {

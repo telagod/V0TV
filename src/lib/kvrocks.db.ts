@@ -1,4 +1,4 @@
-/* eslint-disable no-console, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable no-console, @typescript-eslint/no-non-null-assertion */
 
 import { createClient, RedisClientType } from 'redis';
 
@@ -14,8 +14,17 @@ import {
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
 
+// 用户数据接口
+interface UserData {
+  username: string;
+  password: string;
+  created_at: number;
+  role?: 'owner' | 'admin' | 'user';
+  banned?: boolean;
+}
+
 // 数据类型转换辅助函数
-function ensureStringArray(value: any[]): string[] {
+function ensureStringArray(value: unknown[]): string[] {
   return value.map((item) => String(item));
 }
 
@@ -27,7 +36,7 @@ async function withRetry<T>(
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await operation();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const isLastAttempt = i === maxRetries - 1;
       const isConnectionError =
         err.message?.includes('Connection') ||
@@ -264,12 +273,12 @@ export class KvrocksStorage implements IStorage {
     return 'user_list';
   }
 
-  async getUser(userName: string): Promise<any> {
+  async getUser(userName: string): Promise<UserData | null> {
     const val = await withRetry(() => this.client.get(this.userKey(userName)));
     return val ? JSON.parse(val) : null;
   }
 
-  async setUser(userName: string, userData: any): Promise<void> {
+  async setUser(userName: string, userData: UserData): Promise<void> {
     await withRetry(async () => {
       await this.client.set(this.userKey(userName), JSON.stringify(userData));
       // 同时添加到用户列表

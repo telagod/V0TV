@@ -64,10 +64,10 @@ interface CacheEntry<T> {
   ttl: number;
 }
 
-interface RequestQueueItem {
-  fn: () => Promise<any>;
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+interface RequestQueueItem<T = unknown> {
+  fn: () => Promise<T>;
+  resolve: (value: T) => void;
+  reject: (error: Error) => void;
   host: string;
 }
 
@@ -315,12 +315,12 @@ async function fetchWithRetry<T>(
     ],
   } = options;
 
-  let lastError: any;
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
 
       // 最后一次尝试，直接抛出
@@ -424,7 +424,7 @@ class RequestManager {
               }
 
               const contentType = response.headers.get('content-type');
-              let data: any;
+              let data: unknown;
 
               if (contentType?.includes('application/json')) {
                 data = await response.json();
@@ -433,7 +433,7 @@ class RequestManager {
               }
 
               return data as T;
-            } catch (error: any) {
+            } catch (error: unknown) {
               clearTimeout(timeoutId);
               throw error;
             }

@@ -1,9 +1,16 @@
-/* eslint-disable no-console,@typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 
+// Auth数据接口
+interface AuthData {
+  role: 'owner' | 'admin' | 'user';
+  username: string;
+  timestamp: number;
+  signature?: string;
+}
 
 // 读取存储类型环境变量，默认 localstorage
 const STORAGE_TYPE =
@@ -43,7 +50,7 @@ async function generateSignature(
 
 // 生成认证Cookie（带签名）
 async function generateAuthCookie(username: string): Promise<string> {
-  const authData: any = {
+  const authData: AuthData = {
     role: 'user',
     username,
     timestamp: Date.now(),

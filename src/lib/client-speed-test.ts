@@ -42,7 +42,7 @@ interface SpeedTestResult {
 interface SourceWithKey {
   source: string;
   id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============================================================================
@@ -197,7 +197,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
           );
 
           return { sourceKey, result };
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.warn(`[客户端测速] ❌ ${sourceKey} 失败: ${error.message}`);
 
           return {

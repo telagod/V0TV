@@ -4,6 +4,7 @@
 
 import { SearchResult } from '@/lib/types';
 import Artplayer from 'artplayer';
+import Hls from 'hls.js';
 
 // ============================================================================
 // 播放器类型
@@ -15,11 +16,46 @@ import Artplayer from 'artplayer';
 export type ArtPlayerInstance = Artplayer;
 
 /**
+ * HLS 错误数据类型
+ */
+export interface HlsErrorData {
+  type: string;
+  details: string;
+  fatal: boolean;
+  url?: string;
+  response?: {
+    code: number;
+    text: string;
+  };
+  reason?: string;
+  level?: string;
+  parent?: string;
+  buffer?: number;
+  error?: Error;
+}
+
+/**
+ * HLS 片段加载数据类型
+ */
+export interface HlsFragLoadedData {
+  frag: {
+    url: string;
+    duration: number;
+    level: number;
+    sn: number;
+    start: number;
+    cc: number;
+  };
+  payload: ArrayBuffer;
+  networkDetails?: unknown;
+}
+
+/**
  * 扩展 HTMLVideoElement 类型以支持 hls 属性
  */
 declare global {
   interface HTMLVideoElement {
-    hls?: any;
+    hls?: Hls;
   }
 }
 

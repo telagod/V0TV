@@ -190,46 +190,58 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
       });
 
       // 监听片段加载完成，只需首个分片即可计算速度
-      hls.on(Hls.Events.FRAG_LOADED, (event: any, data: any) => {
-        if (
-          fragmentStartTime > 0 &&
-          data &&
-          data.payload &&
-          !hasSpeedCalculated
-        ) {
-          const loadTime = performance.now() - fragmentStartTime;
-          const size = data.payload.byteLength || 0;
+      hls.on(
+        Hls.Events.FRAG_LOADED,
+        (
+          _event: string,
+          data: { payload?: ArrayBuffer; frag?: unknown }
+        ) => {
+          if (
+            fragmentStartTime > 0 &&
+            data &&
+            data.payload &&
+            !hasSpeedCalculated
+          ) {
+            const loadTime = performance.now() - fragmentStartTime;
+            const size = data.payload.byteLength || 0;
 
-          if (loadTime > 0 && size > 0) {
-            const speedKBps = size / 1024 / (loadTime / 1000);
+            if (loadTime > 0 && size > 0) {
+              const speedKBps = size / 1024 / (loadTime / 1000);
 
-            // 立即计算速度，无需等待更多分片
-            const avgSpeedKBps = speedKBps;
+              // 立即计算速度，无需等待更多分片
+              const avgSpeedKBps = speedKBps;
 
-            if (avgSpeedKBps >= 1024) {
-              actualLoadSpeed = `${(avgSpeedKBps / 1024).toFixed(1)} MB/s`;
-            } else {
-              actualLoadSpeed = `${avgSpeedKBps.toFixed(1)} KB/s`;
+              if (avgSpeedKBps >= 1024) {
+                actualLoadSpeed = `${(avgSpeedKBps / 1024).toFixed(1)} MB/s`;
+              } else {
+                actualLoadSpeed = `${avgSpeedKBps.toFixed(1)} KB/s`;
+              }
+              hasSpeedCalculated = true;
+              checkAndResolve(); // 尝试返回结果
             }
-            hasSpeedCalculated = true;
-            checkAndResolve(); // 尝试返回结果
           }
         }
-      });
+      );
 
       hls.loadSource(m3u8Url);
       hls.attachMedia(video);
 
       // 监听hls.js错误
-      hls.on(Hls.Events.ERROR, (event: any, data: any) => {
-        console.error('HLS错误:', data);
-        if (data.fatal) {
-          clearTimeout(timeout);
-          hls.destroy();
-          video.remove();
-          reject(new Error(`HLS播放失败: ${data.type}`));
+      hls.on(
+        Hls.Events.ERROR,
+        (
+          _event: string,
+          data: { fatal?: boolean; type?: string; details?: string }
+        ) => {
+          console.error('HLS错误:', data);
+          if (data.fatal) {
+            clearTimeout(timeout);
+            hls.destroy();
+            video.remove();
+            reject(new Error(`HLS播放失败: ${data.type}`));
+          }
         }
-      });
+      );
 
       // 监听视频元数据加载完成
       video.onloadedmetadata = () => {

@@ -282,7 +282,7 @@ export default function PlayPageClient() {
   // ============================================================================
   // 播放器事件处理
   // ============================================================================
-  const handlePlayerCreated = useCallback((player: any) => {
+  const handlePlayerCreated = useCallback((player: ArtPlayerInstance) => {
     playerRef.current = player;
   }, []);
 
@@ -316,7 +316,7 @@ export default function PlayPageClient() {
     deleteRecord,
   ]);
 
-  const handlePlayerError = useCallback((error: any) => {
+  const handlePlayerError = useCallback((error: Error | string) => {
     console.error('播放器错误:', error);
   }, []);
 

@@ -100,7 +100,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
       `[CORS检测] ${domain} - ${supported ? '✅ 支持CORS' : '❌ 不支持CORS'}`
     );
     return supported;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // CORS错误或网络错误
     const isCorsError =
       error.message?.includes('CORS') ||
@@ -157,7 +157,7 @@ async function fetchDirectly<T = any>(
     const data = (await response.json()) as T;
     console.log(`[客户端直连] ✅ 成功`);
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
 
     // 判断是否为CORS错误
@@ -213,7 +213,7 @@ async function fetchViaProxy<T = any>(
     const data = (await response.json()) as T;
     console.log(`[服务端代理] ✅ 成功`);
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
     console.error(`[服务端代理] ❌ 失败: ${error.message}`);
     throw error;
@@ -251,7 +251,7 @@ async function smartFetch<T = any>(
   try {
     const data = await fetchDirectly<T>(apiUrl, DEFAULT_CONFIG.clientTimeout);
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 判断是否为CORS错误
     const isCorsError =
       error.message?.includes('CORS') ||
