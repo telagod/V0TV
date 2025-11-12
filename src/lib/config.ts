@@ -392,28 +392,30 @@ export async function getCacheTime(): Promise<number> {
   return config.SiteConfig.SiteInterfaceCacheTime || 7200;
 }
 
-export async function getAvailableApiSites(filterAdult = false): Promise<ApiSite[]> {
+export async function getAvailableApiSites(
+  filterAdult = false
+): Promise<ApiSite[]> {
   const config = await getConfig();
-  
+
   // 防御性检查：确保 SourceConfig 存在且为数组
   if (!config.SourceConfig || !Array.isArray(config.SourceConfig)) {
-    console.warn('SourceConfig is missing or not an array, returning empty array');
+    console.warn(
+      'SourceConfig is missing or not an array, returning empty array'
+    );
     return [];
   }
-  
+
   // 防御性处理：为每个源确保 is_adult 字段存在
-  let sites = config.SourceConfig
-    .filter((s) => !s.disabled)
-    .map((s) => ({
-      ...s,
-      is_adult: s.is_adult === true // 严格检查，只有明确为 true 的才是成人内容
-    }));
-  
+  let sites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
+    ...s,
+    is_adult: s.is_adult === true, // 严格检查，只有明确为 true 的才是成人内容
+  }));
+
   // 如果需要过滤成人内容，则排除标记为成人内容的资源站
   if (filterAdult) {
     sites = sites.filter((s) => !s.is_adult);
   }
-  
+
   return sites.map((s) => ({
     key: s.key,
     name: s.name,
@@ -423,18 +425,22 @@ export async function getAvailableApiSites(filterAdult = false): Promise<ApiSite
 }
 
 // 根据用户设置动态获取可用资源站（你的想法实现）
-export async function getFilteredApiSites(userName?: string): Promise<ApiSite[]> {
+export async function getFilteredApiSites(
+  userName?: string
+): Promise<ApiSite[]> {
   const config = await getConfig();
-  
+
   // 防御性检查：确保 SourceConfig 存在且为数组
   if (!config.SourceConfig || !Array.isArray(config.SourceConfig)) {
-    console.warn('SourceConfig is missing or not an array, returning empty array');
+    console.warn(
+      'SourceConfig is missing or not an array, returning empty array'
+    );
     return [];
   }
-  
+
   // 默认过滤成人内容
   let shouldFilterAdult = true;
-  
+
   // 如果提供了用户名，获取用户设置
   if (userName) {
     try {
@@ -446,20 +452,18 @@ export async function getFilteredApiSites(userName?: string): Promise<ApiSite[]>
       console.warn('Failed to get user settings, using default filter:', error);
     }
   }
-  
+
   // 防御性处理：为每个源确保 is_adult 字段存在
-  let sites = config.SourceConfig
-    .filter((s) => !s.disabled)
-    .map((s) => ({
-      ...s,
-      is_adult: s.is_adult === true // 严格检查，只有明确为 true 的才是成人内容
-    }));
-  
+  let sites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
+    ...s,
+    is_adult: s.is_adult === true, // 严格检查，只有明确为 true 的才是成人内容
+  }));
+
   // 根据用户设置动态过滤成人内容源
   if (shouldFilterAdult) {
     sites = sites.filter((s) => !s.is_adult);
   }
-  
+
   return sites.map((s) => ({
     key: s.key,
     name: s.name,
@@ -471,17 +475,20 @@ export async function getFilteredApiSites(userName?: string): Promise<ApiSite[]>
 // 获取成人内容资源站
 export async function getAdultApiSites(): Promise<ApiSite[]> {
   const config = await getConfig();
-  
+
   // 防御性检查：确保 SourceConfig 存在且为数组
   if (!config.SourceConfig || !Array.isArray(config.SourceConfig)) {
-    console.warn('SourceConfig is missing or not an array, returning empty array');
+    console.warn(
+      'SourceConfig is missing or not an array, returning empty array'
+    );
     return [];
   }
-  
+
   // 防御性处理：严格检查成人内容标记
-  const adultSites = config.SourceConfig
-    .filter((s) => !s.disabled && s.is_adult === true); // 只有明确为 true 的才被认为是成人内容
-  
+  const adultSites = config.SourceConfig.filter(
+    (s) => !s.disabled && s.is_adult === true
+  ); // 只有明确为 true 的才被认为是成人内容
+
   return adultSites.map((s) => ({
     key: s.key,
     name: s.name,

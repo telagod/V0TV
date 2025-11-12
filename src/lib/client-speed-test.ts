@@ -143,9 +143,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
 
   // 如果源数量少，不需要采样
   if (sources.length <= finalConfig.SAMPLE_SIZE) {
-    console.log(
-      `[客户端测速] 源数量较少(${sources.length}个)，全部测速`
-    );
+    console.log(`[客户端测速] 源数量较少(${sources.length}个)，全部测速`);
   } else {
     console.log(
       `[客户端测速] 从 ${sources.length} 个源中采样 ${finalConfig.SAMPLE_SIZE} 个进行测速`
@@ -173,7 +171,11 @@ export async function smartSpeedTest<T extends SourceWithKey>(
     );
 
     console.log(
-      `[客户端测速] 批次 ${Math.floor(batchIndex / finalConfig.BATCH_SIZE) + 1}/${Math.ceil(samplingSources.length / finalConfig.BATCH_SIZE)}，测速 ${batch.length} 个源`
+      `[客户端测速] 批次 ${
+        Math.floor(batchIndex / finalConfig.BATCH_SIZE) + 1
+      }/${Math.ceil(samplingSources.length / finalConfig.BATCH_SIZE)}，测速 ${
+        batch.length
+      } 个源`
     );
 
     // 批内并发（受并发限制器控制）
@@ -195,9 +197,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
 
           return { sourceKey, result };
         } catch (error: any) {
-          console.warn(
-            `[客户端测速] ❌ ${sourceKey} 失败: ${error.message}`
-          );
+          console.warn(`[客户端测速] ❌ ${sourceKey} 失败: ${error.message}`);
 
           return {
             sourceKey,
@@ -230,7 +230,9 @@ export async function smartSpeedTest<T extends SourceWithKey>(
   }
 
   console.log(
-    `[客户端测速] 完成，成功 ${Array.from(resultsMap.values()).filter((r) => !r.hasError).length}/${samplingSources.length}`
+    `[客户端测速] 完成，成功 ${
+      Array.from(resultsMap.values()).filter((r) => !r.hasError).length
+    }/${samplingSources.length}`
   );
 
   return resultsMap;

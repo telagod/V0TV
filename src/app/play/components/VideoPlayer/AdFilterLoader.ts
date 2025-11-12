@@ -52,7 +52,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 
     // 2. 检测广告URL特征关键词
     const hasAdKeyword = adKeywords.some((keyword) =>
-      lineLower.includes(keyword),
+      lineLower.includes(keyword)
     );
     if (hasAdKeyword && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       if (process.env.NODE_ENV === 'development') {
@@ -64,7 +64,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 
     // 3. 检测广告URL正则模式
     const matchesAdPattern = adPatterns.some((pattern) =>
-      pattern.test(lineLower),
+      pattern.test(lineLower)
     );
     if (matchesAdPattern && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       if (process.env.NODE_ENV === 'development') {
@@ -79,7 +79,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
       // 只跳过第一个片段，避免误删
       if (process.env.NODE_ENV === 'development') {
         console.log(
-          `[广告过滤] DISCONTINUITY后片段: ${line.substring(0, 50)}...`,
+          `[广告过滤] DISCONTINUITY后片段: ${line.substring(0, 50)}...`
         );
       }
       skipNext = false;
@@ -129,7 +129,7 @@ export class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
         callbacks.onSuccess = function (
           response: any,
           stats: any,
-          context: any,
+          context: any
         ) {
           // 如果是m3u8文件，处理内容以移除广告分段
           if (response.data && typeof response.data === 'string') {

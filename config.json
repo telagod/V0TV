@@ -4,7 +4,7 @@
     "regular_site": {
       "api": " ",
       "name": "常规影视站",
-      "detail": " ",	  
+      "detail": " ",
       "is_adult": false
     },
     "adult_site": {

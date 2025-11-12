@@ -75,7 +75,9 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
   // 检查缓存
   if (DEFAULT_CONFIG.cacheCorsCheck && corsCache.has(domain)) {
     const cached = corsCache.get(domain)!;
-    console.log(`[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`);
+    console.log(
+      `[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`
+    );
     return cached;
   }
 
@@ -94,19 +96,26 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
       corsCache.set(domain, supported);
     }
 
-    console.log(`[CORS检测] ${domain} - ${supported ? '✅ 支持CORS' : '❌ 不支持CORS'}`);
+    console.log(
+      `[CORS检测] ${domain} - ${supported ? '✅ 支持CORS' : '❌ 不支持CORS'}`
+    );
     return supported;
   } catch (error: any) {
     // CORS错误或网络错误
-    const isCorsError = error.message?.includes('CORS') ||
-                       error.message?.includes('Origin') ||
-                       error.name === 'TypeError';
+    const isCorsError =
+      error.message?.includes('CORS') ||
+      error.message?.includes('Origin') ||
+      error.name === 'TypeError';
 
     if (DEFAULT_CONFIG.cacheCorsCheck) {
       corsCache.set(domain, false);
     }
 
-    console.log(`[CORS检测] ${domain} - ❌ 不支持CORS (${isCorsError ? 'CORS错误' : '网络错误'})`);
+    console.log(
+      `[CORS检测] ${domain} - ❌ 不支持CORS (${
+        isCorsError ? 'CORS错误' : '网络错误'
+      })`
+    );
     return false;
   }
 }
@@ -145,19 +154,21 @@ async function fetchDirectly<T = any>(
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json() as T;
+    const data = (await response.json()) as T;
     console.log(`[客户端直连] ✅ 成功`);
     return data;
-
   } catch (error: any) {
     clearTimeout(timeoutId);
 
     // 判断是否为CORS错误
-    const isCorsError = error.message?.includes('CORS') ||
-                       error.message?.includes('Origin') ||
-                       error.name === 'TypeError';
+    const isCorsError =
+      error.message?.includes('CORS') ||
+      error.message?.includes('Origin') ||
+      error.name === 'TypeError';
 
-    console.warn(`[客户端直连] ❌ 失败: ${isCorsError ? 'CORS限制' : error.message}`);
+    console.warn(
+      `[客户端直连] ❌ 失败: ${isCorsError ? 'CORS限制' : error.message}`
+    );
     throw error;
   }
 }
@@ -199,10 +210,9 @@ async function fetchViaProxy<T = any>(
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json() as T;
+    const data = (await response.json()) as T;
     console.log(`[服务端代理] ✅ 成功`);
     return data;
-
   } catch (error: any) {
     clearTimeout(timeoutId);
     console.error(`[服务端代理] ❌ 失败: ${error.message}`);
@@ -243,14 +253,17 @@ async function smartFetch<T = any>(
     return data;
   } catch (error: any) {
     // 判断是否为CORS错误
-    const isCorsError = error.message?.includes('CORS') ||
-                       error.message?.includes('Origin') ||
-                       error.name === 'TypeError';
+    const isCorsError =
+      error.message?.includes('CORS') ||
+      error.message?.includes('Origin') ||
+      error.name === 'TypeError';
 
     if (isCorsError) {
       console.log('[智能请求] CORS失败，自动降级到服务端代理');
     } else {
-      console.log(`[智能请求] 客户端请求失败(${error.message})，降级到服务端代理`);
+      console.log(
+        `[智能请求] 客户端请求失败(${error.message})，降级到服务端代理`
+      );
     }
 
     // 降级到服务端代理
@@ -354,7 +367,7 @@ export function getCorsStats(): {
   unsupported: number;
 } {
   const total = corsCache.size;
-  const supported = Array.from(corsCache.values()).filter(v => v).length;
+  const supported = Array.from(corsCache.values()).filter((v) => v).length;
   const unsupported = total - supported;
 
   return { total, supported, unsupported };

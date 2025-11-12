@@ -636,7 +636,9 @@ const VideoSourceConfig = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [orderChanged, setOrderChanged] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
-  const [selectedSources, setSelectedSources] = useState<Set<string>>(new Set());
+  const [selectedSources, setSelectedSources] = useState<Set<string>>(
+    new Set()
+  );
   const [newSource, setNewSource] = useState<DataSource>({
     name: '',
     key: '',
@@ -704,12 +706,12 @@ const VideoSourceConfig = ({
 
   const handleDelete = (key: string) => {
     // 检查是否为示例源
-    const source = sources.find(s => s.key === key);
+    const source = sources.find((s) => s.key === key);
     if (source?.from === 'config') {
       showError('示例源不可删除，这些源用于演示功能');
       return;
     }
-    
+
     callSourceApi({ action: 'delete', key }).catch(() => {
       console.error('操作失败', 'delete', key);
     });
@@ -761,8 +763,10 @@ const VideoSourceConfig = ({
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       // 只选择可删除的视频源（排除示例源）
-      const deletableSources = sources.filter(source => source.from !== 'config');
-      setSelectedSources(new Set(deletableSources.map(source => source.key)));
+      const deletableSources = sources.filter(
+        (source) => source.from !== 'config'
+      );
+      setSelectedSources(new Set(deletableSources.map((source) => source.key)));
     } else {
       setSelectedSources(new Set());
     }
@@ -783,7 +787,7 @@ const VideoSourceConfig = ({
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
       confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280'
+      cancelButtonColor: '#6b7280',
     });
 
     if (!result.isConfirmed) return;
@@ -798,7 +802,7 @@ const VideoSourceConfig = ({
       try {
         await callSourceApi({ action: 'delete', key });
         successCount++;
-        
+
         // 显示进度
         if (selectedArray.length > 1) {
           Swal.update({
@@ -806,13 +810,17 @@ const VideoSourceConfig = ({
             text: `进度: ${i + 1}/${selectedArray.length}`,
             showConfirmButton: false,
             showCancelButton: false,
-            allowOutsideClick: false
+            allowOutsideClick: false,
           });
         }
       } catch (error) {
         errorCount++;
-        const sourceName = sources.find(s => s.key === key)?.name || key;
-        errors.push(`${sourceName}: ${error instanceof Error ? error.message : '删除失败'}`);
+        const sourceName = sources.find((s) => s.key === key)?.name || key;
+        errors.push(
+          `${sourceName}: ${
+            error instanceof Error ? error.message : '删除失败'
+          }`
+        );
       }
     }
 
@@ -828,26 +836,34 @@ const VideoSourceConfig = ({
           <div class="text-left">
             <p class="text-green-600 mb-2">✅ 成功删除: ${successCount} 个</p>
             <p class="text-red-600 mb-2">❌ 删除失败: ${errorCount} 个</p>
-            ${errors.length > 0 ? `
+            ${
+              errors.length > 0
+                ? `
               <details class="mt-3">
                 <summary class="cursor-pointer text-gray-600">查看错误详情</summary>
                 <div class="mt-2 text-sm text-gray-500 max-h-32 overflow-y-auto">
-                  ${errors.map(err => `<div class="py-1">${err}</div>`).join('')}
+                  ${errors
+                    .map((err) => `<div class="py-1">${err}</div>`)
+                    .join('')}
                 </div>
               </details>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         `,
         icon: successCount > 0 ? 'warning' : 'error',
-        confirmButtonText: '确定'
+        confirmButtonText: '确定',
       });
-      
+
       // 清空已成功删除的选择项
       const failedKeys = new Set(
-        errors.map(err => {
-          const keyMatch = err.split(':')[0];
-          return sources.find(s => s.name === keyMatch)?.key;
-        }).filter((key): key is string => Boolean(key))
+        errors
+          .map((err) => {
+            const keyMatch = err.split(':')[0];
+            return sources.find((s) => s.name === keyMatch)?.key;
+          })
+          .filter((key): key is string => Boolean(key))
       );
       setSelectedSources(failedKeys);
     }
@@ -861,17 +877,17 @@ const VideoSourceConfig = ({
       // 构建符合要求的配置格式
       const exportConfig = {
         cache_time: config?.SiteConfig?.SiteInterfaceCacheTime || 7200,
-        api_site: {} as Record<string, any>
+        api_site: {} as Record<string, any>,
       };
 
       // 将视频源转换为config.json格式
-      sources.forEach(source => {
+      sources.forEach((source) => {
         if (!source.disabled) {
           exportConfig.api_site[source.key] = {
             api: source.api,
             name: source.name,
             ...(source.detail && { detail: source.detail }),
-            ...(source.is_adult !== undefined && { is_adult: source.is_adult }) // 确保导出 is_adult 字段
+            ...(source.is_adult !== undefined && { is_adult: source.is_adult }), // 确保导出 is_adult 字段
           };
         }
       });
@@ -880,7 +896,7 @@ const VideoSourceConfig = ({
       const dataStr = JSON.stringify(exportConfig, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `config_${new Date().toISOString().split('T')[0]}.json`;
@@ -891,7 +907,9 @@ const VideoSourceConfig = ({
 
       showSuccess('配置文件已导出到下载文件夹');
     } catch (error) {
-      showError('导出失败: ' + (error instanceof Error ? error.message : '未知错误'));
+      showError(
+        '导出失败: ' + (error instanceof Error ? error.message : '未知错误')
+      );
     }
   };
 
@@ -913,7 +931,10 @@ const VideoSourceConfig = ({
         const importConfig = JSON.parse(content);
 
         // 验证配置格式
-        if (!importConfig.api_site || typeof importConfig.api_site !== 'object') {
+        if (
+          !importConfig.api_site ||
+          typeof importConfig.api_site !== 'object'
+        ) {
           showError('配置文件格式错误：缺少 api_site 字段');
           return;
         }
@@ -921,13 +942,15 @@ const VideoSourceConfig = ({
         // 确认导入
         const result = await Swal.fire({
           title: '确认导入',
-          text: `检测到 ${Object.keys(importConfig.api_site).length} 个视频源，是否继续导入？`,
+          text: `检测到 ${
+            Object.keys(importConfig.api_site).length
+          } 个视频源，是否继续导入？`,
           icon: 'question',
           showCancelButton: true,
           confirmButtonText: '确认导入',
           cancelButtonText: '取消',
           confirmButtonColor: '#059669',
-          cancelButtonColor: '#6b7280'
+          cancelButtonColor: '#6b7280',
         });
 
         if (!result.isConfirmed) return;
@@ -940,12 +963,21 @@ const VideoSourceConfig = ({
         for (const [key, source] of Object.entries(importConfig.api_site)) {
           try {
             // 类型检查和验证
-            if (!source || typeof source !== 'object' || Array.isArray(source)) {
+            if (
+              !source ||
+              typeof source !== 'object' ||
+              Array.isArray(source)
+            ) {
               throw new Error(`${key}: 无效的配置对象`);
             }
-            
-            const sourceObj = source as { api?: string; name?: string; detail?: string; is_adult?: boolean };
-            
+
+            const sourceObj = source as {
+              api?: string;
+              name?: string;
+              detail?: string;
+              is_adult?: boolean;
+            };
+
             if (!sourceObj.api || !sourceObj.name) {
               throw new Error(`${key}: 缺少必要字段 api 或 name`);
             }
@@ -956,12 +988,14 @@ const VideoSourceConfig = ({
               name: sourceObj.name,
               api: sourceObj.api,
               detail: sourceObj.detail || '',
-              is_adult: sourceObj.is_adult || false // 确保处理 is_adult 字段
+              is_adult: sourceObj.is_adult || false, // 确保处理 is_adult 字段
             });
             successCount++;
           } catch (error) {
             errorCount++;
-            errors.push(`${key}: ${error instanceof Error ? error.message : '未知错误'}`);
+            errors.push(
+              `${key}: ${error instanceof Error ? error.message : '未知错误'}`
+            );
           }
         }
 
@@ -975,23 +1009,31 @@ const VideoSourceConfig = ({
               <div class="text-left">
                 <p class="text-green-600 mb-2">✅ 成功导入: ${successCount} 个</p>
                 <p class="text-red-600 mb-2">❌ 导入失败: ${errorCount} 个</p>
-                ${errors.length > 0 ? `
+                ${
+                  errors.length > 0
+                    ? `
                   <details class="mt-3">
                     <summary class="cursor-pointer text-gray-600">查看错误详情</summary>
                     <div class="mt-2 text-sm text-gray-500 max-h-32 overflow-y-auto">
-                      ${errors.map(err => `<div class="py-1">${err}</div>`).join('')}
+                      ${errors
+                        .map((err) => `<div class="py-1">${err}</div>`)
+                        .join('')}
                     </div>
                   </details>
-                ` : ''}
+                `
+                    : ''
+                }
               </div>
             `,
             icon: successCount > 0 ? 'warning' : 'error',
-            confirmButtonText: '确定'
+            confirmButtonText: '确定',
           });
         }
-
       } catch (error) {
-        showError('配置文件解析失败: ' + (error instanceof Error ? error.message : '文件格式错误'));
+        showError(
+          '配置文件解析失败: ' +
+            (error instanceof Error ? error.message : '文件格式错误')
+        );
       }
     };
 
@@ -1000,7 +1042,7 @@ const VideoSourceConfig = ({
     };
 
     reader.readAsText(file);
-    
+
     // 清空input，允许重复选择同一文件
     event.target.value = '';
   };
@@ -1050,7 +1092,7 @@ const VideoSourceConfig = ({
         >
           <GripVertical size={16} />
         </td>
-        
+
         {/* 批量选择复选框 */}
         {batchMode && (
           <td className='px-4 py-4 whitespace-nowrap'>
@@ -1064,10 +1106,10 @@ const VideoSourceConfig = ({
           </td>
         )}
         <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100'>
-          <div className="flex items-center space-x-2">
+          <div className='flex items-center space-x-2'>
             <span>{source.name}</span>
             {source.from === 'config' && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+              <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300'>
                 示例源
               </span>
             )}
@@ -1142,7 +1184,7 @@ const VideoSourceConfig = ({
         <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
           视频源列表
         </h4>
-        
+
         <div className='flex items-center gap-2 flex-wrap'>
           {/* 批量操作区域 */}
           {!batchMode ? (
@@ -1154,7 +1196,7 @@ const VideoSourceConfig = ({
               >
                 ☑️ 批量选择
               </button>
-              
+
               {/* 导入导出按钮 */}
               <div className='flex items-center gap-1 border-l border-gray-300 dark:border-gray-600 pl-2'>
                 <label className='relative'>
@@ -1168,7 +1210,7 @@ const VideoSourceConfig = ({
                     📂 导入
                   </span>
                 </label>
-                
+
                 <button
                   onClick={handleExportConfig}
                   className='inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors'
@@ -1176,7 +1218,7 @@ const VideoSourceConfig = ({
                   📤 导出
                 </button>
               </div>
-              
+
               {/* 添加视频源按钮 */}
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -1194,12 +1236,12 @@ const VideoSourceConfig = ({
               >
                 ❌ 退出批量
               </button>
-              
+
               <div className='flex items-center gap-1 border-l border-gray-300 dark:border-gray-600 pl-2'>
                 <span className='text-xs text-gray-500 dark:text-gray-400'>
                   已选 {selectedSources.size} 个
                 </span>
-                
+
                 <button
                   onClick={handleBatchDelete}
                   disabled={selectedSources.size === 0}
@@ -1252,7 +1294,7 @@ const VideoSourceConfig = ({
               }
               className='px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
             />
-            
+
             {/* 成人内容标记复选框 */}
             <div className='flex items-center space-x-2'>
               <input
@@ -1260,7 +1302,10 @@ const VideoSourceConfig = ({
                 id='is_adult'
                 checked={newSource.is_adult || false}
                 onChange={(e) =>
-                  setNewSource((prev) => ({ ...prev, is_adult: e.target.checked }))
+                  setNewSource((prev) => ({
+                    ...prev,
+                    is_adult: e.target.checked,
+                  }))
                 }
                 className='w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600'
               />
@@ -1291,19 +1336,22 @@ const VideoSourceConfig = ({
             <tr>
               {/* 拖拽手柄列 */}
               <th className='w-8' />
-              
+
               {/* 批量选择列 */}
               {batchMode && (
                 <th className='w-12 px-4 py-3'>
                   <input
                     type='checkbox'
-                    checked={selectedSources.size > 0 && selectedSources.size === sources.length}
+                    checked={
+                      selectedSources.size > 0 &&
+                      selectedSources.size === sources.length
+                    }
                     onChange={(e) => handleSelectAll(e.target.checked)}
                     className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600'
                   />
                 </th>
               )}
-              
+
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                 名称
               </th>

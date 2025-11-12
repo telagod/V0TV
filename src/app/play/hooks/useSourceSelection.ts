@@ -23,7 +23,7 @@ interface UseSourceSelectionOptions {
  * 源选择Hook
  */
 export function useSourceSelection(
-  options: UseSourceSelectionOptions,
+  options: UseSourceSelectionOptions
 ): UseSourceSelectionReturn {
   const { searchTitle, searchType, onSuccess, onError } = options;
 
@@ -57,7 +57,7 @@ export function useSourceSelection(
         searchFromApi(site, searchTitle).catch((err) => {
           console.error(`${site.name} 搜索失败:`, err);
           return [];
-        }),
+        })
       );
 
       const searchResults = await Promise.all(searchPromises);
@@ -66,8 +66,8 @@ export function useSourceSelection(
       // 按源名称去重
       const uniqueResults = Array.from(
         new Map(
-          allResults.map((item) => [`${item.source}-${item.id}`, item]),
-        ).values(),
+          allResults.map((item) => [`${item.source}-${item.id}`, item])
+        ).values()
       );
 
       setSources(uniqueResults);
@@ -100,7 +100,7 @@ export function useSourceSelection(
       try {
         // 从可用源中查找目标源
         let newDetail = sources.find(
-          (s) => s.source === newSource && s.id === newId,
+          (s) => s.source === newSource && s.id === newId
         );
 
         // 如果在已搜索的源中找不到，重新获取详情
@@ -140,7 +140,7 @@ export function useSourceSelection(
         setLoading(false);
       }
     },
-    [sources, onSuccess, onError],
+    [sources, onSuccess, onError]
   );
 
   return {

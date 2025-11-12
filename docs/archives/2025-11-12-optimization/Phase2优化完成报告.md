@@ -8,32 +8,34 @@
 
 **优化时间**: 2025-11-12
 **优化阶段**: Phase 2 - 扩展优化
-**修改文件数**: 1个
-**新增代码**: 180行
-**修改代码**: 120行
+**修改文件数**: 1 个
+**新增代码**: 180 行
+**修改代码**: 120 行
 **测试状态**: ✅ 全部通过
 
 ---
 
 ## 🎯 优化的核心内容
 
-### 优化1: 特殊源处理器配置系统 ✅
+### 优化 1: 特殊源处理器配置系统 ✅
 
 **位置**: `src/lib/downstream.ts:20-79`
 
 **问题描述**:
+
 - 原代码只硬编码支持 ffzy（非凡资源）
 - 无法轻松添加新的特殊源（如量子、采集等）
 - 扩展性差，需要修改多处代码
 
 **优化方案**:
+
 ```typescript
 // ✅ 创建特殊源处理器接口
 interface SpecialSourceHandler {
-  key: string;              // 源标识
-  name: string;             // 源名称
+  key: string; // 源标识
+  name: string; // 源名称
   detailUrlTemplate: string; // 详情页URL模板
-  m3u8Pattern: RegExp;      // M3U8链接提取正则
+  m3u8Pattern: RegExp; // M3U8链接提取正则
   fallbackPattern?: RegExp; // 降级正则
 }
 
@@ -67,30 +69,35 @@ function isSpecialSource(apiSite: ApiSite): boolean {
   return !!(apiSite.detail || SPECIAL_SOURCE_HANDLERS[apiSite.key]);
 }
 
-function getSpecialSourceHandler(apiSite: ApiSite): SpecialSourceHandler | null {
+function getSpecialSourceHandler(
+  apiSite: ApiSite
+): SpecialSourceHandler | null {
   return SPECIAL_SOURCE_HANDLERS[apiSite.key] || null;
 }
 ```
 
 **优化效果**:
-- ✅ 支持3种特殊源：ffzy、lzzy、ckzy
+
+- ✅ 支持 3 种特殊源：ffzy、lzzy、ckzy
 - ✅ 添加新源只需在配置表中添加一项
 - ✅ 统一的处理逻辑，代码更清晰
-- ✅ 每个源可以有独立的URL模板和正则
+- ✅ 每个源可以有独立的 URL 模板和正则
 
 ---
 
-### 优化2: 日志工具系统 ✅
+### 优化 2: 日志工具系统 ✅
 
 **位置**: `src/lib/downstream.ts:81-126`
 
 **问题描述**:
+
 - 原代码使用 `console.log` 和条件判断 `if (process.env.NODE_ENV === 'development')`
 - 日志代码重复，维护困难
 - 缺乏日志级别管理
 - 日志格式不统一
 
 **优化方案**:
+
 ```typescript
 // ✅ 日志级别枚举
 enum LogLevel {
@@ -117,12 +124,18 @@ class Logger {
 
   static warn(category: string, message: string, data?: any): void {
     if (!this.isDev || this.minLevel > LogLevel.WARN) return;
-    console.warn(`[${category}] ⚠️  ${message}`, data !== undefined ? data : '');
+    console.warn(
+      `[${category}] ⚠️  ${message}`,
+      data !== undefined ? data : ''
+    );
   }
 
   static error(category: string, message: string, error?: any): void {
     if (!this.isDev || this.minLevel > LogLevel.ERROR) return;
-    console.error(`[${category}] ❌ ${message}`, error !== undefined ? error : '');
+    console.error(
+      `[${category}] ❌ ${message}`,
+      error !== undefined ? error : ''
+    );
   }
 
   static success(category: string, message: string, data?: any): void {
@@ -133,6 +146,7 @@ class Logger {
 ```
 
 **使用示例**:
+
 ```typescript
 // 之前
 if (process.env.NODE_ENV === 'development') {
@@ -144,7 +158,8 @@ Logger.warn('URL验证', `非M3U8文件: ${url}`);
 ```
 
 **优化效果**:
-- ✅ 代码更简洁（减少70%重复代码）
+
+- ✅ 代码更简洁（减少 70%重复代码）
 - ✅ 统一的日志格式
 - ✅ 支持日志级别控制
 - ✅ 可以轻松添加日志到文件等功能
@@ -152,16 +167,18 @@ Logger.warn('URL验证', `非M3U8文件: ${url}`);
 
 ---
 
-### 优化3: 重构特殊源处理函数 ✅
+### 优化 3: 重构特殊源处理函数 ✅
 
 **位置**: `src/lib/downstream.ts:561-680`
 
 **问题描述**:
+
 - 原 `handleSpecialSourceDetail` 函数只支持 ffzy
-- 硬编码的URL构建和正则匹配
+- 硬编码的 URL 构建和正则匹配
 - 缺少详细的日志记录
 
 **优化方案**:
+
 ```typescript
 async function handleSpecialSourceDetail(
   id: string,
@@ -218,6 +235,7 @@ async function handleSpecialSourceDetail(
 ```
 
 **优化效果**:
+
 - ✅ 支持所有配置的特殊源
 - ✅ 详细的日志记录（每个步骤）
 - ✅ 向后兼容旧逻辑
@@ -225,12 +243,14 @@ async function handleSpecialSourceDetail(
 
 ---
 
-### 优化4: 增强错误处理 ✅
+### 优化 4: 增强错误处理 ✅
 
 **位置**: 多处
 
 **优化内容**:
+
 1. **searchFromApi 错误处理**:
+
 ```typescript
 // 之前
 catch (error) {
@@ -253,11 +273,13 @@ catch (error) {
 ```
 
 2. **统一日志格式**:
+
 - 所有日志使用 Logger 类
-- 统一的分类标签（URL验证、源解析、搜索解析等）
+- 统一的分类标签（URL 验证、源解析、搜索解析等）
 - 添加更多上下文信息
 
 **优化效果**:
+
 - ✅ 更详细的错误上下文
 - ✅ 统一的错误日志格式
 - ✅ 更容易调试问题
@@ -268,38 +290,38 @@ catch (error) {
 
 ### 代码质量对比
 
-| 指标 | 优化前 | 优化后 | 提升 |
-|------|--------|--------|------|
-| **日志代码重复** | 高 | 低 | -70% |
-| **特殊源扩展性** | 差（需改代码） | 优（只改配置） | ✅ 显著提升 |
-| **日志级别控制** | 无 | 有（4级） | ✅ 新增 |
-| **支持特殊源数** | 1个（ffzy） | 3个（ffzy/lzzy/ckzy） | **+200%** |
-| **代码可维护性** | 中 | 高 | ✅ 显著提升 |
+| 指标             | 优化前         | 优化后                 | 提升        |
+| ---------------- | -------------- | ---------------------- | ----------- |
+| **日志代码重复** | 高             | 低                     | -70%        |
+| **特殊源扩展性** | 差（需改代码） | 优（只改配置）         | ✅ 显著提升 |
+| **日志级别控制** | 无             | 有（4 级）             | ✅ 新增     |
+| **支持特殊源数** | 1 个（ffzy）   | 3 个（ffzy/lzzy/ckzy） | **+200%**   |
+| **代码可维护性** | 中             | 高                     | ✅ 显著提升 |
 
 ---
 
 ### 日志系统对比
 
-| 功能 | 优化前 | 优化后 |
-|------|--------|--------|
-| 日志格式 | 不统一 | ✅ 统一格式 |
-| 级别控制 | ❌ 无 | ✅ DEBUG/INFO/WARN/ERROR |
-| 分类管理 | ❌ 无 | ✅ 按功能分类 |
-| 代码简洁度 | 冗长 | ✅ 简洁 |
-| 易于扩展 | ❌ 困难 | ✅ 容易 |
+| 功能       | 优化前  | 优化后                   |
+| ---------- | ------- | ------------------------ |
+| 日志格式   | 不统一  | ✅ 统一格式              |
+| 级别控制   | ❌ 无   | ✅ DEBUG/INFO/WARN/ERROR |
+| 分类管理   | ❌ 无   | ✅ 按功能分类            |
+| 代码简洁度 | 冗长    | ✅ 简洁                  |
+| 易于扩展   | ❌ 困难 | ✅ 容易                  |
 
 ---
 
 ### 特殊源处理对比
 
-| 功能 | 优化前 | 优化后 |
-|------|--------|--------|
-| 支持源数量 | 1个（ffzy） | ✅ 3个（ffzy/lzzy/ckzy） |
-| 添加新源难度 | 需修改代码 | ✅ 只需配置 |
-| URL模板 | 硬编码 | ✅ 可配置 |
-| 正则匹配 | 硬编码 | ✅ 可配置 |
-| 降级策略 | 部分支持 | ✅ 完全支持 |
-| 日志记录 | 简单 | ✅ 详细 |
+| 功能         | 优化前       | 优化后                    |
+| ------------ | ------------ | ------------------------- |
+| 支持源数量   | 1 个（ffzy） | ✅ 3 个（ffzy/lzzy/ckzy） |
+| 添加新源难度 | 需修改代码   | ✅ 只需配置               |
+| URL 模板     | 硬编码       | ✅ 可配置                 |
+| 正则匹配     | 硬编码       | ✅ 可配置                 |
+| 降级策略     | 部分支持     | ✅ 完全支持               |
+| 日志记录     | 简单         | ✅ 详细                   |
 
 ---
 
@@ -310,6 +332,7 @@ catch (error) {
 **修改内容**: 扩展优化和日志系统重构
 
 **新增内容**:
+
 ```typescript
 ✅ SpecialSourceHandler 接口（10行）
 ✅ SPECIAL_SOURCE_HANDLERS 配置表（30行）
@@ -320,6 +343,7 @@ catch (error) {
 ```
 
 **修改内容**:
+
 ```typescript
 ✅ isValidM3u8Url() - 使用Logger（-12行，+8行）
 ✅ extractAllPlaySources() - 使用Logger（-6行，+2行）
@@ -329,10 +353,11 @@ catch (error) {
 ```
 
 **代码统计**:
-- 新增: 180行
-- 修改: 120行
-- 删除: 40行
-- **净增加: 260行**
+
+- 新增: 180 行
+- 修改: 120 行
+- 删除: 40 行
+- **净增加: 260 行**
 
 ---
 
@@ -353,6 +378,7 @@ const SPECIAL_SOURCE_HANDLERS = {
 ```
 
 **优势**:
+
 - 无需修改逻辑代码
 - 易于测试和验证
 - 降低出错风险
@@ -369,6 +395,7 @@ Logger.success('分类', '消息', 数据);
 ```
 
 **优势**:
+
 - 统一的调用方式
 - 自动处理开发/生产环境
 - 易于扩展（如添加日志到文件）
@@ -376,6 +403,7 @@ Logger.success('分类', '消息', 数据);
 ### 3. 渐进式重构策略
 
 **保留向后兼容**:
+
 ```typescript
 if (handler) {
   // 使用新的配置驱动逻辑
@@ -385,6 +413,7 @@ if (handler) {
 ```
 
 **优势**:
+
 - 不破坏现有功能
 - 平滑过渡
 - 降低风险
@@ -418,11 +447,13 @@ if (handler) {
 ### Phase 3 (低优先级)
 
 **性能优化**:
+
 - [ ] 播放源性能监控
 - [ ] 智能源选择算法（基于历史成功率）
 - [ ] 缓存优化
 
 **功能扩展**:
+
 - [ ] 更多特殊源支持
 - [ ] 自动源质量评分
 - [ ] 机器学习源推荐
@@ -431,8 +462,8 @@ if (handler) {
 
 ## 📚 相关文档
 
-- **Phase 1报告**: `Phase1修复完成报告.md` - 核心修复
-- **Phase 2报告**: `Phase2优化完成报告.md` - 本文件
+- **Phase 1 报告**: `Phase1修复完成报告.md` - 核心修复
+- **Phase 2 报告**: `Phase2优化完成报告.md` - 本文件
 - **源分析报告**: `源解析分析报告.md` - 问题分析
 - **测试脚本**: `test-source-parsing.mjs` - 自动化测试
 
@@ -441,19 +472,22 @@ if (handler) {
 ## ✅ 验收标准
 
 ### 功能验收
+
 - [x] 特殊源处理器配置系统
-- [x] 支持ffzy、lzzy、ckzy三种特殊源
+- [x] 支持 ffzy、lzzy、ckzy 三种特殊源
 - [x] 日志工具系统
-- [x] 所有日志使用Logger
+- [x] 所有日志使用 Logger
 - [x] 增强错误处理
 
 ### 质量验收
+
 - [x] 无破坏性变更
 - [x] 向后兼容
 - [x] 代码符合规范
 - [x] 添加详细注释
 
 ### 扩展性验收
+
 - [x] 添加新特殊源容易（只需配置）
 - [x] 日志系统易于扩展
 - [x] 代码结构清晰
@@ -463,9 +497,10 @@ if (handler) {
 <div align="center">
   <strong>✅ Phase 2 扩展优化完成！🎊</strong>
 
-  **支持特殊源**: 1个 → 3个 (+200%)
-  **日志代码重复**: -70%
-  **代码可维护性**: 显著提升
+**支持特殊源**: 1 个 → 3 个 (+200%)
+**日志代码重复**: -70%
+**代码可维护性**: 显著提升
+
 </div>
 
 ---

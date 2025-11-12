@@ -167,7 +167,7 @@ function HomeClient() {
   const loadMoreMovies = async () => {
     if (loadingMore.movies || !hasMoreData.movies) return;
 
-    setLoadingMore(prev => ({ ...prev, movies: true }));
+    setLoadingMore((prev) => ({ ...prev, movies: true }));
     try {
       const nextPage = moviePage + 1;
       const moviesData = await getDoubanCategories({
@@ -179,19 +179,19 @@ function HomeClient() {
       });
 
       if (moviesData.code === 200 && moviesData.list.length > 0) {
-        setHotMovies(prev => [...prev, ...moviesData.list]);
+        setHotMovies((prev) => [...prev, ...moviesData.list]);
         setMoviePage(nextPage);
         // 如果返回的数据少于请求的数量，说明没有更多数据了
         if (moviesData.list.length < 20) {
-          setHasMoreData(prev => ({ ...prev, movies: false }));
+          setHasMoreData((prev) => ({ ...prev, movies: false }));
         }
       } else {
-        setHasMoreData(prev => ({ ...prev, movies: false }));
+        setHasMoreData((prev) => ({ ...prev, movies: false }));
       }
     } catch (error) {
       // 静默处理错误
     } finally {
-      setLoadingMore(prev => ({ ...prev, movies: false }));
+      setLoadingMore((prev) => ({ ...prev, movies: false }));
     }
   };
 
@@ -199,7 +199,7 @@ function HomeClient() {
   const loadMoreTvShows = async () => {
     if (loadingMore.tvShows || !hasMoreData.tvShows) return;
 
-    setLoadingMore(prev => ({ ...prev, tvShows: true }));
+    setLoadingMore((prev) => ({ ...prev, tvShows: true }));
     try {
       const nextPage = tvShowPage + 1;
       const tvShowsData = await getDoubanCategories({
@@ -211,18 +211,18 @@ function HomeClient() {
       });
 
       if (tvShowsData.code === 200 && tvShowsData.list.length > 0) {
-        setHotTvShows(prev => [...prev, ...tvShowsData.list]);
+        setHotTvShows((prev) => [...prev, ...tvShowsData.list]);
         setTvShowPage(nextPage);
         if (tvShowsData.list.length < 20) {
-          setHasMoreData(prev => ({ ...prev, tvShows: false }));
+          setHasMoreData((prev) => ({ ...prev, tvShows: false }));
         }
       } else {
-        setHasMoreData(prev => ({ ...prev, tvShows: false }));
+        setHasMoreData((prev) => ({ ...prev, tvShows: false }));
       }
     } catch (error) {
       // 静默处理错误
     } finally {
-      setLoadingMore(prev => ({ ...prev, tvShows: false }));
+      setLoadingMore((prev) => ({ ...prev, tvShows: false }));
     }
   };
 
@@ -230,7 +230,7 @@ function HomeClient() {
   const loadMoreVarietyShows = async () => {
     if (loadingMore.varietyShows || !hasMoreData.varietyShows) return;
 
-    setLoadingMore(prev => ({ ...prev, varietyShows: true }));
+    setLoadingMore((prev) => ({ ...prev, varietyShows: true }));
     try {
       const nextPage = varietyShowPage + 1;
       const varietyShowsData = await getDoubanCategories({
@@ -242,23 +242,25 @@ function HomeClient() {
       });
 
       if (varietyShowsData.code === 200 && varietyShowsData.list.length > 0) {
-        setHotVarietyShows(prev => [...prev, ...varietyShowsData.list]);
+        setHotVarietyShows((prev) => [...prev, ...varietyShowsData.list]);
         setVarietyShowPage(nextPage);
         if (varietyShowsData.list.length < 20) {
-          setHasMoreData(prev => ({ ...prev, varietyShows: false }));
+          setHasMoreData((prev) => ({ ...prev, varietyShows: false }));
         }
       } else {
-        setHasMoreData(prev => ({ ...prev, varietyShows: false }));
+        setHasMoreData((prev) => ({ ...prev, varietyShows: false }));
       }
     } catch (error) {
       // 静默处理错误
     } finally {
-      setLoadingMore(prev => ({ ...prev, varietyShows: false }));
+      setLoadingMore((prev) => ({ ...prev, varietyShows: false }));
     }
   };
 
   // 处理收藏数据更新的函数
-  const updateFavoriteItems = async (allFavorites: Record<string, Favorite>) => {
+  const updateFavoriteItems = async (
+    allFavorites: Record<string, Favorite>
+  ) => {
     const allPlayRecords = await getAllPlayRecords();
 
     // 根据保存时间排序（从近到远）
@@ -401,7 +403,7 @@ function HomeClient() {
                     <ChevronRight className='w-4 h-4 ml-1' />
                   </Link>
                 </div>
-                <PaginatedRow 
+                <PaginatedRow
                   itemsPerPage={10}
                   onLoadMore={loadMoreMovies}
                   hasMoreData={hasMoreData.movies}
@@ -410,10 +412,7 @@ function HomeClient() {
                   {loading
                     ? // 加载状态显示灰色占位数据 (显示10个，2行x5列)
                       Array.from({ length: 10 }).map((_, index) => (
-                        <div
-                          key={index}
-                          className='w-full'
-                        >
+                        <div key={index} className='w-full'>
                           <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-purple-200 animate-pulse dark:bg-purple-800'>
                             <div className='absolute inset-0 bg-purple-300 dark:bg-purple-700'></div>
                           </div>
@@ -422,10 +421,7 @@ function HomeClient() {
                       ))
                     : // 显示真实数据
                       hotMovies.map((movie, index) => (
-                        <div
-                          key={index}
-                          className='w-full'
-                        >
+                        <div key={index} className='w-full'>
                           <VideoCard
                             from='douban'
                             title={movie.title}
@@ -454,7 +450,7 @@ function HomeClient() {
                     <ChevronRight className='w-4 h-4 ml-1' />
                   </Link>
                 </div>
-                <PaginatedRow 
+                <PaginatedRow
                   itemsPerPage={10}
                   onLoadMore={loadMoreTvShows}
                   hasMoreData={hasMoreData.tvShows}
@@ -463,10 +459,7 @@ function HomeClient() {
                   {loading
                     ? // 加载状态显示灰色占位数据 (显示10个，2行x5列)
                       Array.from({ length: 10 }).map((_, index) => (
-                        <div
-                          key={index}
-                          className='w-full'
-                        >
+                        <div key={index} className='w-full'>
                           <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-purple-200 animate-pulse dark:bg-purple-800'>
                             <div className='absolute inset-0 bg-purple-300 dark:bg-purple-700'></div>
                           </div>
@@ -475,10 +468,7 @@ function HomeClient() {
                       ))
                     : // 显示真实数据
                       hotTvShows.map((show, index) => (
-                        <div
-                          key={index}
-                          className='w-full'
-                        >
+                        <div key={index} className='w-full'>
                           <VideoCard
                             from='douban'
                             title={show.title}
@@ -506,7 +496,7 @@ function HomeClient() {
                     <ChevronRight className='w-4 h-4 ml-1' />
                   </Link>
                 </div>
-                <PaginatedRow 
+                <PaginatedRow
                   itemsPerPage={10}
                   onLoadMore={loadMoreVarietyShows}
                   hasMoreData={hasMoreData.varietyShows}
@@ -515,10 +505,7 @@ function HomeClient() {
                   {loading
                     ? // 加载状态显示灰色占位数据 (显示10个，2行x5列)
                       Array.from({ length: 10 }).map((_, index) => (
-                        <div
-                          key={index}
-                          className='w-full'
-                        >
+                        <div key={index} className='w-full'>
                           <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-purple-200 animate-pulse dark:bg-purple-800'>
                             <div className='absolute inset-0 bg-purple-300 dark:bg-purple-700'></div>
                           </div>
@@ -527,10 +514,7 @@ function HomeClient() {
                       ))
                     : // 显示真实数据
                       hotVarietyShows.map((show, index) => (
-                        <div
-                          key={index}
-                          className='w-full'
-                        >
+                        <div key={index} className='w-full'>
                           <VideoCard
                             from='douban'
                             title={show.title}

@@ -2,7 +2,15 @@
 
 'use client';
 
-import { Filter, KeyRound, LogOut, Settings, Shield, User, X } from 'lucide-react';
+import {
+  Filter,
+  KeyRound,
+  LogOut,
+  Settings,
+  Shield,
+  User,
+  X,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -219,7 +227,8 @@ export const UserMenu: React.FC = () => {
     setIsOpen(false);
     // 跳转到内容过滤设置页面
     router.push('/settings');
-  };  const handleCloseSettings = () => {
+  };
+  const handleCloseSettings = () => {
     setIsSettingsOpen(false);
   };
 

@@ -46,7 +46,7 @@ interface UseVideoPlayerOptions {
  * 播放器核心Hook
  */
 export function useVideoPlayer(
-  options: UseVideoPlayerOptions,
+  options: UseVideoPlayerOptions
 ): UseVideoPlayerReturn {
   const {
     url,

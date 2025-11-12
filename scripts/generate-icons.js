@@ -108,14 +108,19 @@ async function generateIcons() {
 
     console.log('✅ 已生成 favicon.png (32x32)');
     console.log('\n💡 提示: 现代浏览器支持 PNG 格式的 favicon');
-    console.log('   如需 .ico 格式，请使用: https://favicon.io/favicon-converter/');
+    console.log(
+      '   如需 .ico 格式，请使用: https://favicon.io/favicon-converter/'
+    );
   } catch (error) {
     console.error('❌ 生成 favicon 失败:', error.message);
   }
 
   // 生成 Apple Touch Icon
   try {
-    const appleTouchIconPath = path.join(__dirname, '../public/apple-touch-icon.png');
+    const appleTouchIconPath = path.join(
+      __dirname,
+      '../public/apple-touch-icon.png'
+    );
     await sharp(Buffer.from(iconSvg))
       .resize(180, 180)
       .png()
@@ -138,7 +143,7 @@ async function generateIcons() {
 }
 
 // 执行生成
-generateIcons().catch(error => {
+generateIcons().catch((error) => {
   console.error('❌ 生成图标时出错:', error);
   process.exit(1);
 });

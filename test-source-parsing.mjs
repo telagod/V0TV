@@ -11,10 +11,14 @@ const TEST_QUERY = '斗破';
 // 测试1：验证API返回的数据格式
 async function testApiResponse() {
   console.log('📋 测试1: 验证API返回的数据格式');
-  console.log(`请求: ${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}\n`);
+  console.log(
+    `请求: ${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}\n`
+  );
 
   try {
-    const response = await fetch(`${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}`);
+    const response = await fetch(
+      `${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}`
+    );
     const data = await response.json();
 
     if (!data || !data.list || !Array.isArray(data.list)) {
@@ -49,7 +53,9 @@ function analyzePlaySources(item) {
   console.log('【播放源名称】vod_play_from:');
   console.log(item.vod_play_from);
   const sourceNames = item.vod_play_from?.split('$$$') || [];
-  console.log(`✅ 检测到 ${sourceNames.length} 个播放源: ${sourceNames.join(', ')}\n`);
+  console.log(
+    `✅ 检测到 ${sourceNames.length} 个播放源: ${sourceNames.join(', ')}\n`
+  );
 
   // 分析 vod_play_url
   console.log('【播放URL】vod_play_url (前500字符):');
@@ -76,7 +82,7 @@ function analyzePlaySources(item) {
     console.log(`  宽松正则匹配 (所有.m3u8): ${looseMatches.length} 个`);
 
     // 显示前3个链接示例
-    const examples = looseMatches.slice(0, 3).map(link => {
+    const examples = looseMatches.slice(0, 3).map((link) => {
       const clean = link.substring(1);
       const parenIndex = clean.indexOf('(');
       return parenIndex > 0 ? clean.substring(0, parenIndex) : clean;
@@ -86,9 +92,10 @@ function analyzePlaySources(item) {
       console.log(`  示例链接:`);
       examples.forEach((link, i) => {
         // 检查是否是中转链接
-        const isRedirect = link.includes('/share/') ||
-                          link.includes('/redirect/') ||
-                          link.includes('/jump/');
+        const isRedirect =
+          link.includes('/share/') ||
+          link.includes('/redirect/') ||
+          link.includes('/jump/');
         const status = isRedirect ? '⚠️ 中转链接' : '✅ 直接链接';
         console.log(`    ${i + 1}. ${status}`);
         console.log(`       ${link}`);
@@ -119,14 +126,15 @@ function testUrlFiltering(item) {
     const looseRegex = /\$(https?:\/\/[^"'\s]+?\.m3u8)/g;
     const matches = source.match(looseRegex) || [];
 
-    matches.forEach(link => {
+    matches.forEach((link) => {
       const clean = link.substring(1);
       totalUrls++;
 
       // 检查是否是中转链接
-      const isRedirect = clean.includes('/share/') ||
-                        clean.includes('/redirect/') ||
-                        clean.includes('/jump/');
+      const isRedirect =
+        clean.includes('/share/') ||
+        clean.includes('/redirect/') ||
+        clean.includes('/jump/');
 
       // 检查是否是标准格式（包含日期路径）
       const hasDatePath = /\/\d{8,}\//.test(clean);
@@ -143,14 +151,25 @@ function testUrlFiltering(item) {
   });
 
   console.log(`总链接数: ${totalUrls}`);
-  console.log(`✅ 有效链接: ${validUrls} (${(validUrls / totalUrls * 100).toFixed(1)}%)`);
-  console.log(`⚠️  中转链接: ${redirectUrls} (${(redirectUrls / totalUrls * 100).toFixed(1)}%)`);
-  console.log(`🌟 标准格式: ${standardUrls} (${(standardUrls / totalUrls * 100).toFixed(1)}%)\n`);
+  console.log(
+    `✅ 有效链接: ${validUrls} (${((validUrls / totalUrls) * 100).toFixed(1)}%)`
+  );
+  console.log(
+    `⚠️  中转链接: ${redirectUrls} (${(
+      (redirectUrls / totalUrls) *
+      100
+    ).toFixed(1)}%)`
+  );
+  console.log(
+    `🌟 标准格式: ${standardUrls} (${((standardUrls / totalUrls) * 100).toFixed(
+      1
+    )}%)\n`
+  );
 
   console.log('【预期效果】');
   console.log(`- 修复前: 可能提取到 ${redirectUrls} 个中转链接 ❌`);
   console.log(`- 修复后: 只提取 ${validUrls} 个有效链接 ✅`);
-  console.log(`- 成功率提升: ${(validUrls / totalUrls * 100).toFixed(1)}%\n`);
+  console.log(`- 成功率提升: ${((validUrls / totalUrls) * 100).toFixed(1)}%\n`);
 }
 
 // 主测试流程
@@ -178,7 +197,7 @@ async function runTests() {
   console.log('- 自动选择最优源 ✅');
 }
 
-runTests().catch(error => {
+runTests().catch((error) => {
   console.error('测试失败:', error);
   process.exit(1);
 });

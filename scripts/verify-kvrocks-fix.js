@@ -14,24 +14,27 @@ process.env.KVROCKS_DATABASE = '0';
 // 模拟 Redis 客户端创建函数
 function createClient(config) {
   console.log('🔧 创建 Redis 客户端配置:', JSON.stringify(config, null, 2));
-  
+
   if (config.password === '') {
     console.log('❌ 检测到空密码，这会导致认证错误！');
     return {
-      connect: () => Promise.reject(new Error('ERR Client sent AUTH, but no password is set')),
-      isOpen: false
+      connect: () =>
+        Promise.reject(
+          new Error('ERR Client sent AUTH, but no password is set')
+        ),
+      isOpen: false,
     };
   } else if (config.password === undefined) {
     console.log('✅ 无密码配置，正常连接');
     return {
       connect: () => Promise.resolve(),
-      isOpen: true
+      isOpen: true,
     };
   } else {
     console.log('✅ 有效密码配置，正常连接');
     return {
       connect: () => Promise.resolve(),
-      isOpen: true
+      isOpen: true,
     };
   }
 }
@@ -69,7 +72,7 @@ function getKvrocksClient() {
 
 async function testScenarios() {
   console.log('🧪 测试不同密码配置场景\n');
-  
+
   // 场景1：用户的问题场景 - 空字符串密码
   console.log('📝 场景1：用户问题场景（空字符串密码）');
   console.log('环境变量: KVROCKS_PASSWORD=""');
@@ -81,7 +84,7 @@ async function testScenarios() {
   } catch (error) {
     console.log('❌ 场景1失败：', error.message, '\n');
   }
-  
+
   // 场景2：未设置密码
   console.log('📝 场景2：未设置密码');
   console.log('环境变量: KVROCKS_PASSWORD=undefined');
@@ -93,7 +96,7 @@ async function testScenarios() {
   } catch (error) {
     console.log('❌ 场景2失败：', error.message, '\n');
   }
-  
+
   // 场景3：有效密码
   console.log('📝 场景3：有效密码');
   console.log('环境变量: KVROCKS_PASSWORD="validpassword"');
@@ -105,7 +108,7 @@ async function testScenarios() {
   } catch (error) {
     console.log('❌ 场景3失败：', error.message, '\n');
   }
-  
+
   // 场景4：只有空格的密码
   console.log('📝 场景4：只有空格的密码');
   console.log('环境变量: KVROCKS_PASSWORD="   "');

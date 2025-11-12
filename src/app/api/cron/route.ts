@@ -189,7 +189,11 @@ async function refreshRecordAndFavorites() {
 
         const totalRecords = Object.keys(playRecords).length;
         console.log(
-          `📺 播放记录: ${totalRecords} 条${totalRecordsBeforeFilter !== totalRecords ? ` (过滤前 ${totalRecordsBeforeFilter} 条)` : ''}`
+          `📺 播放记录: ${totalRecords} 条${
+            totalRecordsBeforeFilter !== totalRecords
+              ? ` (过滤前 ${totalRecordsBeforeFilter} 条)`
+              : ''
+          }`
         );
 
         if (totalRecords === 0) {
@@ -293,7 +297,11 @@ async function refreshRecordAndFavorites() {
 
         const totalFavorites = Object.keys(favorites).length;
         console.log(
-          `⭐ 收藏: ${totalFavorites} 条${totalFavoritesBeforeFilter !== totalFavorites ? ` (过滤前 ${totalFavoritesBeforeFilter} 条)` : ''}`
+          `⭐ 收藏: ${totalFavorites} 条${
+            totalFavoritesBeforeFilter !== totalFavorites
+              ? ` (过滤前 ${totalFavoritesBeforeFilter} 条)`
+              : ''
+          }`
         );
 
         if (totalFavorites === 0) {

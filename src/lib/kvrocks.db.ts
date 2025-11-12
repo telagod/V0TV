@@ -3,7 +3,13 @@
 import { createClient, RedisClientType } from 'redis';
 
 import { AdminConfig } from './admin.types';
-import { EpisodeSkipConfig, Favorite, IStorage, PlayRecord, UserSettings } from './types';
+import {
+  EpisodeSkipConfig,
+  Favorite,
+  IStorage,
+  PlayRecord,
+  UserSettings,
+} from './types';
 
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
@@ -203,7 +209,10 @@ export class KvrocksStorage implements IStorage {
     return `u:${userName}:skip_config:${key}`;
   }
 
-  async getSkipConfig(userName: string, key: string): Promise<EpisodeSkipConfig | null> {
+  async getSkipConfig(
+    userName: string,
+    key: string
+  ): Promise<EpisodeSkipConfig | null> {
     const val = await withRetry(() =>
       this.client.get(this.skipConfigKey(userName, key))
     );
@@ -224,7 +233,9 @@ export class KvrocksStorage implements IStorage {
     await withRetry(() => this.client.del(this.skipConfigKey(userName, key)));
   }
 
-  async getAllSkipConfigs(userName: string): Promise<Record<string, EpisodeSkipConfig>> {
+  async getAllSkipConfigs(
+    userName: string
+  ): Promise<Record<string, EpisodeSkipConfig>> {
     const pattern = `u:${userName}:skip_config:*`;
     const keys = await withRetry(() => this.client.keys(pattern));
     const result: Record<string, EpisodeSkipConfig> = {};
@@ -267,7 +278,9 @@ export class KvrocksStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<string[]> {
-    const users = await withRetry(() => this.client.sMembers(this.userListKey()));
+    const users = await withRetry(() =>
+      this.client.sMembers(this.userListKey())
+    );
     return ensureStringArray(users);
   }
 
@@ -369,13 +382,14 @@ export class KvrocksStorage implements IStorage {
       theme: 'auto',
       language: 'zh-CN',
       auto_play: false,
-      video_quality: 'auto'
+      video_quality: 'auto',
     };
-    const updated: UserSettings = { 
-      ...defaultSettings, 
-      ...current, 
+    const updated: UserSettings = {
+      ...defaultSettings,
+      ...current,
       ...settings,
-      filter_adult_content: settings.filter_adult_content ?? current?.filter_adult_content ?? true
+      filter_adult_content:
+        settings.filter_adult_content ?? current?.filter_adult_content ?? true,
     };
     await this.setUserSettings(userName, updated);
   }
@@ -403,7 +417,9 @@ export function getKvrocksClient(): RedisClientType {
         connectTimeout: 10000, // 10秒连接超时
         reconnectStrategy: (retries: number) => {
           const delay = Math.min(retries * 50, 2000);
-          console.log(`🔄 Kvrocks reconnecting in ${delay}ms (attempt ${retries})`);
+          console.log(
+            `🔄 Kvrocks reconnecting in ${delay}ms (attempt ${retries})`
+          );
           return delay;
         },
       },
@@ -414,7 +430,9 @@ export function getKvrocksClient(): RedisClientType {
       clientConfig.password = kvrocksPassword;
       console.log('🔐 Using password authentication');
     } else {
-      console.log('🔓 No password authentication (connecting without password)');
+      console.log(
+        '🔓 No password authentication (connecting without password)'
+      );
     }
 
     kvrocksClient = createClient(clientConfig);

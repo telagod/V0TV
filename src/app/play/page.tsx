@@ -58,7 +58,7 @@ function PlayPageClient() {
       needPrefer: searchParams.get('prefer') === 'true',
       initialEpisode: Math.max(0, parseInt(searchParams.get('ep') || '1') - 1),
     }),
-    [searchParams],
+    [searchParams]
   );
 
   // ============================================================================
@@ -125,7 +125,7 @@ function PlayPageClient() {
         },
         videoData.currentEpisodeIndex,
         urlParams.searchTitle,
-        urlParams.searchType,
+        urlParams.searchType
       );
     },
     onError: (error) => {
@@ -198,7 +198,7 @@ function PlayPageClient() {
         ctrlKey: true,
       },
     ],
-    playerReady && !isSkipSettingMode,
+    playerReady && !isSkipSettingMode
   );
 
   // ============================================================================
@@ -210,7 +210,7 @@ function PlayPageClient() {
 
     const episodeIndex = Math.min(
       videoData.currentEpisodeIndex,
-      episodes.length - 1,
+      episodes.length - 1
     );
 
     return episodes[episodeIndex] || '';
@@ -236,7 +236,7 @@ function PlayPageClient() {
         videoData,
         newIndex,
         urlParams.searchTitle,
-        urlParams.searchType,
+        urlParams.searchType
       );
     },
     [
@@ -248,7 +248,7 @@ function PlayPageClient() {
       saveProgress,
       urlParams.searchTitle,
       urlParams.searchType,
-    ],
+    ]
   );
 
   // ============================================================================
@@ -281,7 +281,7 @@ function PlayPageClient() {
         preserveProgress: true,
       });
     },
-    [playerReady, currentPlayTime, videoDuration, saveProgress, switchSource],
+    [playerReady, currentPlayTime, videoDuration, saveProgress, switchSource]
   );
 
   // ============================================================================
@@ -338,7 +338,7 @@ function PlayPageClient() {
     if (urlParams.initialEpisode > 0 && videoData.totalEpisodes > 0) {
       const validEpisode = Math.min(
         urlParams.initialEpisode,
-        videoData.totalEpisodes - 1,
+        videoData.totalEpisodes - 1
       );
       updateEpisodeIndex(validEpisode);
     }
@@ -353,7 +353,7 @@ function PlayPageClient() {
         videoData,
         videoData.currentEpisodeIndex,
         urlParams.searchTitle,
-        urlParams.searchType,
+        urlParams.searchType
       );
     }
   }, [
@@ -368,19 +368,16 @@ function PlayPageClient() {
   // 预计算视频信息（用于换源时显示）
   // ============================================================================
   const precomputedVideoInfo = useMemo(() => {
-    return availableSources.reduce(
-      (acc, source) => {
-        const key = `${source.source}-${source.id}`;
-        acc[key] = {
-          title: source.title,
-          year: source.year,
-          episodes: source.episodes?.length || 0,
-          quality: source.quality || '',
-        };
-        return acc;
-      },
-      {} as Record<string, any>,
-    );
+    return availableSources.reduce((acc, source) => {
+      const key = `${source.source}-${source.id}`;
+      acc[key] = {
+        title: source.title,
+        year: source.year,
+        episodes: source.episodes?.length || 0,
+        quality: source.quality || '',
+      };
+      return acc;
+    }, {} as Record<string, any>);
   }, [availableSources]);
 
   // ============================================================================

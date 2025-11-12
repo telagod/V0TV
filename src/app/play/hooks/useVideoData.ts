@@ -77,7 +77,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
           const apiSites = config.SiteConfig.DownstreamSites;
 
           const searchPromises = apiSites.map((site) =>
-            searchFromApi(site, searchTitle).catch(() => []),
+            searchFromApi(site, searchTitle).catch(() => [])
           );
 
           const searchResults = await Promise.all(searchPromises);
@@ -120,14 +120,14 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
                   score: 0,
                 };
               }
-            },
+            }
           );
 
           // 按评分排序，选择最佳源
           const sortedResults = allResults
             .map((result) => {
               const testResult = speedTestResults.get(
-                `${result.source}-${result.id}`,
+                `${result.source}-${result.id}`
               );
               return {
                 ...result,
@@ -148,7 +148,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
             setLoadingStage('fetching');
             const detail = await getDetailFromApi(
               apiSites.find((s) => s.key === bestSource.source)!,
-              bestSource.id,
+              bestSource.id
             );
 
             setData((prev) => ({

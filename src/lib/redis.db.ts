@@ -3,7 +3,13 @@
 import { createClient, RedisClientType } from 'redis';
 
 import { AdminConfig } from './admin.types';
-import { EpisodeSkipConfig, Favorite, IStorage, PlayRecord, UserSettings } from './types';
+import {
+  EpisodeSkipConfig,
+  Favorite,
+  IStorage,
+  PlayRecord,
+  UserSettings,
+} from './types';
 
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
@@ -237,33 +243,36 @@ export class RedisStorage implements IStorage {
     const data = await withRetry(() =>
       this.client.get(this.userSettingsKey(userName))
     );
-    
+
     if (data) {
       return JSON.parse(ensureString(data));
     }
-    
+
     // 如果用户设置不存在，返回默认设置
     const defaultSettings: UserSettings = {
       filter_adult_content: true, // 默认开启成人内容过滤
       theme: 'auto',
       language: 'zh-CN',
       auto_play: true,
-      video_quality: 'auto'
+      video_quality: 'auto',
     };
-    
+
     return defaultSettings;
   }
 
-  async setUserSettings(userName: string, settings: UserSettings): Promise<void> {
+  async setUserSettings(
+    userName: string,
+    settings: UserSettings
+  ): Promise<void> {
     await withRetry(() =>
-      this.client.set(
-        this.userSettingsKey(userName),
-        JSON.stringify(settings)
-      )
+      this.client.set(this.userSettingsKey(userName), JSON.stringify(settings))
     );
   }
 
-  async updateUserSettings(userName: string, settings: Partial<UserSettings>): Promise<void> {
+  async updateUserSettings(
+    userName: string,
+    settings: Partial<UserSettings>
+  ): Promise<void> {
     const currentSettings = await this.getUserSettings(userName);
     const updatedSettings = { ...currentSettings, ...settings };
     await this.setUserSettings(userName, updatedSettings as UserSettings);
@@ -398,7 +407,8 @@ export class RedisStorage implements IStorage {
 function getRedisClient(): RedisClientType {
   const legacyKey = Symbol.for('__MOONTV_REDIS_CLIENT__');
   const globalKey = Symbol.for('__KATELYATV_REDIS_CLIENT__');
-  let client: RedisClientType | undefined = (global as any)[globalKey] || (global as any)[legacyKey];
+  let client: RedisClientType | undefined =
+    (global as any)[globalKey] || (global as any)[legacyKey];
 
   if (!client) {
     const url = process.env.REDIS_URL;

@@ -66,6 +66,7 @@ cd deploy/vercel
 ```
 
 脚本会自动：
+
 - 检查 Vercel CLI
 - 登录 Vercel
 - 配置环境变量
@@ -114,6 +115,7 @@ vercel env rm PASSWORD
 ### 自动部署
 
 Vercel 自动检测 Git 推送：
+
 - 推送到 `main` 分支 → 生产部署
 - 推送到其他分支 → 预览部署
 
@@ -131,7 +133,7 @@ Vercel 自动检测 Git 推送：
 
 ## ⚠️ Vercel 限制
 
-- 免费版有执行时间限制（10秒）
+- 免费版有执行时间限制（10 秒）
 - 函数大小限制（50MB）
 - 带宽限制（100GB/月）
 

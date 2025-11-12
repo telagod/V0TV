@@ -34,12 +34,12 @@ export function ThemeToggle() {
     // 检查浏览器是否支持 View Transitions API
     const targetTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
     setThemeColor(targetTheme);
-    
+
     // 使用更好的类型定义
     const documentWithTransition = document as Document & {
       startViewTransition?: (callback: () => void) => void;
     };
-    
+
     if (!documentWithTransition.startViewTransition) {
       setTheme(targetTheme);
       return;

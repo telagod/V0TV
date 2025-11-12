@@ -80,6 +80,7 @@ pnpm run format
 - **PR 标题格式**：必须遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范
 
 示例：
+
 - ✅ `feat: 添加用户登录功能`
 - ✅ `fix: 修复播放器暂停问题`
 - ✅ `docs: 更新部署文档`
@@ -87,6 +88,7 @@ pnpm run format
 - ❌ `修复bug`（缺少类型前缀）
 
 允许的类型：
+
 - `feat`: 新功能
 - `fix`: 修复 bug
 - `docs`: 文档更新

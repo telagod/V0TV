@@ -73,7 +73,10 @@ export interface IStorage {
   // 用户设置相关
   getUserSettings(userName: string): Promise<UserSettings | null>;
   setUserSettings(userName: string, settings: UserSettings): Promise<void>;
-  updateUserSettings(userName: string, settings: Partial<UserSettings>): Promise<void>;
+  updateUserSettings(
+    userName: string,
+    settings: Partial<UserSettings>
+  ): Promise<void>;
 
   // 搜索历史相关
   getSearchHistory(userName: string): Promise<string[]>;
@@ -81,9 +84,18 @@ export interface IStorage {
   deleteSearchHistory(userName: string, keyword?: string): Promise<void>;
 
   // 片头片尾跳过配置相关
-  getSkipConfig(userName: string, key: string): Promise<EpisodeSkipConfig | null>;
-  setSkipConfig(userName: string, key: string, config: EpisodeSkipConfig): Promise<void>;
-  getAllSkipConfigs(userName: string): Promise<{ [key: string]: EpisodeSkipConfig }>;
+  getSkipConfig(
+    userName: string,
+    key: string
+  ): Promise<EpisodeSkipConfig | null>;
+  setSkipConfig(
+    userName: string,
+    key: string,
+    config: EpisodeSkipConfig
+  ): Promise<void>;
+  getAllSkipConfigs(
+    userName: string
+  ): Promise<{ [key: string]: EpisodeSkipConfig }>;
   deleteSkipConfig(userName: string, key: string): Promise<void>;
 
   // 用户列表
@@ -96,10 +108,10 @@ export interface IStorage {
 
 // 播放源数据结构
 export interface PlaySource {
-  name: string;        // 播放源名称（如 dytt, dyttm3u8, 量子, 非凡等）
-  episodes: string[];  // 集数列表（M3U8链接）
-  priority: number;    // 优先级（1最高，数字越小优先级越高）
-  quality?: string;    // 画质标签（如果API提供，如"高清"、"标清"等）
+  name: string; // 播放源名称（如 dytt, dyttm3u8, 量子, 非凡等）
+  episodes: string[]; // 集数列表（M3U8链接）
+  priority: number; // 优先级（1最高，数字越小优先级越高）
+  quality?: string; // 画质标签（如果API提供，如"高清"、"标清"等）
 }
 
 // 搜索结果数据结构

@@ -49,9 +49,14 @@ export default function PaginatedRow({
   // 向后翻页 - 支持动态加载更多数据
   const handleNextPage = async () => {
     const newIndex = startIndex + itemsPerPage;
-    
+
     // 如果即将超出当前数据范围，且有更多数据可加载，且有加载回调函数
-    if (newIndex >= children.length && hasMoreData && onLoadMore && !isLoading) {
+    if (
+      newIndex >= children.length &&
+      hasMoreData &&
+      onLoadMore &&
+      !isLoading
+    ) {
       try {
         await onLoadMore(); // 加载更多数据
         // 加载完成后，直接设置到下一页
@@ -71,7 +76,11 @@ export default function PaginatedRow({
   // 检查是否可以向前翻页
   const canGoPrev = startIndex > 0;
   // 检查是否可以向后翻页：有更多数据或者当前不在最后一页
-  const canGoNext = children.length > itemsPerPage && (startIndex + itemsPerPage < children.length || hasMoreData || startIndex + itemsPerPage >= children.length);
+  const canGoNext =
+    children.length > itemsPerPage &&
+    (startIndex + itemsPerPage < children.length ||
+      hasMoreData ||
+      startIndex + itemsPerPage >= children.length);
 
   // 如果没有足够的内容需要分页，就不显示按钮
   const needsPagination = children.length > itemsPerPage;

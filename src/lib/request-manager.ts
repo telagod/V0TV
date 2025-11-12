@@ -180,9 +180,7 @@ class CircuitBreaker {
       // 成功处理
       if (state.state === 'HALF_OPEN') {
         state.successCount++;
-        if (
-          state.successCount >= CONFIG.CIRCUIT_BREAKER_SUCCESS_THRESHOLD
-        ) {
+        if (state.successCount >= CONFIG.CIRCUIT_BREAKER_SUCCESS_THRESHOLD) {
           state.state = 'CLOSED';
           state.failureCount = 0;
           console.log(`[熔断器] ${key} 恢复正常`);
@@ -202,9 +200,7 @@ class CircuitBreaker {
         state.state = 'OPEN';
         state.nextAttemptTime = now + CONFIG.CIRCUIT_BREAKER_TIMEOUT;
         console.warn(`[熔断器] ${key} 半开状态失败，重新熔断`);
-      } else if (
-        state.failureCount >= CONFIG.CIRCUIT_BREAKER_THRESHOLD
-      ) {
+      } else if (state.failureCount >= CONFIG.CIRCUIT_BREAKER_THRESHOLD) {
         // 达到阈值，熔断
         state.state = 'OPEN';
         state.nextAttemptTime = now + CONFIG.CIRCUIT_BREAKER_TIMEOUT;
@@ -382,7 +378,10 @@ class RequestManager {
    */
   async fetch<T>(
     url: string,
-    options: RequestInit & { retryOptions?: RetryOptions; timeout?: number } = {}
+    options: RequestInit & {
+      retryOptions?: RetryOptions;
+      timeout?: number;
+    } = {}
   ): Promise<T> {
     const cacheKey = `fetch:${url}:${JSON.stringify(options)}`;
 
@@ -505,7 +504,12 @@ class RequestManager {
   ): Promise<
     Map<
       string,
-      { quality: string; loadSpeed: string; pingTime: number; hasError?: boolean }
+      {
+        quality: string;
+        loadSpeed: string;
+        pingTime: number;
+        hasError?: boolean;
+      }
     >
   > {
     const resultsMap = new Map();
@@ -513,10 +517,7 @@ class RequestManager {
     // 智能采样：如果源太多，只测试部分
     const samplingSources =
       sources.length > CONFIG.SPEED_TEST_SAMPLE_SIZE
-        ? this.shuffleArray(sources).slice(
-            0,
-            CONFIG.SPEED_TEST_SAMPLE_SIZE
-          )
+        ? this.shuffleArray(sources).slice(0, CONFIG.SPEED_TEST_SAMPLE_SIZE)
         : sources;
 
     console.log(
@@ -529,10 +530,7 @@ class RequestManager {
       i < samplingSources.length;
       i += CONFIG.SPEED_TEST_BATCH_SIZE
     ) {
-      const batch = samplingSources.slice(
-        i,
-        i + CONFIG.SPEED_TEST_BATCH_SIZE
-      );
+      const batch = samplingSources.slice(i, i + CONFIG.SPEED_TEST_BATCH_SIZE);
 
       const batchResults = await Promise.allSettled(
         batch.map(async (source) => {

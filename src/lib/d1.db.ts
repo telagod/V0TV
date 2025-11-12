@@ -1,7 +1,13 @@
 /* eslint-disable no-console, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion */
 
 import { AdminConfig } from './admin.types';
-import { EpisodeSkipConfig, Favorite, IStorage, PlayRecord, UserSettings } from './types';
+import {
+  EpisodeSkipConfig,
+  Favorite,
+  IStorage,
+  PlayRecord,
+  UserSettings,
+} from './types';
 
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
@@ -447,7 +453,9 @@ export class D1Storage implements IStorage {
     try {
       const db = await this.getDatabase();
       const result = await db
-        .prepare('SELECT config_value as config FROM admin_configs WHERE config_key = ? LIMIT 1')
+        .prepare(
+          'SELECT config_value as config FROM admin_configs WHERE config_key = ? LIMIT 1'
+        )
         .bind('main_config')
         .first<{ config: string }>();
 
@@ -544,7 +552,7 @@ export class D1Storage implements IStorage {
         .all<any>();
 
       const configs: { [key: string]: EpisodeSkipConfig } = {};
-      
+
       for (const row of result.results) {
         configs[row.key] = {
           source: row.source,
@@ -583,7 +591,7 @@ export class D1Storage implements IStorage {
         .prepare('SELECT settings FROM user_settings WHERE username = ?')
         .bind(userName)
         .first();
-      
+
       if (row && row.settings) {
         return JSON.parse(row.settings as string) as UserSettings;
       }
@@ -601,10 +609,12 @@ export class D1Storage implements IStorage {
     try {
       const db = await this.getDatabase();
       await db
-        .prepare(`
+        .prepare(
+          `
           INSERT OR REPLACE INTO user_settings (username, settings, updated_time)
           VALUES (?, ?, ?)
-        `)
+        `
+        )
         .bind(userName, JSON.stringify(settings), Date.now())
         .run();
     } catch (err) {
@@ -623,13 +633,14 @@ export class D1Storage implements IStorage {
       theme: 'auto',
       language: 'zh-CN',
       auto_play: false,
-      video_quality: 'auto'
+      video_quality: 'auto',
     };
-    const updated: UserSettings = { 
-      ...defaultSettings, 
-      ...current, 
+    const updated: UserSettings = {
+      ...defaultSettings,
+      ...current,
       ...settings,
-      filter_adult_content: settings.filter_adult_content ?? current?.filter_adult_content ?? true
+      filter_adult_content:
+        settings.filter_adult_content ?? current?.filter_adult_content ?? true,
     };
     await this.setUserSettings(userName, updated);
   }

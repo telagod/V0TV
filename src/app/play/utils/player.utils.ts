@@ -74,7 +74,7 @@ export function parseTimeString(timeStr: string): number {
  */
 export function calculateTargetTime(
   targetTime: number,
-  duration: number,
+  duration: number
 ): number {
   if (!duration || targetTime < 0) return 0;
 
@@ -109,7 +109,7 @@ export function getSaveInterval(): number {
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
-  wait: number,
+  wait: number
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
   let timeout: NodeJS.Timeout | null = null;
@@ -122,13 +122,10 @@ export function throttle<T extends (...args: any[]) => any>(
       func(...args);
     } else {
       if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(
-        () => {
-          lastCall = Date.now();
-          func(...args);
-        },
-        wait - (now - lastCall),
-      );
+      timeout = setTimeout(() => {
+        lastCall = Date.now();
+        func(...args);
+      }, wait - (now - lastCall));
     }
   };
 }
@@ -138,7 +135,7 @@ export function throttle<T extends (...args: any[]) => any>(
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number,
+  wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 

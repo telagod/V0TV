@@ -25,10 +25,10 @@ interface ApiSearchItem {
  * 特殊源处理器接口
  */
 interface SpecialSourceHandler {
-  key: string;              // 源标识（如 ffzy, lzzy）
-  name: string;             // 源名称
+  key: string; // 源标识（如 ffzy, lzzy）
+  name: string; // 源名称
   detailUrlTemplate: string; // 详情页URL模板
-  m3u8Pattern: RegExp;      // M3U8链接提取正则
+  m3u8Pattern: RegExp; // M3U8链接提取正则
   fallbackPattern?: RegExp; // 降级正则
 }
 
@@ -74,7 +74,9 @@ function isSpecialSource(apiSite: ApiSite): boolean {
 /**
  * 获取特殊源处理器
  */
-function getSpecialSourceHandler(apiSite: ApiSite): SpecialSourceHandler | null {
+function getSpecialSourceHandler(
+  apiSite: ApiSite
+): SpecialSourceHandler | null {
   return SPECIAL_SOURCE_HANDLERS[apiSite.key] || null;
 }
 
@@ -111,12 +113,18 @@ class Logger {
 
   static warn(category: string, message: string, data?: any): void {
     if (!this.isDev || this.minLevel > LogLevel.WARN) return;
-    console.warn(`[${category}] ⚠️  ${message}`, data !== undefined ? data : '');
+    console.warn(
+      `[${category}] ⚠️  ${message}`,
+      data !== undefined ? data : ''
+    );
   }
 
   static error(category: string, message: string, error?: any): void {
     if (!this.isDev || this.minLevel > LogLevel.ERROR) return;
-    console.error(`[${category}] ❌ ${message}`, error !== undefined ? error : '');
+    console.error(
+      `[${category}] ❌ ${message}`,
+      error !== undefined ? error : ''
+    );
   }
 
   static success(category: string, message: string, data?: any): void {
@@ -153,15 +161,15 @@ function isValidM3u8Url(url: string): boolean {
 
     // 3. 排除已知的中转页面路径
     const excludePaths = [
-      '/share/',      // 分享页面（如 dytt 的 /share/xxx）
-      '/redirect/',   // 重定向页面
-      '/jump/',       // 跳转页面
-      '/play.html',   // HTML播放器页面
+      '/share/', // 分享页面（如 dytt 的 /share/xxx）
+      '/redirect/', // 重定向页面
+      '/jump/', // 跳转页面
+      '/play.html', // HTML播放器页面
       '/player.html', // HTML播放器页面
-      '/go.php',      // 跳转脚本
+      '/go.php', // 跳转脚本
     ];
 
-    if (excludePaths.some(path => urlObj.pathname.includes(path))) {
+    if (excludePaths.some((path) => urlObj.pathname.includes(path))) {
       Logger.warn('URL验证', `中转页面（已过滤）: ${url}`);
       return false;
     }
@@ -216,7 +224,11 @@ function extractAllPlaySources(
       if (parts.length > 1) {
         const url = parts[1];
         // 只提取以 http 开头且以 .m3u8 结尾的URL
-        if (url && (url.startsWith('http://') || url.startsWith('https://')) && url.endsWith('.m3u8')) {
+        if (
+          url &&
+          (url.startsWith('http://') || url.startsWith('https://')) &&
+          url.endsWith('.m3u8')
+        ) {
           episodes.push(url);
         }
       }
@@ -243,7 +255,7 @@ function extractAllPlaySources(
     }
 
     // 过滤无效链接
-    const validEpisodes = episodes.filter(url => isValidM3u8Url(url));
+    const validEpisodes = episodes.filter((url) => isValidM3u8Url(url));
 
     // 去重
     const uniqueEpisodes = Array.from(new Set(validEpisodes));
@@ -258,15 +270,27 @@ function extractAllPlaySources(
         priority = 1;
       }
       // 包含"高清"的源次之
-      else if (lowerName.includes('高清') || lowerName.includes('hd') || lowerName.includes('1080')) {
+      else if (
+        lowerName.includes('高清') ||
+        lowerName.includes('hd') ||
+        lowerName.includes('1080')
+      ) {
         priority = 2;
       }
       // 包含"标清"的源再次之
-      else if (lowerName.includes('标清') || lowerName.includes('sd') || lowerName.includes('720')) {
+      else if (
+        lowerName.includes('标清') ||
+        lowerName.includes('sd') ||
+        lowerName.includes('720')
+      ) {
         priority = 3;
       }
       // 量子、非凡等知名源
-      else if (lowerName.includes('量子') || lowerName.includes('非凡') || lowerName.includes('ffzy')) {
+      else if (
+        lowerName.includes('量子') ||
+        lowerName.includes('非凡') ||
+        lowerName.includes('ffzy')
+      ) {
         priority = 4;
       }
 
@@ -276,7 +300,10 @@ function extractAllPlaySources(
         priority,
       });
 
-      Logger.success('源解析', `${sourceName}: 提取到 ${uniqueEpisodes.length} 个有效链接，优先级 ${priority}`);
+      Logger.success(
+        '源解析',
+        `${sourceName}: 提取到 ${uniqueEpisodes.length} 个有效链接，优先级 ${priority}`
+      );
     } else {
       Logger.warn('源解析', `${sourceName}: 没有提取到有效的M3U8链接`);
     }
@@ -300,8 +327,8 @@ function extractYear(vodYear: string | null | undefined): string {
   // 过滤出有效年份（1900-当前年份+1）
   const currentYear = new Date().getFullYear();
   const validYears = years
-    .map(y => parseInt(y))
-    .filter(y => y >= 1900 && y <= currentYear + 1);
+    .map((y) => parseInt(y))
+    .filter((y) => y >= 1900 && y <= currentYear + 1);
 
   if (validYears.length === 0) return '';
 
@@ -346,7 +373,10 @@ export async function searchFromApi(
       // 主播放源（优先级最高的，向后兼容）
       const episodes = playSources[0]?.episodes || [];
 
-      Logger.info('搜索解析', `${item.vod_name}: 找到 ${playSources.length} 个播放源，${episodes.length} 个剧集`);
+      Logger.info(
+        '搜索解析',
+        `${item.vod_name}: 找到 ${playSources.length} 个播放源，${episodes.length} 个剧集`
+      );
 
       return {
         id: item.vod_id.toString(),
@@ -415,7 +445,10 @@ export async function searchFromApi(
               // 主播放源（优先级最高的，向后兼容）
               const episodes = playSources[0]?.episodes || [];
 
-              Logger.info('搜索解析-分页', `第${page}页 - ${item.vod_name}: 找到 ${playSources.length} 个播放源，${episodes.length} 个剧集`);
+              Logger.info(
+                '搜索解析-分页',
+                `第${page}页 - ${item.vod_name}: 找到 ${playSources.length} 个播放源，${episodes.length} 个剧集`
+              );
 
               return {
                 id: item.vod_id.toString(),
@@ -519,20 +552,28 @@ export async function getDetailFromApi(
       .filter((url: string) => isValidM3u8Url(url));
 
     if (validEpisodes.length > 0) {
-      playSources = [{
-        name: '内容提取',
-        episodes: validEpisodes,
-        priority: 99,
-      }];
+      playSources = [
+        {
+          name: '内容提取',
+          episodes: validEpisodes,
+          priority: 99,
+        },
+      ];
 
-      Logger.info('详情解析-降级', `${videoDetail.vod_name}: 从内容中提取到 ${validEpisodes.length} 个链接`);
+      Logger.info(
+        '详情解析-降级',
+        `${videoDetail.vod_name}: 从内容中提取到 ${validEpisodes.length} 个链接`
+      );
     }
   }
 
   // 主播放源（优先级最高的，向后兼容）
   const episodes = playSources[0]?.episodes || [];
 
-  Logger.success('详情解析', `${videoDetail.vod_name}: 找到 ${playSources.length} 个播放源，${episodes.length} 个剧集`);
+  Logger.success(
+    '详情解析',
+    `${videoDetail.vod_name}: 找到 ${playSources.length} 个播放源，${episodes.length} 个剧集`
+  );
 
   return {
     id: id.toString(),
@@ -569,7 +610,9 @@ async function handleSpecialSourceDetail(
   let detailUrl: string;
   if (handler) {
     // 使用处理器配置的URL模板
-    detailUrl = `${apiSite.detail || apiSite.api}${handler.detailUrlTemplate.replace('{id}', id)}`;
+    detailUrl = `${
+      apiSite.detail || apiSite.api
+    }${handler.detailUrlTemplate.replace('{id}', id)}`;
   } else {
     // 降级到旧的逻辑
     detailUrl = `${apiSite.detail}/index.php/vod/detail/id/${id}.html`;
@@ -594,17 +637,24 @@ async function handleSpecialSourceDetail(
 
     // 尝试使用主正则
     matches = html.match(handler.m3u8Pattern) || [];
-    Logger.info('特殊源解析', `${handler.name} 主正则匹配到 ${matches.length} 个链接`);
+    Logger.info(
+      '特殊源解析',
+      `${handler.name} 主正则匹配到 ${matches.length} 个链接`
+    );
 
     // 如果主正则没匹配到，尝试降级正则
     if (matches.length === 0 && handler.fallbackPattern) {
       matches = html.match(handler.fallbackPattern) || [];
-      Logger.info('特殊源解析', `${handler.name} 降级正则匹配到 ${matches.length} 个链接`);
+      Logger.info(
+        '特殊源解析',
+        `${handler.name} 降级正则匹配到 ${matches.length} 个链接`
+      );
     }
   } else {
     // 旧的ffzy特定逻辑（向后兼容）
     if (apiSite.key === 'ffzy') {
-      const ffzyPattern = /\$(https?:\/\/[^"'\s]+?\/\d{8}\/\d+_[a-f0-9]+\/index\.m3u8)/g;
+      const ffzyPattern =
+        /\$(https?:\/\/[^"'\s]+?\/\d{8}\/\d+_[a-f0-9]+\/index\.m3u8)/g;
       matches = html.match(ffzyPattern) || [];
       Logger.info('特殊源解析', `ffzy特定正则匹配到 ${matches.length} 个链接`);
     }
@@ -625,18 +675,26 @@ async function handleSpecialSourceDetail(
   });
 
   // ✅ 过滤无效链接
-  const validEpisodes = cleanedMatches.filter((url: string) => isValidM3u8Url(url));
+  const validEpisodes = cleanedMatches.filter((url: string) =>
+    isValidM3u8Url(url)
+  );
 
-  Logger.success('特殊源解析', `${apiSite.name}: 提取到 ${validEpisodes.length} 个有效链接（原始 ${cleanedMatches.length} 个）`);
+  Logger.success(
+    '特殊源解析',
+    `${apiSite.name}: 提取到 ${validEpisodes.length} 个有效链接（原始 ${cleanedMatches.length} 个）`
+  );
 
   // ✅ 创建播放源对象
-  const playSources: PlaySource[] = validEpisodes.length > 0
-    ? [{
-        name: apiSite.name,
-        episodes: validEpisodes,
-        priority: 1,
-      }]
-    : [];
+  const playSources: PlaySource[] =
+    validEpisodes.length > 0
+      ? [
+          {
+            name: apiSite.name,
+            episodes: validEpisodes,
+            priority: 1,
+          },
+        ]
+      : [];
 
   // 提取标题
   const titleMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/);
@@ -656,7 +714,10 @@ async function handleSpecialSourceDetail(
   const yearMatch = html.match(/>(\d{4})</);
   const yearText = extractYear(yearMatch ? yearMatch[1] : '');
 
-  Logger.info('特殊源解析-元数据', `标题: ${titleText}, 年份: ${yearText}, 封面: ${coverUrl ? '有' : '无'}`);
+  Logger.info(
+    '特殊源解析-元数据',
+    `标题: ${titleText}, 年份: ${yearText}, 封面: ${coverUrl ? '有' : '无'}`
+  );
 
   return {
     id,

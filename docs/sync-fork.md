@@ -7,10 +7,13 @@
 ### 步骤
 
 1. **访问你的 fork 仓库**
+
    ```
    https://github.com/你的用户名/V0TV
    ```
+
    或者
+
    ```
    https://github.com/你的用户名/myv0tv
    ```
@@ -18,9 +21,11 @@
 2. **查看是否有更新**
 
    在仓库页面顶部，如果看到类似这样的提示：
+
    ```
    This branch is X commits behind telagod:main
    ```
+
    说明原仓库有新的提交。
 
 3. **点击同步按钮**
@@ -178,6 +183,7 @@ git push origin main --force
 4. ✅ 修复之前的构建错误
 
 可以在 Cloudflare Dashboard 中查看部署状态：
+
 ```
 Workers & Pages → 你的项目 → Deployments
 ```

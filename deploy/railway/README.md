@@ -108,12 +108,14 @@ Railway Dashboard → Settings → Domains → Add Custom Domain
 ### 自动部署
 
 Railway 自动监听 GitHub 推送：
+
 - 推送代码 → 自动部署
 - PR 创建 → 创建预览环境
 
 ### 环境管理
 
 Railway 支持多环境：
+
 - Production（生产）
 - Staging（预发布）
 - Development（开发）
@@ -129,10 +131,12 @@ Railway Pro 计划支持自动扩展。
 Railway 采用按使用量计费：
 
 **免费额度**：
+
 - $5 免费额度/月
 - 支持小型项目
 
 **Pro 计划**：
+
 - $20/月起
 - 无限项目
 - 自动扩展

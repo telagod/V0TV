@@ -3,12 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useRouter } from 'next/navigation';
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
@@ -174,7 +169,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
     if (categoryContainerRef.current && buttonRefs.current[currentPage]) {
       const container = categoryContainerRef.current;
       const button = buttonRefs.current[currentPage];
-      
+
       if (button) {
         const containerRect = container.getBoundingClientRect();
         const buttonRect = button.getBoundingClientRect();
@@ -344,7 +339,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                         ? 'bg-green-500 text-white shadow-lg shadow-green-500/25 dark:bg-green-600'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:scale-105 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20'
                     }`.trim()}
-                  type="button"
+                  type='button'
                 >
                   {episodeNumber}
                 </button>

@@ -26,7 +26,8 @@ interface UseFavoriteOptions {
  * 收藏功能Hook
  */
 export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
-  const { source, id, title, year, poster, totalEpisodes, sourceName } = options;
+  const { source, id, title, year, poster, totalEpisodes, sourceName } =
+    options;
 
   const [favorited, setFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -82,7 +83,17 @@ export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
     } finally {
       setLoading(false);
     }
-  }, [source, id, title, year, poster, totalEpisodes, sourceName, favorited, loading]);
+  }, [
+    source,
+    id,
+    title,
+    year,
+    poster,
+    totalEpisodes,
+    sourceName,
+    favorited,
+    loading,
+  ]);
 
   return {
     favorited,
