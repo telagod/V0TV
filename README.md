@@ -122,29 +122,11 @@ chmod +x deploy-redis.sh
 
 ### 方式二：Cloudflare Pages（免费托管）
 
-**一键部署**
-
 [![Deploy to Cloudflare Pages](https://raw.githubusercontent.com/telagod/V0TV/main/public/deploy-to-cloudflare.svg)](https://dash.cloudflare.com/sign-up/pages)
 
-> 点击按钮后，将跳转到 Cloudflare Pages，连接你的 GitHub 账号并选择 V0TV 仓库即可部署。
+点击按钮，连接 GitHub，3分钟完成部署。支持全球 CDN、边缘计算、D1 数据库。
 
-**手动部署**
-
-```bash
-cd deploy/cloudflare
-chmod +x deploy.sh
-./deploy.sh
-```
-
-**GitHub Actions 自动部署**
-
-1. Fork 本项目
-2. 在 GitHub 仓库设置中添加 Secrets：
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
-3. 在 Actions 页面手动触发 "部署到 Cloudflare Pages"
-
-[查看 Cloudflare 详细教程 →](deploy/cloudflare/README.md)
+[查看详细教程 →](deploy/cloudflare/README.md)
 
 ---
 
