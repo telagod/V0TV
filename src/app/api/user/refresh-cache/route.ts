@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'edge';
 
 /**
  * 刷新用户设置缓存API

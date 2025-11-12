@@ -4,7 +4,6 @@ import { getAvailableApiSites, getCacheTime } from '@/lib/config';
 import { addCorsHeaders, handleOptionsRequest } from '@/lib/cors';
 import { getDetailFromApi } from '@/lib/downstream';
 
-export const runtime = 'edge';
 
 // 处理OPTIONS预检请求（OrionTV客户端需要）
 export async function OPTIONS() {

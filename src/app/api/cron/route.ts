@@ -6,7 +6,6 @@ import { db } from '@/lib/db';
 import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
 import { SearchResult } from '@/lib/types';
 
-export const runtime = 'edge';
 
 export async function GET(request: NextRequest) {
   console.log(request.url);

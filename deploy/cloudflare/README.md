@@ -1,364 +1,280 @@
-# 🚀 Cloudflare Workers 部署指南
+# Cloudflare Workers 部署指南（使用 OpenNext）
 
-> **最新动态（2025）**: Cloudflare 已将 Pages 和 Workers 统一为一个平台。现在推荐使用 **Workers** 部署，它包含了 Pages 的所有功能，并且静态资产请求完全免费！
+> 本项目使用 **@opennextjs/cloudflare** 适配器，采用标准 Cloudflare Workers 部署方式。
 
-## ⚡ 一键部署（真正的自动化！）
-
-点击按钮，Cloudflare 会自动完成所有配置：
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
-
-### 自动完成的操作
-
-点击按钮后，Cloudflare 会自动：
-
-1. **Fork 仓库** → 在你的 GitHub 账号下创建副本
-2. **配置资源** → 自动创建 D1 数据库、KV 命名空间
-3. **设置 CI/CD** → 配置 Workers Builds 自动部署
-4. **首次部署** → 立即部署应用到全球边缘网络
-5. **配置环境** → 引导你设置 `PASSWORD` 等环境变量
-
-就这么简单！🎉
-
-### 部署完成后
-
-访问你的应用：`https://你的项目名.你的账号.workers.dev`
-
-> 💡 **重要提示**：一键部署会在你的 GitHub 账号下创建 fork 仓库。当原仓库有更新时，需要手动同步你的 fork 以获取最新代码和修复。[查看如何同步 fork →](../../docs/sync-fork.md)
-
----
-
-## 🔐 部署后必做：配置管理账号和密码
-
-一键部署完成后，**必须配置环境变量**才能正常访问应用。
-
-### 第一步：进入项目设置
-
-1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 点击左侧菜单 **Workers & Pages**
-3. 找到你的项目（例如：`v0tv`），点击进入
-4. 点击顶部 **Settings** 标签页
-5. 在左侧菜单找到 **Variables and Secrets**
-
-### 第二步：配置必需的环境变量
-
-#### 单用户模式（推荐新手）
-
-点击 **Add variable** 按钮，添加：
-
-| 变量名     | 值         | 说明               |
-| ---------- | ---------- | ------------------ |
-| `PASSWORD` | `你的密码` | **必填**，访问密码 |
-
-配置完成后点击 **Save and Deploy**（保存并重新部署）。
-
-#### 多用户模式（高级）
-
-如需多用户功能，添加以下变量：
-
-| 变量名                        | 值         | 说明                             |
-| ----------------------------- | ---------- | -------------------------------- |
-| `PASSWORD`                    | `你的密码` | **必填**，管理员密码             |
-| `USERNAME`                    | `admin`    | 管理员用户名（可选，默认 admin） |
-| `NEXT_PUBLIC_STORAGE_TYPE`    | `d1`       | 存储类型（使用 D1 数据库）       |
-| `NEXT_PUBLIC_ENABLE_REGISTER` | `false`    | 是否允许用户注册                 |
-
-> 💡 **提示**：多用户模式需要配置 D1 数据库，参见下方 [D1 数据库设置](#-d1-数据库设置可选)
-
-### 第三步：等待部署完成
-
-点击 **Save and Deploy** 后：
-
-- ⏱️ 等待 1-2 分钟重新部署
-- ✅ 部署完成后访问你的域名
-- 🔑 使用配置的密码登录
-
----
-
-## 🌐 配置自定义域名（可选）
-
-默认域名是 `你的项目名.你的账号.workers.dev`，你可以绑定自己的域名。
-
-### 方式一：使用 Cloudflare 管理的域名
-
-如果你的域名 DNS 已托管在 Cloudflare：
-
-1. 在项目页面点击 **Custom Domains** 标签页
-2. 点击 **Add Custom Domain** 按钮
-3. 输入你的域名（例如：`tv.example.com`）
-4. 点击 **Add domain**
-5. ✅ Cloudflare 会自动添加 DNS 记录，无需手动操作
-
-**等待 1-5 分钟后即可通过自定义域名访问！**
-
-### 方式二：使用外部 DNS 的域名
-
-如果你的域名 DNS 不在 Cloudflare：
-
-1. 在项目页面点击 **Custom Domains** 标签页
-2. 点击 **Add Custom Domain** 按钮
-3. 输入你的域名（例如：`tv.example.com`）
-4. Cloudflare 会提示需要添加 CNAME 记录
-5. 复制提供的 CNAME 值（类似：`你的项目名.你的账号.workers.dev`）
-6. 前往你的 DNS 服务商，添加 CNAME 记录：
-   ```
-   记录类型: CNAME
-   主机记录: tv (或 @，取决于你要绑定的是子域名还是根域名)
-   记录值: 你的项目名.你的账号.workers.dev
-   TTL: 600 (或默认值)
-   ```
-7. 等待 DNS 生效（通常 5-30 分钟）
-8. 返回 Cloudflare Dashboard，点击 **Verify** 验证
-
-### SSL 证书
-
-Cloudflare 会自动为你的自定义域名提供免费的 SSL 证书，支持 HTTPS 访问。
-
----
-
-## 📦 其他部署方式
-
-<details>
-<summary><b>方式一：手动连接 GitHub（推荐）</b></summary>
-
-### 配置步骤
-
-**1. 创建 Cloudflare Pages 项目**
-
-1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 点击 **Workers & Pages** → **Create**
-3. 选择 **Pages** → **Connect to Git**
-4. 授权并选择 `V0TV` 仓库
-
-**2. 配置构建设置**
-
-在 **Set up builds and deployments** 页面：
-
-| 配置项 | 值 |
-|--------|-----|
-| **Framework preset** | `Next.js` |
-| **Build command** | `pnpm run pages:build` |
-| **Build output directory** | `.vercel/output/static` |
-
-**重要**：
-- ✅ **不要**填写 "Deploy command"（如果有这个字段）
-- ✅ 确保使用 `pnpm run pages:build` 而不是 `pnpm run build`
-- ✅ 输出目录必须是 `.vercel/output/static`
-
-**3. 配置环境变量（可选）**
-
-点击 **Add environment variable** 添加：
-
-```
-PASSWORD=你的密码
-```
-
-**4. 保存并部署**
-
-点击 **Save and Deploy**，等待构建完成（约 3-5 分钟）。
-
-</details>
-
-<details>
-<summary><b>方式二：使用命令行（Wrangler CLI）</b></summary>
+## 🚀 快速开始
 
 ### 前置要求
 
-- 已安装 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
+- Node.js 18+
+- pnpm 10.12.4+
 - Cloudflare 账号
+- wrangler CLI 4.0+
 
-### 快速部署
+### 一键部署
 
-```bash
-# 克隆仓库
-git clone https://github.com/telagod/V0TV.git
-cd V0TV
-
-# 登录 Cloudflare
-wrangler login
-
-# 构建项目
-pnpm install
-pnpm run pages:build
-
-# 部署到 Cloudflare Pages
-wrangler pages deploy .vercel/output/static --project-name=v0tv
-```
-
-**注意**：使用 `wrangler pages deploy` 而不是 `wrangler deploy`。
-
-</details>
-
-<details>
-<summary><b>方式三：GitHub Actions 自动部署</b></summary>
-
-### 配置步骤
-
-**1. 获取 Cloudflare 凭证**
-
-访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)，获取：
-
-- **Account ID**（右侧栏）
-- **API Token**（My Profile → API Tokens → Create Token → 使用 "Edit Cloudflare Workers" 模板）
-
-**2. 配置 GitHub Secrets**
-
-在你的仓库中：Settings → Secrets → Actions → New repository secret
-
-添加：
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-
-**3. 启用自动部署**
-
-取消注释 `.github/workflows/cloudflare-pages.yml` 中的 `push` 触发器：
-
-```yaml
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-```
-
-推送代码后自动部署到 Workers！
-
-</details>
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
 
 ---
 
-## 💾 D1 数据库设置（可选）
+## 📦 本地构建和部署
 
-多用户功能需要 Cloudflare D1 数据库。如果你使用了一键部署，D1 数据库会自动创建和绑定。
+### 1. 安装依赖
 
-### 手动创建数据库（如需要）
+```bash
+pnpm install
+```
+
+### 2. 构建项目
+
+```bash
+pnpm run pages:build
+```
+
+这将：
+- 运行 `gen:runtime` 和 `gen:manifest` 生成运行时配置
+- 执行 `opennextjs-cloudflare build` 构建 Worker
+
+构建产物：
+- `.open-next/worker.js` - Worker 脚本
+- `.open-next/assets/` - 静态资产
+- `.open-next/server-functions/` - 服务端函数
+
+### 3. 本地预览
+
+```bash
+pnpm run preview
+```
+
+或直接使用 wrangler：
+```bash
+wrangler dev
+```
+
+### 4. 部署到 Cloudflare
+
+```bash
+# 首次部署
+wrangler login
+pnpm run deploy
+
+# 或直接使用 wrangler
+wrangler deploy
+```
+
+---
+
+## ⚙️ 配置
+
+### wrangler.jsonc
+
+项目使用 `wrangler.jsonc` 配置文件：
+
+```jsonc
+{
+  "name": "v0tv",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  }
+}
+```
+
+### 环境变量
+
+在 Cloudflare Dashboard 配置环境变量：
+
+**Workers & Pages** → 你的项目 → **Settings** → **Variables**
+
+#### 必需变量
+
+| 变量名 | 说明 |
+|--------|------|
+| `PASSWORD` | 访问密码（必填） |
+
+#### 可选变量
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `USERNAME` | 管理员用户名 | `admin` |
+| `NEXT_PUBLIC_STORAGE_TYPE` | 存储类型（localStorage/d1） | `localStorage` |
+| `NEXT_PUBLIC_ENABLE_REGISTER` | 是否允许注册 | `false` |
+
+### D1 数据库绑定（可选）
+
+如需使用 D1 数据库存储用户数据：
 
 ```bash
 # 1. 创建数据库
 wrangler d1 create v0tv-db
 
 # 2. 初始化表结构
-wrangler d1 execute v0tv-db --file=D1用到的相关所有.sql
+wrangler d1 execute v0tv-db --file=scripts/d1-init.sql
 
-# 3. 在 wrangler.toml 中配置
+# 3. 在 wrangler.jsonc 中配置
 ```
 
-### 配置绑定
-
-编辑 `wrangler.toml`:
-
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "v0tv-db"
-database_id = "你的数据库ID"
+在 `wrangler.jsonc` 添加：
+```jsonc
+{
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "v0tv-db",
+      "database_id": "your-database-id-here"
+    }
+  ]
+}
 ```
 
-### 更新环境变量
-
-```env
+然后设置环境变量：
+```
 NEXT_PUBLIC_STORAGE_TYPE=d1
 ```
 
-重新部署后生效。
+---
+
+## 🔄 Git 集成部署
+
+### Cloudflare Dashboard 设置
+
+1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. **Workers & Pages** → **Create** → **Connect to Git**
+3. 选择你的 GitHub 仓库
+4. 配置构建设置：
+
+| 配置项 | 值 |
+|--------|-----|
+| **Build command** | `pnpm run pages:build` |
+| **Build output directory** | `.open-next` |
+| **Root directory** | `/` |
+
+5. 添加环境变量（至少需要 `PASSWORD`）
+6. 点击 **Save and Deploy**
+
+### 自动部署
+
+推送代码到 GitHub 后，Cloudflare 会自动：
+1. 拉取最新代码
+2. 运行构建命令
+3. 部署到全球边缘网络
 
 ---
 
-## 🔧 故障排除
+## 🛠️ 常用命令
 
-<details>
-<summary><b>构建失败</b></summary>
+| 命令 | 说明 |
+|------|------|
+| `pnpm dev` | 本地开发服务器（Next.js）|
+| `pnpm run pages:build` | 构建 Cloudflare Worker |
+| `pnpm run preview` | 本地预览 Worker |
+| `pnpm run deploy` | 构建并部署 |
+| `wrangler dev` | 直接运行 Worker 开发服务器 |
+| `wrangler deploy` | 直接部署 Worker |
 
-**检查构建命令**：
+---
 
+## 📚 技术栈
+
+- **Next.js 14** - React 框架
+- **@opennextjs/cloudflare** - OpenNext Cloudflare 适配器
+- **Wrangler 4** - Cloudflare Workers CLI
+- **Node.js Runtime** - 完整 Node.js API 支持
+
+---
+
+## 🔍 故障排除
+
+### 构建失败
+
+**错误：`pnpm: not found`**
+
+在 Cloudflare Dashboard 添加环境变量：
+```
+PNPM_VERSION=10.12.4
+```
+
+**错误：构建超时**
+
+优化措施：
+- 确保 `node_modules` 在 `.gitignore` 中
+- 使用 `package.json` 中的 `packageManager` 字段
+
+### 运行时错误
+
+**数据库连接失败**
+
+检查：
+1. D1 数据库是否已创建
+2. `wrangler.jsonc` 中的绑定配置是否正确
+3. 环境变量 `NEXT_PUBLIC_STORAGE_TYPE` 是否设置为 `d1`
+
+**环境变量未生效**
+
+确保：
+1. 环境变量已在 Cloudflare Dashboard 配置
+2. 变量名拼写正确
+3. 已重新部署
+
+---
+
+## 📖 相关文档
+
+- [配置说明](CONFIGURATION.md) - Dashboard 配置详解
+- [故障排除](TROUBLESHOOTING.md) - 常见问题
+- [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
+- [OpenNext Cloudflare](https://opennext.js.org/cloudflare)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
+
+---
+
+## 🎯 从旧适配器迁移
+
+如果你之前使用 `@cloudflare/next-on-pages`：
+
+### 主要变化
+
+| 项目 | next-on-pages | @opennextjs/cloudflare |
+|------|--------------|----------------------|
+| 部署命令 | `wrangler pages deploy` | `wrangler deploy` |
+| 配置文件 | `wrangler.toml` | `wrangler.jsonc` |
+| Runtime | Edge Runtime | Node.js Runtime |
+| 输出目录 | `.vercel/output/static` | `.open-next` |
+
+### 迁移步骤
+
+1. 移除旧依赖：
+```bash
+pnpm remove @cloudflare/next-on-pages
+```
+
+2. 安装新适配器：
+```bash
+pnpm add -D @opennextjs/cloudflare wrangler@latest
+```
+
+3. 更新配置文件（重命名 `wrangler.toml` 为 `wrangler.jsonc`）
+
+4. 移除 API 路由中的 `export const runtime = 'edge'` 声明
+
+5. 更新 `.gitignore`：
+```
+.open-next
+```
+
+6. 测试构建：
 ```bash
 pnpm run pages:build
 ```
-
-**常见错误**：
-
-- `pnpm not found` → 在环境变量中添加 `PNPM_VERSION=8`
-- `Build timeout` → 检查依赖安装是否正常
-- `wrangler.toml not found` → 确保文件在项目根目录
-
-</details>
-
-<details>
-<summary><b>部署成功但无法访问</b></summary>
-
-1. 检查 `PASSWORD` 环境变量是否已设置
-2. 查看日志：Dashboard → Workers & Pages → 项目 → Logs
-3. 确认路由配置正确
-
-</details>
-
-<details>
-<summary><b>D1 数据库连接失败</b></summary>
-
-1. 确认 `wrangler.toml` 配置正确
-2. 检查 binding 名称为 `"DB"`
-3. 验证数据库 ID 匹配
-4. 重新部署项目
-
-</details>
-
----
-
-## 🚀 高级配置
-
-### 路由配置
-
-Workers 支持更灵活的路由规则，可以在 `wrangler.toml` 中配置。
-
-### 性能优化
-
-- ✅ 静态资产请求免费（Workers 静态资产特性）
-- ✅ 全球边缘网络（超过 300 个数据中心）
-- ✅ 智能缓存和预热
-- 📊 使用 [Workers Analytics](https://www.cloudflare.com/web-analytics/) 监控性能
-
-### Durable Objects（可选）
-
-Workers 支持 Durable Objects，可用于实时功能、WebSocket 连接等。
-
----
-
-## 📚 相关资源
-
-### 本项目文档
-
-- [配置说明](CONFIGURATION.md) - Dashboard 配置速查表
-- [部署命令](DEPLOY-COMMANDS.md) - CLI 部署命令和最佳实践
-- [故障排除](TROUBLESHOOTING.md) - 常见问题解决方案
-- [返回主文档](../../README.md)
-
-### Cloudflare 官方文档
-
-- [Cloudflare Workers 官方文档](https://developers.cloudflare.com/workers/)
-- [Workers 静态资产](https://developers.cloudflare.com/workers/static-assets/)
-- [从 Pages 迁移到 Workers](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)
-- [Wrangler CLI 文档](https://developers.cloudflare.com/workers/wrangler/)
-- [D1 数据库文档](https://developers.cloudflare.com/d1/)
 
 ---
 
 ## 💡 提示
 
-### Workers vs Pages（2025 年最新）
-
-- ✅ **Pages 已弃用**，现在统一使用 Workers
-- ✅ **静态资产免费**，和之前的 Pages 一样
-- ✅ **更多功能**：Durable Objects、Cron Triggers、更好的可观测性
-- ✅ **更好的性能**：优化的边缘计算和路由
-
-### 免费配额
-
-- 每天 100,000 次请求
-- 静态资产请求不计入配额
-- D1 数据库：5GB 存储，500 万次读取/天
-- 10ms CPU 时间/请求
-
----
-
-需要帮助？[提交 Issue](https://github.com/telagod/V0TV/issues) 或查看 [常见问题](../../docs/faq.md)
+- ✅ 使用标准 `wrangler deploy` 命令，不再需要 `wrangler pages deploy`
+- ✅ 支持完整 Node.js APIs
+- ✅ 更好的性能和更小的 bundle 大小
+- ✅ 官方维护和持续更新

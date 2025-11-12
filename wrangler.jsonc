@@ -1,0 +1,55 @@
+{
+  // Cloudflare Workers 配置文件
+  // 使用 @opennextjs/cloudflare 适配器部署 Next.js 应用
+
+  "name": "v0tv",
+  "main": ".open-next/worker.js",
+
+  // 兼容性设置
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": [
+    "nodejs_compat"  // 启用 Node.js 兼容模式
+  ],
+
+  // 静态资产配置
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // KV 命名空间绑定（可选，用于缓存加速）
+  // 取消注释以启用：
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "KV",
+  //     "id": "your-kv-id-here"
+  //   }
+  // ],
+
+  // D1 数据库绑定（可选，用于多用户和数据同步）
+  // 取消注释以启用：
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "v0tv-db",
+  //     "database_id": "your-database-id-here"
+  //   }
+  // ],
+
+  // 环境变量说明
+  // 这些变量需要在 Cloudflare Dashboard 中设置：
+  // Workers & Pages > 你的项目 > Settings > Variables
+  //
+  // 必填变量：
+  // - PASSWORD: 访问密码
+  //
+  // 可选变量（多用户模式）：
+  // - USERNAME: 管理员用户名（默认：admin）
+  // - NEXT_PUBLIC_STORAGE_TYPE: 存储类型（localStorage/d1，默认：localStorage）
+  // - NEXT_PUBLIC_ENABLE_REGISTER: 是否允许用户注册（true/false，默认：false）
+
+  // 观测性配置（可选）
+  "observability": {
+    "enabled": true
+  }
+}

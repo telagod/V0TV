@@ -42,4 +42,4 @@ sitemap-*.xml
 
 # generated files
 src/lib/runtime.ts
-public/manifest.json
+public/manifest.json.open-next

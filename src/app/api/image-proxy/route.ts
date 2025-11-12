@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 import { addCorsHeaders, handleOptionsRequest } from '@/lib/cors';
 
-export const runtime = 'edge';
 
 // 处理OPTIONS预检请求（OrionTV客户端需要）
 export async function OPTIONS() {

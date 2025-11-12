@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // 强制使用 Edge Runtime 以支持 Cloudflare Pages
-export const runtime = 'edge';
 
 // 常用的视频解析接口列表
 const PARSE_APIS = [

@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConfig } from '@/lib/config';
 
 // 强制使用 Edge Runtime 以支持 Cloudflare Pages
-export const runtime = 'edge';
 
 // TVBox源格式接口
 interface TVBoxSource {
