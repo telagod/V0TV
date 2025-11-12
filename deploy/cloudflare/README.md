@@ -326,12 +326,20 @@ Workers 支持 Durable Objects，可用于实时功能、WebSocket 连接等。
 
 ## 📚 相关资源
 
+### 本项目文档
+
+- [配置说明](CONFIGURATION.md) - Dashboard 配置速查表
+- [部署命令](DEPLOY-COMMANDS.md) - CLI 部署命令和最佳实践
+- [故障排除](TROUBLESHOOTING.md) - 常见问题解决方案
+- [返回主文档](../../README.md)
+
+### Cloudflare 官方文档
+
 - [Cloudflare Workers 官方文档](https://developers.cloudflare.com/workers/)
 - [Workers 静态资产](https://developers.cloudflare.com/workers/static-assets/)
 - [从 Pages 迁移到 Workers](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)
 - [Wrangler CLI 文档](https://developers.cloudflare.com/workers/wrangler/)
 - [D1 数据库文档](https://developers.cloudflare.com/d1/)
-- [返回主文档](../../README.md)
 
 ---
 
