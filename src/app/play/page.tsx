@@ -5,6 +5,9 @@
 
 'use client';
 
+// 强制动态渲染（因为使用了 useSearchParams）
+export const dynamic = 'force-dynamic';
+
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useState,
