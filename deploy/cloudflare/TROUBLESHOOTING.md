@@ -1,4 +1,4 @@
-# Cloudflare Pages 部署故障排除
+# Cloudflare Workers 部署故障排除
 
 ## 常见问题
 
@@ -12,49 +12,117 @@ Failed: error occurred while running deploy command
 ```
 
 #### 原因
-Cloudflare Pages 的项目设置中配置了错误的**部署命令**（Deploy command）。
+项目依赖中缺少 `wrangler` 包。
 
 #### 解决方法
 
-**步骤 1：访问项目设置**
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 点击左侧菜单 **Workers & Pages**
-3. 找到你的项目（例如：`V0TV`），点击进入
-4. 点击顶部 **Settings** 标签页
+**方法 1：更新依赖（推荐）**
 
-**步骤 2：修改构建配置**
-找到 **Builds & deployments** 部分，确保配置如下：
+最新代码已经添加了 wrangler 依赖，拉取最新代码并重新安装：
 
-| 配置项 | 正确值 |
-|--------|--------|
-| **Framework preset** | `Next.js` |
-| **Build command** | `pnpm run pages:build` |
-| **Build output directory** | `.vercel/output/static` |
-| **Root directory** | `/` |
-| **Environment variables** | 按需配置（见下文） |
+```bash
+git pull origin main
+pnpm install
+```
 
-**重要**：在 **Build command** 部分，如果有单独的 "Deploy command" 输入框，应该**留空或删除**。
+**方法 2：手动添加 wrangler**
 
-**步骤 3：保存并重新部署**
-1. 点击 **Save** 保存设置
-2. 返回 **Deployments** 标签页
-3. 点击 **Retry deployment** 或点击最新的失败部署旁边的 **···** 菜单 → **Retry deployment**
+如果是自己 fork 的仓库，在 `package.json` 的 `devDependencies` 中添加：
+
+```json
+{
+  "devDependencies": {
+    "wrangler": "^3.96.0"
+  }
+}
+```
+
+然后安装：
+```bash
+pnpm install
+```
+
+**方法 3：修改 Cloudflare Pages 配置**
+
+在 Cloudflare Dashboard → Workers & Pages → 项目 → Settings → Builds：
+- **Build command**: `pnpm install && pnpm run pages:build`
+- **Build output directory**: `.vercel/output/static`
 
 ---
 
-### 2. 为什么不需要部署命令？
+### 2. 如何配置 KV 缓存和 D1 数据库？
 
-Cloudflare Pages 和 Cloudflare Workers 的部署方式不同：
+#### KV 命名空间配置（可选，用于缓存加速）
 
-| 平台 | 部署方式 | 是否需要 `wrangler deploy` |
-|------|----------|----------------------------|
-| **Cloudflare Pages** | 自动部署构建输出目录 | ❌ 不需要 |
-| **Cloudflare Workers** | 需要通过 wrangler 部署 | ✅ 需要 |
+**方法 1：使用初始化脚本（推荐）**
 
-本项目使用 **Cloudflare Pages**，所以：
-- ✅ 只需要配置**构建命令**和**输出目录**
-- ❌ **不需要**配置部署命令
-- ✅ Cloudflare 会自动将 `.vercel/output/static` 目录部署到全球边缘网络
+```bash
+# 运行自动配置脚本
+bash scripts/init-cloudflare.sh
+```
+
+脚本会自动：
+- 创建 KV 命名空间
+- 更新 wrangler.toml 配置
+- 初始化 D1 数据库（如选择）
+
+**方法 2：手动创建**
+
+```bash
+# 1. 创建 KV 命名空间
+wrangler kv:namespace create v0tv-kv
+
+# 2. 记录输出的 id，例如：
+# id = "abc123def456"
+
+# 3. 编辑 wrangler.toml，取消注释并填入 id
+```
+
+在 `wrangler.toml` 中：
+```toml
+[[kv_namespaces]]
+binding = "KV"
+id = "abc123def456"  # 替换为你的 KV ID
+```
+
+#### D1 数据库配置（可选，多用户模式需要）
+
+**方法 1：使用初始化脚本（推荐）**
+
+```bash
+bash scripts/init-cloudflare.sh
+```
+
+**方法 2：手动创建**
+
+```bash
+# 1. 创建 D1 数据库
+wrangler d1 create v0tv-db
+
+# 2. 记录输出的 database_id
+
+# 3. 初始化表结构
+wrangler d1 execute v0tv-db --file=scripts/d1-init.sql
+
+# 4. 编辑 wrangler.toml
+```
+
+在 `wrangler.toml` 中：
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "v0tv-db"
+database_id = "your-database-id-here"  # 替换为你的 D1 ID
+```
+
+**配置环境变量**
+
+在 Cloudflare Dashboard → Workers & Pages → 项目 → Settings → Variables 中添加：
+
+```
+NEXT_PUBLIC_STORAGE_TYPE=d1
+```
+
 
 ---
 
