@@ -119,7 +119,48 @@ Cloudflare 会自动为你的自定义域名提供免费的 SSL 证书，支持 
 ## 📦 其他部署方式
 
 <details>
-<summary><b>方式一：使用命令行（Wrangler CLI）</b></summary>
+<summary><b>方式一：手动连接 GitHub（推荐）</b></summary>
+
+### 配置步骤
+
+**1. 创建 Cloudflare Pages 项目**
+
+1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. 点击 **Workers & Pages** → **Create**
+3. 选择 **Pages** → **Connect to Git**
+4. 授权并选择 `V0TV` 仓库
+
+**2. 配置构建设置**
+
+在 **Set up builds and deployments** 页面：
+
+| 配置项 | 值 |
+|--------|-----|
+| **Framework preset** | `Next.js` |
+| **Build command** | `pnpm run pages:build` |
+| **Build output directory** | `.vercel/output/static` |
+
+**重要**：
+- ✅ **不要**填写 "Deploy command"（如果有这个字段）
+- ✅ 确保使用 `pnpm run pages:build` 而不是 `pnpm run build`
+- ✅ 输出目录必须是 `.vercel/output/static`
+
+**3. 配置环境变量（可选）**
+
+点击 **Add environment variable** 添加：
+
+```
+PASSWORD=你的密码
+```
+
+**4. 保存并部署**
+
+点击 **Save and Deploy**，等待构建完成（约 3-5 分钟）。
+
+</details>
+
+<details>
+<summary><b>方式二：使用命令行（Wrangler CLI）</b></summary>
 
 ### 前置要求
 
@@ -140,20 +181,16 @@ wrangler login
 pnpm install
 pnpm run pages:build
 
-# 部署到 Workers
-wrangler deploy
+# 部署到 Cloudflare Pages
+wrangler pages deploy .vercel/output/static --project-name=v0tv
 ```
 
-Wrangler 会自动：
-
-- ✅ 上传构建产物
-- ✅ 配置路由
-- ✅ 部署到全球边缘网络
+**注意**：使用 `wrangler pages deploy` 而不是 `wrangler deploy`。
 
 </details>
 
 <details>
-<summary><b>方式二：GitHub Actions 自动部署</b></summary>
+<summary><b>方式三：GitHub Actions 自动部署</b></summary>
 
 ### 配置步骤
 
