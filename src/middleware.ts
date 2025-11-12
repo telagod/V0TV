@@ -120,6 +120,8 @@ function shouldSkipAuth(pathname: string): boolean {
   const skipPaths = [
     '/_next',
     '/favicon.ico',
+    '/favicon.png',
+    '/apple-touch-icon.png',
     '/robots.txt',
     '/manifest.json',
     '/icons/',

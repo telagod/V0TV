@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     const tvboxConfig: TVBoxConfig = {
       // 基础配置
       spider: '', // 可以根据需要添加爬虫jar包
-      wallpaper: `${baseUrl}/screenshot1.png`, // 使用项目截图作为壁纸
+      wallpaper: `${baseUrl}/icons/icon-512x512.png`, // 使用应用图标作为壁纸
       
       // 影视源配置
       sites: sourceConfigs.map((source) => {
