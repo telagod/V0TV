@@ -126,6 +126,12 @@ chmod +x deploy-redis.sh
 
 真正的一键部署！自动 Fork 仓库、配置资源（D1数据库）、设置 CI/CD。支持全球边缘计算、静态资产免费。
 
+**部署后配置**：
+1. 访问 Cloudflare Dashboard → Workers & Pages → 你的项目 → Settings → Variables
+2. 添加环境变量 `PASSWORD=你的密码`
+3. 点击 Save and Deploy
+4. 访问 `https://你的项目名.你的账号.workers.dev`
+
 [查看详细教程 →](deploy/cloudflare/README.md)
 
 ---

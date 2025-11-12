@@ -25,6 +25,93 @@
 
 ---
 
+## 🔐 部署后必做：配置管理账号和密码
+
+一键部署完成后，**必须配置环境变量**才能正常访问应用。
+
+### 第一步：进入项目设置
+
+1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. 点击左侧菜单 **Workers & Pages**
+3. 找到你的项目（例如：`v0tv`），点击进入
+4. 点击顶部 **Settings** 标签页
+5. 在左侧菜单找到 **Variables and Secrets**
+
+### 第二步：配置必需的环境变量
+
+#### 单用户模式（推荐新手）
+
+点击 **Add variable** 按钮，添加：
+
+| 变量名 | 值 | 说明 |
+|--------|-----|------|
+| `PASSWORD` | `你的密码` | **必填**，访问密码 |
+
+配置完成后点击 **Save and Deploy**（保存并重新部署）。
+
+#### 多用户模式（高级）
+
+如需多用户功能，添加以下变量：
+
+| 变量名 | 值 | 说明 |
+|--------|-----|------|
+| `PASSWORD` | `你的密码` | **必填**，管理员密码 |
+| `USERNAME` | `admin` | 管理员用户名（可选，默认 admin） |
+| `NEXT_PUBLIC_STORAGE_TYPE` | `d1` | 存储类型（使用 D1 数据库） |
+| `NEXT_PUBLIC_ENABLE_REGISTER` | `false` | 是否允许用户注册 |
+
+> 💡 **提示**：多用户模式需要配置 D1 数据库，参见下方 [D1 数据库设置](#-d1-数据库设置可选)
+
+### 第三步：等待部署完成
+
+点击 **Save and Deploy** 后：
+- ⏱️ 等待 1-2 分钟重新部署
+- ✅ 部署完成后访问你的域名
+- 🔑 使用配置的密码登录
+
+---
+
+## 🌐 配置自定义域名（可选）
+
+默认域名是 `你的项目名.你的账号.workers.dev`，你可以绑定自己的域名。
+
+### 方式一：使用 Cloudflare 管理的域名
+
+如果你的域名 DNS 已托管在 Cloudflare：
+
+1. 在项目页面点击 **Custom Domains** 标签页
+2. 点击 **Add Custom Domain** 按钮
+3. 输入你的域名（例如：`tv.example.com`）
+4. 点击 **Add domain**
+5. ✅ Cloudflare 会自动添加 DNS 记录，无需手动操作
+
+**等待 1-5 分钟后即可通过自定义域名访问！**
+
+### 方式二：使用外部 DNS 的域名
+
+如果你的域名 DNS 不在 Cloudflare：
+
+1. 在项目页面点击 **Custom Domains** 标签页
+2. 点击 **Add Custom Domain** 按钮
+3. 输入你的域名（例如：`tv.example.com`）
+4. Cloudflare 会提示需要添加 CNAME 记录
+5. 复制提供的 CNAME 值（类似：`你的项目名.你的账号.workers.dev`）
+6. 前往你的 DNS 服务商，添加 CNAME 记录：
+   ```
+   记录类型: CNAME
+   主机记录: tv (或 @，取决于你要绑定的是子域名还是根域名)
+   记录值: 你的项目名.你的账号.workers.dev
+   TTL: 600 (或默认值)
+   ```
+7. 等待 DNS 生效（通常 5-30 分钟）
+8. 返回 Cloudflare Dashboard，点击 **Verify** 验证
+
+### SSL 证书
+
+Cloudflare 会自动为你的自定义域名提供免费的 SSL 证书，支持 HTTPS 访问。
+
+---
+
 ## 📦 其他部署方式
 
 <details>
@@ -93,36 +180,6 @@ on:
 推送代码后自动部署到 Workers！
 
 </details>
-
----
-
-## ⚙️ 环境变量配置
-
-部署后在 Cloudflare Dashboard 中配置：
-
-**Workers & Pages → 你的项目 → Settings → Variables**
-
-### 基础配置（必填）
-
-```env
-PASSWORD=你的访问密码
-```
-
-### 可选配置
-
-```env
-# 管理员用户名（多用户模式）
-USERNAME=admin
-
-# 存储类型（单用户用 localStorage，多用户用 d1）
-NEXT_PUBLIC_STORAGE_TYPE=localStorage
-
-# 允许用户注册（多用户模式）
-NEXT_PUBLIC_ENABLE_REGISTER=false
-
-# Node.js 版本
-NODE_VERSION=18
-```
 
 ---
 
@@ -202,10 +259,6 @@ pnpm run pages:build
 ---
 
 ## 🚀 高级配置
-
-### 自定义域名
-
-Dashboard → Workers & Pages → 项目 → Custom Domains → Add domain
 
 ### 路由配置
 
