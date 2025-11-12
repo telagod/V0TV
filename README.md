@@ -120,11 +120,11 @@ chmod +x deploy-redis.sh
 
 ---
 
-### 方式二：Cloudflare Pages（免费托管）
+### 方式二：Cloudflare Workers（免费托管）
 
-[![Deploy to Cloudflare Pages](https://raw.githubusercontent.com/telagod/V0TV/main/public/deploy-to-cloudflare.svg)](https://dash.cloudflare.com/sign-up/pages)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
 
-点击按钮，连接 GitHub，3分钟完成部署。支持全球 CDN、边缘计算、D1 数据库。
+真正的一键部署！自动 Fork 仓库、配置资源（D1数据库）、设置 CI/CD。支持全球边缘计算、静态资产免费。
 
 [查看详细教程 →](deploy/cloudflare/README.md)
 

@@ -1,33 +1,34 @@
-# 🚀 Cloudflare Pages 部署指南
+# 🚀 Cloudflare Workers 部署指南
 
-## ⚡ 一键部署（推荐）
+> **最新动态（2025）**: Cloudflare 已将 Pages 和 Workers 统一为一个平台。现在推荐使用 **Workers** 部署，它包含了 Pages 的所有功能，并且静态资产请求完全免费！
 
-点击按钮，3分钟完成部署：
+## ⚡ 一键部署（真正的自动化！）
 
-[![Deploy to Cloudflare Pages](https://raw.githubusercontent.com/telagod/V0TV/main/public/deploy-to-cloudflare.svg)](https://dash.cloudflare.com/sign-up/pages)
+点击按钮，Cloudflare 会自动完成所有配置：
 
-### 部署步骤
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
 
-1. **点击按钮** → 跳转到 Cloudflare Pages
-2. **登录 GitHub** → 授权 Cloudflare 访问
-3. **选择仓库** → Fork 或连接 V0TV 仓库
-4. **配置构建** → 填写以下信息：
-   ```
-   构建命令: pnpm pages:build
-   输出目录: .vercel/output/static
-   环境变量: PASSWORD=你的访问密码
-   ```
-5. **开始部署** → 点击"保存并部署"
-6. **访问应用** → 部署完成后访问 `https://你的项目.pages.dev`
+### 自动完成的操作
+
+点击按钮后，Cloudflare 会自动：
+1. **Fork 仓库** → 在你的 GitHub 账号下创建副本
+2. **配置资源** → 自动创建 D1 数据库、KV 命名空间
+3. **设置 CI/CD** → 配置 Workers Builds 自动部署
+4. **首次部署** → 立即部署应用到全球边缘网络
+5. **配置环境** → 引导你设置 `PASSWORD` 等环境变量
 
 就这么简单！🎉
+
+### 部署完成后
+
+访问你的应用：`https://你的项目名.你的账号.workers.dev`
 
 ---
 
 ## 📦 其他部署方式
 
 <details>
-<summary><b>方式一：使用命令行脚本</b></summary>
+<summary><b>方式一：使用命令行（Wrangler CLI）</b></summary>
 
 ### 前置要求
 - 已安装 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/)
@@ -38,21 +39,23 @@
 ```bash
 # 克隆仓库
 git clone https://github.com/telagod/V0TV.git
-cd V0TV/deploy/cloudflare
+cd V0TV
 
 # 登录 Cloudflare
 wrangler login
 
-# 执行部署脚本
-chmod +x deploy.sh
-./deploy.sh
+# 构建项目
+pnpm install
+pnpm run pages:build
+
+# 部署到 Workers
+wrangler deploy
 ```
 
-脚本会自动完成：
-- ✅ 安装依赖
-- ✅ 构建项目
-- ✅ 部署到 Cloudflare Pages
-- ✅ 配置环境变量
+Wrangler 会自动：
+- ✅ 上传构建产物
+- ✅ 配置路由
+- ✅ 部署到全球边缘网络
 
 </details>
 
@@ -87,7 +90,7 @@ on:
   workflow_dispatch:
 ```
 
-推送代码后自动部署！
+推送代码后自动部署到 Workers！
 
 </details>
 
@@ -97,7 +100,7 @@ on:
 
 部署后在 Cloudflare Dashboard 中配置：
 
-**Pages → 你的项目 → Settings → Environment variables**
+**Workers & Pages → 你的项目 → Settings → Variables**
 
 ### 基础配置（必填）
 
@@ -125,18 +128,18 @@ NODE_VERSION=18
 
 ## 💾 D1 数据库设置（可选）
 
-多用户功能需要 Cloudflare D1 数据库。
+多用户功能需要 Cloudflare D1 数据库。如果你使用了一键部署，D1 数据库会自动创建和绑定。
 
-### 创建数据库
+### 手动创建数据库（如需要）
 
 ```bash
 # 1. 创建数据库
 wrangler d1 create v0tv-db
 
 # 2. 初始化表结构
-wrangler d1 execute v0tv-db --file=../../D1用到的相关所有.sql
+wrangler d1 execute v0tv-db --file=D1用到的相关所有.sql
 
-# 3. 记录数据库 ID
+# 3. 在 wrangler.toml 中配置
 ```
 
 ### 配置绑定
@@ -167,13 +170,13 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 
 **检查构建命令**：
 ```bash
-构建命令: pnpm pages:build 或 npm run pages:build
-输出目录: .vercel/output/static
+pnpm run pages:build
 ```
 
 **常见错误**：
 - `pnpm not found` → 在环境变量中添加 `PNPM_VERSION=8`
 - `Build timeout` → 检查依赖安装是否正常
+- `wrangler.toml not found` → 确保文件在项目根目录
 
 </details>
 
@@ -181,8 +184,8 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 <summary><b>部署成功但无法访问</b></summary>
 
 1. 检查 `PASSWORD` 环境变量是否已设置
-2. 查看 Functions 日志：Dashboard → Pages → 项目 → Functions
-3. 确认域名 DNS 解析正常
+2. 查看日志：Dashboard → Workers & Pages → 项目 → Logs
+3. 确认路由配置正确
 
 </details>
 
@@ -202,24 +205,30 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 
 ### 自定义域名
 
-Dashboard → Pages → 项目 → Custom domains → Add domain
+Dashboard → Workers & Pages → 项目 → Custom Domains → Add domain
 
-### 访问控制
+### 路由配置
 
-Dashboard → Pages → 项目 → Settings → Access policies
+Workers 支持更灵活的路由规则，可以在 `wrangler.toml` 中配置。
 
 ### 性能优化
 
-- ✅ Brotli 压缩（默认启用）
-- ✅ 全球 CDN 加速
-- ✅ 边缘计算优化
-- 📊 使用 [Cloudflare Analytics](https://www.cloudflare.com/web-analytics/) 监控性能
+- ✅ 静态资产请求免费（Workers 静态资产特性）
+- ✅ 全球边缘网络（超过 300 个数据中心）
+- ✅ 智能缓存和预热
+- 📊 使用 [Workers Analytics](https://www.cloudflare.com/web-analytics/) 监控性能
+
+### Durable Objects（可选）
+
+Workers 支持 Durable Objects，可用于实时功能、WebSocket 连接等。
 
 ---
 
 ## 📚 相关资源
 
-- [Cloudflare Pages 官方文档](https://developers.cloudflare.com/pages/)
+- [Cloudflare Workers 官方文档](https://developers.cloudflare.com/workers/)
+- [Workers 静态资产](https://developers.cloudflare.com/workers/static-assets/)
+- [从 Pages 迁移到 Workers](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)
 - [Wrangler CLI 文档](https://developers.cloudflare.com/workers/wrangler/)
 - [D1 数据库文档](https://developers.cloudflare.com/d1/)
 - [返回主文档](../../README.md)
@@ -228,10 +237,19 @@ Dashboard → Pages → 项目 → Settings → Access policies
 
 ## 💡 提示
 
-- 免费计划每月 500 次构建，无限流量
-- 支持自动 HTTPS 和全球 CDN
-- 边缘计算提供更快的响应速度
-- D1 数据库免费配额：5GB 存储，500 万次读取/天
+### Workers vs Pages（2025年最新）
+
+- ✅ **Pages 已弃用**，现在统一使用 Workers
+- ✅ **静态资产免费**，和之前的 Pages 一样
+- ✅ **更多功能**：Durable Objects、Cron Triggers、更好的可观测性
+- ✅ **更好的性能**：优化的边缘计算和路由
+
+### 免费配额
+
+- 每天 100,000 次请求
+- 静态资产请求不计入配额
+- D1 数据库：5GB 存储，500 万次读取/天
+- 10ms CPU 时间/请求
 
 ---
 
