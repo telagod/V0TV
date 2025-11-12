@@ -1,0 +1,31 @@
+<svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Cloudflare橙色渐变 -->
+    <linearGradient id="cfGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#F6821F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F38020;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 阴影 -->
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- 按钮背景 -->
+  <rect width="200" height="40" rx="5" fill="url(#cfGradient)" filter="url(#shadow)"/>
+
+  <!-- Cloudflare Logo (简化版) -->
+  <g transform="translate(15, 12)">
+    <!-- 云朵图标 -->
+    <path d="M 10 8 Q 8 6 6 8 Q 4 10 6 12 L 14 12 Q 16 10 14 8 Q 12 6 10 8 Z"
+          fill="white" opacity="0.9"/>
+    <circle cx="10" cy="10" r="2" fill="white"/>
+  </g>
+
+  <!-- 文字 -->
+  <text x="40" y="25" font-family="Arial, sans-serif" font-size="14"
+        font-weight="600" fill="white">
+    Deploy to Cloudflare
+  </text>
+</svg>

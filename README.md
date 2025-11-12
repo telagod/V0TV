@@ -122,6 +122,12 @@ chmod +x deploy-redis.sh
 
 ### 方式二：Cloudflare Pages（免费托管）
 
+**一键部署**
+
+[![Deploy to Cloudflare Pages](https://raw.githubusercontent.com/telagod/V0TV/main/public/deploy-to-cloudflare.svg)](https://dash.cloudflare.com/sign-up/pages)
+
+> 点击按钮后，将跳转到 Cloudflare Pages，连接你的 GitHub 账号并选择 V0TV 仓库即可部署。
+
 **手动部署**
 
 ```bash

@@ -1,5 +1,28 @@
 # 🚀 Cloudflare Pages 快速部署指南
 
+## ⚡ 快速开始（最简单）
+
+点击下方按钮，即可开始在 Cloudflare Pages 上部署：
+
+[![Deploy to Cloudflare Pages](https://raw.githubusercontent.com/telagod/V0TV/main/public/deploy-to-cloudflare.svg)](https://dash.cloudflare.com/sign-up/pages)
+
+**部署步骤**：
+1. 点击按钮跳转到 Cloudflare Pages
+2. 使用 GitHub 账号登录
+3. 授权 Cloudflare 访问你的 GitHub
+4. Fork 或选择 V0TV 仓库
+5. 配置构建设置（见下方）
+6. 点击"保存并部署"
+
+**构建配置**：
+- **构建命令**: `pnpm pages:build` 或 `npm run pages:build`
+- **输出目录**: `.vercel/output/static`
+- **环境变量**:
+  - `PASSWORD` = 你的访问密码（必填）
+  - `NODE_VERSION` = 18
+
+---
+
 ## 一键部署脚本
 
 最简单的部署方式，5分钟完成！

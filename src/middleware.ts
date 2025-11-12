@@ -126,6 +126,7 @@ function shouldSkipAuth(pathname: string): boolean {
     '/manifest.json',
     '/icons/',
     '/logo.svg',
+    '/deploy-to-cloudflare.svg',
     '/screenshot.png',
   ];
 
