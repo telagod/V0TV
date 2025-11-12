@@ -1,0 +1,76 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 主渐变色：蓝色到紫色 -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 播放按钮渐变 -->
+    <linearGradient id="playGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 阴影滤镜 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景圆形 -->
+  <circle cx="256" cy="256" r="240" fill="url(#mainGradient)" opacity="0.1"/>
+
+  <!-- 主电视屏幕外框 -->
+  <rect x="96" y="120" width="320" height="240" rx="24" ry="24"
+        fill="url(#mainGradient)" filter="url(#shadow)"/>
+
+  <!-- 电视屏幕内部 -->
+  <rect x="116" y="140" width="280" height="200" rx="12" ry="12"
+        fill="#1e293b" opacity="0.9"/>
+
+  <!-- 屏幕高光效果 -->
+  <rect x="116" y="140" width="280" height="80" rx="12" ry="12"
+        fill="url(#playGradient)" opacity="0.1"/>
+
+  <!-- 中央播放按钮圆形背景 -->
+  <circle cx="256" cy="240" r="48" fill="url(#playGradient)"
+          opacity="0.9" filter="url(#shadow)"/>
+
+  <!-- 播放三角形 -->
+  <path d="M 240 220 L 240 260 L 275 240 Z" fill="white"/>
+
+  <!-- 电视底座 -->
+  <rect x="216" y="368" width="80" height="16" rx="8" ry="8"
+        fill="url(#mainGradient)" opacity="0.8"/>
+
+  <!-- 底座支撑 -->
+  <rect x="180" y="384" width="152" height="12" rx="6" ry="6"
+        fill="url(#mainGradient)"/>
+
+  <!-- 装饰性信号波纹（左） -->
+  <path d="M 140 180 Q 120 200 140 220" stroke="url(#playGradient)"
+        stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M 130 190 Q 110 200 130 210" stroke="url(#playGradient)"
+        stroke-width="2" fill="none" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- 装饰性信号波纹（右） -->
+  <path d="M 372 180 Q 392 200 372 220" stroke="url(#playGradient)"
+        stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M 382 190 Q 402 200 382 210" stroke="url(#playGradient)"
+        stroke-width="2" fill="none" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- V0TV 文字 -->
+  <text x="256" y="450" font-family="Arial, sans-serif" font-size="48"
+        font-weight="bold" fill="url(#mainGradient)" text-anchor="middle">
+    V0TV
+  </text>
+</svg>

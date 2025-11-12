@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.png" alt="V0TV Logo" width="120" />
+  <img src="public/logo.svg" alt="V0TV Logo" width="120" />
 
   # V0TV
 
