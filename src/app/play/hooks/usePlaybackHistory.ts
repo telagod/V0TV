@@ -16,8 +16,11 @@ interface UsePlaybackHistoryOptions {
   source: string;
   id: string;
   episodeIndex: number;
-  videoTitle: string;
-  videoCover: string;
+  title: string;
+  year: string;
+  poster: string;
+  totalEpisodes: number;
+  sourceName?: string;
   enabled?: boolean;
 }
 
@@ -31,8 +34,11 @@ export function usePlaybackHistory(
     source,
     id,
     episodeIndex,
-    videoTitle,
-    videoCover,
+    title,
+    year,
+    poster,
+    totalEpisodes,
+    sourceName = '',
     enabled = true,
   } = options;
 
@@ -53,16 +59,17 @@ export function usePlaybackHistory(
 
     const loadHistory = async () => {
       try {
-        const records = await getAllPlayRecords();
-        const record = records.find((r) => r.source === source && r.id === id);
+        const recordsObj = await getAllPlayRecords();
+        const key = `${source}+${id}`;
+        const record = recordsObj[key];
 
         if (record) {
           // 如果记录的集数与当前集数匹配，恢复播放进度
-          if (record.episodeIndex === episodeIndex) {
-            const targetTime = record.currentTime || 0;
+          if (record.index === episodeIndex) {
+            const targetTime = record.play_time || 0;
             // 如果播放时间接近结束（剩余<5秒），跳到结束前5秒
-            if (record.duration && targetTime >= record.duration - 2) {
-              setResumeTime(Math.max(0, record.duration - 5));
+            if (record.total_time && targetTime >= record.total_time - 2) {
+              setResumeTime(Math.max(0, record.total_time - 5));
             } else {
               setResumeTime(targetTime);
             }
@@ -91,18 +98,22 @@ export function usePlaybackHistory(
 
       try {
         await savePlayRecord(source, id, {
-          episodeIndex,
-          currentTime,
-          duration,
-          title: videoTitle,
-          cover: videoCover,
-          updatedAt: now,
+          title,
+          source_name: sourceName,
+          cover: poster,
+          year,
+          index: episodeIndex,
+          total_episodes: totalEpisodes,
+          play_time: currentTime,
+          total_time: duration,
+          save_time: now,
+          search_title: title,
         });
       } catch (err) {
         console.error('保存播放记录失败:', err);
       }
     },
-    [source, id, episodeIndex, videoTitle, videoCover, enabled],
+    [source, id, episodeIndex, title, year, poster, totalEpisodes, sourceName, enabled],
   );
 
   // 删除播放记录
