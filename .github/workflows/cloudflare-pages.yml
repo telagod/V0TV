@@ -1,9 +1,10 @@
 name: 部署到 Cloudflare Pages
 
 on:
-  push:
-    branches:
-      - main
+  # 自动部署已禁用，使用手动触发
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 jobs:
