@@ -21,7 +21,7 @@
   </p>
 
   <p>
-    <a href="https://github.com/telagod/V0TV/actions/workflows/code-quality.yml">
+    <a href="https://github.com/telagod/V0TV/actions">
       <img src="https://img.shields.io/github/actions/workflow/status/telagod/V0TV/code-quality.yml?branch=main&style=flat-square&logo=github&label=代码质量" alt="Code Quality" />
     </a>
     <a href="https://github.com/telagod/V0TV/issues">
