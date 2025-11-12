@@ -50,7 +50,12 @@ export function useSourceSelection(
 
     try {
       const config = await getConfig();
-      const apiSites = config.SiteConfig.DownstreamSites;
+      const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
+        key: s.key,
+        name: s.name,
+        api: s.api,
+        detail: s.detail,
+      }));
 
       // 并行搜索所有源
       const searchPromises = apiSites.map((site) =>
@@ -106,7 +111,12 @@ export function useSourceSelection(
         // 如果在已搜索的源中找不到，重新获取详情
         if (!newDetail) {
           const config = await getConfig();
-          const apiSites = config.SiteConfig.DownstreamSites;
+          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
+            key: s.key,
+            name: s.name,
+            api: s.api,
+            detail: s.detail,
+          }));
           const apiSite = apiSites.find((s) => s.key === newSource);
 
           if (!apiSite) {

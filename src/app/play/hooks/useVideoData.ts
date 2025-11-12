@@ -74,7 +74,12 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
           // 搜索所有可用源
           const config = await getConfig();
-          const apiSites = config.SiteConfig.DownstreamSites;
+          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
+            key: s.key,
+            name: s.name,
+            api: s.api,
+            detail: s.detail,
+          }));
 
           const searchPromises = apiSites.map((site) =>
             searchFromApi(site, searchTitle).catch(() => [])
@@ -165,7 +170,12 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
           setLoadingStage('fetching');
 
           const config = await getConfig();
-          const apiSites = config.SiteConfig.DownstreamSites;
+          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
+            key: s.key,
+            name: s.name,
+            api: s.api,
+            detail: s.detail,
+          }));
           const apiSite = apiSites.find((s) => s.key === initialSource);
 
           if (!apiSite) {
