@@ -5,6 +5,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "v0tv",
   "main": ".open-next/worker.js",
+  "keep_names": false,  // 修复 __name is not defined 错误（官方文档：https://opennext.js.org/cloudflare/howtos/keep_names）
 
   // 兼容性设置
   "compatibility_date": "2025-04-01",

@@ -7,7 +7,7 @@ const nextConfig = {
   },
 
   reactStrictMode: false,
-  swcMinify: false, // 禁用 SWC minify 以修复 Cloudflare Workers 的 __name 错误
+  swcMinify: true,
 
   // Uncoment to add domain whitelist
   images: {
@@ -59,20 +59,6 @@ const nextConfig = {
       tls: false,
       crypto: false,
     };
-
-    // 修复 Cloudflare Workers 的 __name is not defined 错误
-    // 禁用 esbuild 的 keepNames，避免生成 __name 辅助函数
-    if (config.optimization && config.optimization.minimizer) {
-      config.optimization.minimizer.forEach((minimizer) => {
-        if (minimizer.constructor.name === 'TerserPlugin') {
-          minimizer.options.terserOptions = minimizer.options.terserOptions || {};
-          minimizer.options.terserOptions.keep_fnames = false;
-        }
-        if (minimizer.constructor.name === 'EsbuildPlugin') {
-          minimizer.options.keepNames = false;
-        }
-      });
-    }
 
     return config;
   },
