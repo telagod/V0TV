@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
       try {
         const { getCloudflareContext } = await import('@opennextjs/cloudflare');
         const context = getCloudflareContext();
-        dbInstance = context.env.DB;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
       } catch (error) {
         console.error('[change-password] 无法获取 Cloudflare Context:', error);
       }
