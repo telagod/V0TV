@@ -3,14 +3,17 @@
  * 管理Artplayer实例的生命周期、事件监听和HLS配置
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react';
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
+import { useCallback,useEffect, useRef, useState } from 'react';
+
+import { logError, logInfo } from '@/lib/logger';
+
+import { CustomHlsJsLoader } from '../components/VideoPlayer/AdFilterLoader';
 import type {
   ArtPlayerInstance,
   UseVideoPlayerReturn,
 } from '../types/player.types';
-import { CustomHlsJsLoader } from '../components/VideoPlayer/AdFilterLoader';
 import { ensureVideoSource, isSafariBrowser } from '../utils/player.utils';
 
 interface UseVideoPlayerOptions {
@@ -146,7 +149,7 @@ export function useVideoPlayer(
         customType: {
           m3u8: function (video: HTMLVideoElement, url: string) {
             if (!Hls) {
-              console.error('HLS.js 未加载');
+              logError('HLS.js 未加载');
               return;
             }
 
@@ -178,19 +181,19 @@ export function useVideoPlayer(
                 _event: string,
                 data: { fatal?: boolean; type?: string; details?: string }
               ) {
-                console.error('HLS Error:', _event, data);
+                logError('HLS Error', _event, data);
                 if (data.fatal) {
                   switch (data.type) {
                     case Hls.ErrorTypes.NETWORK_ERROR:
-                      console.log('网络错误，尝试恢复...');
+                      logInfo('网络错误，尝试恢复...');
                       hls.startLoad();
                       break;
                     case Hls.ErrorTypes.MEDIA_ERROR:
-                      console.log('媒体错误，尝试恢复...');
+                      logInfo('媒体错误，尝试恢复...');
                       hls.recoverMediaError();
                       break;
                     default:
-                      console.log('无法恢复的错误');
+                      logInfo('无法恢复的错误');
                       hls.destroy();
                       break;
                   }
@@ -253,7 +256,7 @@ export function useVideoPlayer(
       };
 
       const handleError = (err: Error | string) => {
-        console.error('播放器错误:', err);
+        logError('播放器错误', err);
         onError?.(err);
       };
 
@@ -300,10 +303,24 @@ export function useVideoPlayer(
         }
       };
     } catch (err) {
-      console.error('创建播放器失败:', err);
+      logError('创建播放器失败', err);
       onError?.(err instanceof Error ? err : String(err));
     }
-  }, [url, loading]); // 最小化依赖
+  }, [
+    url,
+    poster,
+    title,
+    containerRef,
+    blockAdEnabled,
+    loading,
+    onReady,
+    onTimeUpdate,
+    onEnded,
+    onPause,
+    onError,
+    onVolumeChange,
+    onNextEpisode,
+  ]);
 
   // 播放控制方法
   const play = useCallback(() => {

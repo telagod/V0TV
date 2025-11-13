@@ -14,6 +14,8 @@ jobs:
   quality-check:
     runs-on: ubuntu-latest
     name: 检查代码质量
+    env:
+      CI: true
 
     steps:
       - name: 检出代码
@@ -23,18 +25,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: pnpm
 
       - name: 安装 pnpm
-        run: npm install -g pnpm@10.12.4
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+          run_install: false
 
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
       - name: 生成运行时配置
         run: pnpm run gen:runtime && pnpm run gen:manifest
-
-      - name: 格式化生成的文件
-        run: pnpm run format
 
       - name: ESLint 检查
         run: pnpm run lint

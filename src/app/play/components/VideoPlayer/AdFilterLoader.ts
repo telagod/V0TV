@@ -4,6 +4,26 @@
 
 import Hls from 'hls.js';
 
+import { logInfo } from '@/lib/logger';
+
+type LoaderContext = {
+  type?: string;
+};
+
+type LoaderResponse = {
+  data?: string;
+};
+
+type LoaderCallbacks = {
+  onSuccess?: (
+    response: LoaderResponse,
+    stats: unknown,
+    context: LoaderContext,
+    networkDetails?: unknown
+  ) => void;
+  [key: string]: unknown;
+};
+
 /**
  * 从M3U8内容中过滤广告
  * 支持多种广告特征检测
@@ -56,7 +76,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
     );
     if (hasAdKeyword && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[广告过滤] 关键词匹配: ${line.substring(0, 50)}...`);
+        logInfo(`[广告过滤] 关键词匹配: ${line.substring(0, 50)}...`);
       }
       removedCount++;
       continue;
@@ -68,7 +88,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
     );
     if (matchesAdPattern && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[广告过滤] 正则匹配: ${line.substring(0, 50)}...`);
+        logInfo(`[广告过滤] 正则匹配: ${line.substring(0, 50)}...`);
       }
       removedCount++;
       continue;
@@ -78,7 +98,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
     if (skipNext && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       // 只跳过第一个片段，避免误删
       if (process.env.NODE_ENV === 'development') {
-        console.log(
+        logInfo(
           `[广告过滤] DISCONTINUITY后片段: ${line.substring(0, 50)}...`
         );
       }
@@ -106,7 +126,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 
   // 开发环境输出统计信息
   if (process.env.NODE_ENV === 'development' && removedCount > 0) {
-    console.log(`[广告过滤] 共移除 ${removedCount} 个广告相关标记/片段`);
+    logInfo(`[广告过滤] 共移除 ${removedCount} 个广告相关标记/片段`);
   }
 
   return filteredLines.join('\n');
@@ -116,31 +136,39 @@ function filterAdsFromM3U8(m3u8Content: string): string {
  * 自定义HLS Loader，支持广告过滤
  */
 export class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
-  constructor(config: any) {
+  constructor(config: Hls.LoaderConfig) {
     super(config);
-    const load = this.load.bind(this);
-    this.load = function (context: any, config: any, callbacks: any) {
-      // 拦截manifest和level请求
-      if (
-        (context as any).type === 'manifest' ||
-        (context as any).type === 'level'
-      ) {
-        const onSuccess = callbacks.onSuccess;
-        callbacks.onSuccess = function (
-          response: any,
-          stats: any,
-          context: any
-        ) {
-          // 如果是m3u8文件，处理内容以移除广告分段
+    const originalLoad = this.load.bind(this);
+
+    this.load = (
+      context: LoaderContext,
+      loaderConfig: Hls.LoaderConfig,
+      callbacks: LoaderCallbacks
+    ) => {
+      const isInterceptTarget =
+        context.type === 'manifest' || context.type === 'level';
+
+      if (isInterceptTarget && callbacks.onSuccess) {
+        const originalOnSuccess = callbacks.onSuccess.bind(this);
+        callbacks.onSuccess = (
+          response: LoaderResponse,
+          stats: unknown,
+          callbackContext: LoaderContext,
+          networkDetails?: unknown
+        ) => {
           if (response.data && typeof response.data === 'string') {
-            // 过滤掉广告段
             response.data = filterAdsFromM3U8(response.data);
           }
-          return onSuccess(response, stats, context, null);
+          return originalOnSuccess(
+            response,
+            stats,
+            callbackContext,
+            networkDetails
+          );
         };
       }
-      // 执行原始load方法
-      load(context, config, callbacks);
+
+      originalLoad(context, loaderConfig, callbacks as never);
     };
   }
 }

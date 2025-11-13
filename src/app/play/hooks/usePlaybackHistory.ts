@@ -3,12 +3,15 @@
  * 管理播放记录的保存、加载和删除
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef,useState } from 'react';
+
 import {
-  savePlayRecord,
   deletePlayRecord,
   getAllPlayRecords,
+  savePlayRecord,
 } from '@/lib/db.client';
+import { logError } from '@/lib/logger';
+
 import type { UsePlaybackHistoryReturn } from '../types/player.types';
 import { getSaveInterval } from '../utils/player.utils';
 
@@ -76,7 +79,7 @@ export function usePlaybackHistory(
           }
         }
       } catch (err) {
-        console.error('读取播放记录失败:', err);
+        logError('读取播放记录失败', err);
       }
     };
 
@@ -110,7 +113,7 @@ export function usePlaybackHistory(
           search_title: title,
         });
       } catch (err) {
-        console.error('保存播放记录失败:', err);
+        logError('保存播放记录失败', err);
       }
     },
     [
@@ -134,7 +137,7 @@ export function usePlaybackHistory(
       await deletePlayRecord(source, id);
       setResumeTime(null);
     } catch (err) {
-      console.error('删除播放记录失败:', err);
+      logError('删除播放记录失败', err);
     }
   }, [source, id]);
 

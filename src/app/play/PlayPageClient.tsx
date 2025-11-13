@@ -2,35 +2,33 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  useState,
+  useCallback,
   useEffect,
   useMemo,
-  useCallback,
   useRef,
+  useState,
 } from 'react';
-import type { SearchResult } from '@/lib/types';
-import type { ArtPlayerInstance } from './types/player.types';
 
-// Hooks
-import { useVideoData } from './hooks/useVideoData';
-import { useSourceSelection } from './hooks/useSourceSelection';
-import { useFavorite } from './hooks/useFavorite';
-import { usePlaybackHistory } from './hooks/usePlaybackHistory';
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { logError } from '@/lib/logger';
 
-// Components
-import { VideoPlayer } from './components/VideoPlayer';
-import { VideoInfo } from './components/VideoInfo';
-import PageLayout from '@/components/PageLayout';
 import EpisodeSelector from '@/components/EpisodeSelector';
+import PageLayout from '@/components/PageLayout';
 import SkipController, {
   SkipSettingsButton,
 } from '@/components/SkipController';
 
+import { VideoInfo } from './components/VideoInfo';
+// Components
+import { VideoPlayer } from './components/VideoPlayer';
+import { useFavorite } from './hooks/useFavorite';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { usePlaybackHistory } from './hooks/usePlaybackHistory';
+import { useSourceSelection } from './hooks/useSourceSelection';
+// Hooks
+import { useVideoData } from './hooks/useVideoData';
+import type { ArtPlayerInstance } from './types/player.types';
 // Utils
 import { syncUrlParams } from './utils/url.utils';
-import { getConfig } from '@/lib/config';
-import { getVideoResolutionFromM3u8 } from '@/lib/utils';
 
 /**
  * 播放页面客户端组件
@@ -59,7 +57,7 @@ export default function PlayPageClient() {
   // ============================================================================
   // 本地状态
   // ============================================================================
-  const [blockAdEnabled, setBlockAdEnabled] = useState(() => {
+  const [blockAdEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('enable_blockad');
       return saved !== null ? saved === 'true' : true;
@@ -73,7 +71,7 @@ export default function PlayPageClient() {
   const [currentPlayTime, setCurrentPlayTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [playerReady, setPlayerReady] = useState(false);
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<ArtPlayerInstance | null>(null);
 
   // ============================================================================
   // 视频数据管理（加载视频详情）
@@ -101,7 +99,6 @@ export default function PlayPageClient() {
     sources: availableSources,
     loading: sourceSearchLoading,
     error: sourceSearchError,
-    searchSources,
     switchSource,
   } = useSourceSelection({
     searchTitle: urlParams.searchTitle || videoData.videoTitle,
@@ -124,7 +121,7 @@ export default function PlayPageClient() {
       );
     },
     onError: (error) => {
-      console.error('换源失败:', error);
+      logError('换源失败', error);
       alert(`换源失败: ${error}`);
     },
   });
@@ -318,7 +315,7 @@ export default function PlayPageClient() {
   ]);
 
   const handlePlayerError = useCallback((error: Error | string) => {
-    console.error('播放器错误:', error);
+    logError('播放器错误', error);
   }, []);
 
   const handleVolumeChange = useCallback((volume: number) => {
@@ -338,26 +335,44 @@ export default function PlayPageClient() {
       );
       updateEpisodeIndex(validEpisode);
     }
-  }, [urlParams.initialEpisode, videoData.totalEpisodes]);
+  }, [
+    urlParams.initialEpisode,
+    videoData.totalEpisodes,
+    updateEpisodeIndex,
+  ]);
 
   // ============================================================================
   // 同步URL参数
   // ============================================================================
+  const currentVideoState = useMemo(
+    () => ({
+      currentSource: videoData.currentSource,
+      currentId: videoData.currentId,
+      videoTitle: videoData.videoTitle,
+      videoYear: videoData.videoYear,
+    }),
+    [
+      videoData.currentSource,
+      videoData.currentId,
+      videoData.videoTitle,
+      videoData.videoYear,
+    ]
+  );
+
   useEffect(() => {
-    if (videoData.currentSource && videoData.currentId) {
+    if (currentVideoState.currentSource && currentVideoState.currentId) {
       syncUrlParams(
-        videoData,
+        currentVideoState,
         videoData.currentEpisodeIndex,
         urlParams.searchTitle,
         urlParams.searchType
       );
     }
   }, [
-    videoData.currentSource,
-    videoData.currentId,
+    currentVideoState,
     videoData.currentEpisodeIndex,
-    videoData.videoTitle,
-    videoData.videoYear,
+    urlParams.searchTitle,
+    urlParams.searchType,
   ]);
 
   // ============================================================================

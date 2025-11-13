@@ -1,7 +1,8 @@
 import { API_CONFIG, ApiSite, getConfig } from '@/lib/config';
-import { SearchResult, PlaySource } from '@/lib/types';
-import { cleanHtmlTags } from '@/lib/utils';
+import { logError, logInfo, logWarn } from '@/lib/logger';
 import { requestManager } from '@/lib/request-manager';
+import { PlaySource, SearchResult } from '@/lib/types';
+import { cleanHtmlTags } from '@/lib/utils';
 
 interface ApiSearchItem {
   vod_id: string;
@@ -16,6 +17,13 @@ interface ApiSearchItem {
   vod_douban_id?: number;
   type_name?: string;
 }
+
+interface ApiSearchResponse {
+  list?: ApiSearchItem[];
+  pagecount?: number;
+}
+
+type ApiDetailResponse = ApiSearchResponse;
 
 // ============================================================================
 // 特殊源处理器配置
@@ -103,33 +111,31 @@ class Logger {
 
   static debug(category: string, message: string, data?: unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.DEBUG) return;
-    console.log(`[${category}] ${message}`, data !== undefined ? data : '');
+    logInfo(`[${category}] ${message}`, data);
   }
 
   static info(category: string, message: string, data?: unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.INFO) return;
-    console.log(`[${category}] ${message}`, data !== undefined ? data : '');
+    logInfo(`[${category}] ${message}`, data);
   }
 
   static warn(category: string, message: string, data?: unknown): void {
     if (!this.isDev || this.minLevel > LogLevel.WARN) return;
-    console.warn(
-      `[${category}] ⚠️  ${message}`,
-      data !== undefined ? data : ''
-    );
+    logWarn(`[${category}] ⚠️  ${message}`, data);
   }
 
-  static error(category: string, message: string, error?: Error | unknown): void {
+  static error(
+    category: string,
+    message: string,
+    error?: Error | unknown
+  ): void {
     if (!this.isDev || this.minLevel > LogLevel.ERROR) return;
-    console.error(
-      `[${category}] ❌ ${message}`,
-      error !== undefined ? error : ''
-    );
+    logError(`[${category}] ❌ ${message}`, error);
   }
 
   static success(category: string, message: string, data?: unknown): void {
     if (!this.isDev) return;
-    console.log(`[${category}] ✅ ${message}`, data !== undefined ? data : '');
+    logInfo(`[${category}] ✅ ${message}`, data);
   }
 }
 
@@ -347,7 +353,7 @@ export async function searchFromApi(
     const apiName = apiSite.name;
 
     // 使用请求管理器（自动处理重试、熔断、并发控制）
-    const data = await requestManager.fetch<any>(apiUrl, {
+    const data = await requestManager.fetch<ApiSearchResponse>(apiUrl, {
       headers: API_CONFIG.search.headers,
       timeout: 8000,
       retryOptions: {
@@ -424,13 +430,16 @@ export async function searchFromApi(
         const pagePromise = (async () => {
           try {
             // 使用请求管理器
-            const pageData = await requestManager.fetch<any>(pageUrl, {
+            const pageData = await requestManager.fetch<ApiSearchResponse>(
+              pageUrl,
+              {
               headers: API_CONFIG.search.headers,
               timeout: 8000,
               retryOptions: {
                 maxRetries: 1, // 分页请求只重试1次
               },
-            });
+            }
+            );
 
             if (!pageData || !pageData.list || !Array.isArray(pageData.list))
               return [];
@@ -519,7 +528,7 @@ export async function getDetailFromApi(
   Logger.debug('详情解析', `请求详情: ${apiSite.name} - ID: ${id}`);
 
   // 使用请求管理器（自动重试、熔断）
-  const data = await requestManager.fetch<any>(detailUrl, {
+  const data = await requestManager.fetch<ApiDetailResponse>(detailUrl, {
     headers: API_CONFIG.detail.headers,
     timeout: 10000,
     retryOptions: {

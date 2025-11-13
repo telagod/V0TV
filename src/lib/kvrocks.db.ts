@@ -14,6 +14,16 @@ import {
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
 
+interface KvrocksClientOptions {
+  url: string;
+  database: number;
+  socket: {
+    connectTimeout: number;
+    reconnectStrategy: (retries: number) => number;
+  };
+  password?: string;
+}
+
 // 用户数据接口
 interface UserData {
   username: string;
@@ -420,7 +430,7 @@ export function getKvrocksClient(): RedisClientType {
     console.log('🔑 Password configured:', kvrocksPassword ? 'Yes' : 'No');
 
     // 构建客户端配置
-    const clientConfig: any = {
+    const clientConfig: KvrocksClientOptions = {
       url: kvrocksUrl,
       database: kvrocksDatabase,
       socket: {

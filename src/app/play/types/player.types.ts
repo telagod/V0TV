@@ -2,9 +2,10 @@
  * 播放器相关类型定义
  */
 
-import { SearchResult } from '@/lib/types';
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
+
+import { SearchResult } from '@/lib/types';
 
 // ============================================================================
 // 播放器类型

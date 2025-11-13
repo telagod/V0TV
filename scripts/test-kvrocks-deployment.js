@@ -53,7 +53,10 @@ async function testDockerComposeFiles() {
     try {
       if (fs.existsSync(file)) {
         const content = fs.readFileSync(file, 'utf8');
-        if (content.includes('kvrocks:') && content.includes('katelyatv:')) {
+        const hasKvrocks = content.includes('kvrocks:');
+        const hasApp =
+          content.includes('v0tv:') || content.includes('katelyatv:');
+        if (hasKvrocks && hasApp) {
           logTest(`Docker Compose 文件 ${file}`, 'PASS', '配置正确');
         } else {
           logTest(`Docker Compose 文件 ${file}`, 'FAIL', '配置缺失');
@@ -200,10 +203,13 @@ async function testDockerServices() {
           logTest('Docker Kvrocks 服务', 'FAIL', '服务未运行');
         }
 
-        if (output.includes('katelyatv') && output.includes('Up')) {
-          logTest('Docker KatelyaTV 服务', 'PASS', '服务运行中');
+        const appUp =
+          (output.includes('v0tv') || output.includes('katelyatv')) &&
+          output.includes('Up');
+        if (appUp) {
+          logTest('Docker V0TV 服务', 'PASS', '服务运行中');
         } else {
-          logTest('Docker KatelyaTV 服务', 'FAIL', '服务未运行或未启动');
+          logTest('Docker V0TV 服务', 'FAIL', '服务未运行或未启动');
         }
       } else {
         logTest('Docker 服务检查', 'FAIL', 'docker-compose 命令执行失败');

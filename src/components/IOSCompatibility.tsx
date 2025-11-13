@@ -63,11 +63,11 @@ export function IOSCompatibility({ children }: IOSCompatibilityProps) {
           animation: none !important;
         }
         
-        .ios-safari .main-katelya-logo {
+        .ios-safari .main-v0tv-logo {
           animation: none !important;
         }
         
-        .ios-safari .katelya-logo {
+        .ios-safari .v0tv-logo {
           animation: none !important;
         }
         

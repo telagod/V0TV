@@ -35,7 +35,7 @@ function VersionDisplay() {
       onClick={() =>
         window.open(
           process.env.NEXT_PUBLIC_REPO_URL ||
-            'https://github.com/katelya77/KatelyaTV',
+            'https://github.com/telagod/V0TV',
           '_blank'
         )
       }

@@ -4,6 +4,7 @@ import { getAvailableApiSites, getCacheTime } from '@/lib/config';
 import { addCorsHeaders, handleOptionsRequest } from '@/lib/cors';
 import { getStorage } from '@/lib/db';
 import { searchFromApi } from '@/lib/downstream';
+import { logError } from '@/lib/logger';
 
 
 // 处理OPTIONS预检请求（OrionTV客户端需要）
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dbInstance = (context.env as any).DB;
       } catch (error) {
-        console.error('[search] 无法获取 Cloudflare Context:', error);
+        logError('[search] 无法获取 Cloudflare Context', error);
       }
     }
 
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
         shouldFilterAdult = userSettings?.filter_adult_content !== false;
       } catch (error) {
         // 出错时默认过滤成人内容
-        console.error('[成人内容过滤] 获取用户设置失败，默认过滤:', error);
+        logError('[成人内容过滤] 获取用户设置失败，默认过滤', error);
         shouldFilterAdult = true;
       }
     }
@@ -101,6 +102,7 @@ export async function GET(request: Request) {
 
     // 所有结果都作为常规结果返回，因为成人内容源已经在源头被过滤掉了
     const cacheTime = await getCacheTime();
+    logError('[search] 搜索失败', error);
     const response = NextResponse.json(
       {
         regular_results: searchResults,

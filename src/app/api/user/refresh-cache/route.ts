@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { logError, logInfo } from '@/lib/logger';
 
 /**
  * 刷新用户设置缓存API
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     // 例如：清除 Edge Runtime 的缓存、刷新 KV 存储等
     // 目前只需要触发一次新的请求即可，因为用户设置是实时读取的
 
-    console.log(`[缓存刷新] 用户 ${userName} 的设置缓存已刷新`);
+    logInfo(`[缓存刷新] 用户 ${userName} 的设置缓存已刷新`);
 
     return NextResponse.json({
       success: true,
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[缓存刷新] 失败:', error);
+    logError('[缓存刷新] 失败', error);
 
     return NextResponse.json(
       {

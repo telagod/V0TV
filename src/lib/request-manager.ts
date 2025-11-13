@@ -139,16 +139,19 @@ class CircuitBreaker {
   private states: Map<string, CircuitBreakerState> = new Map();
 
   private getState(key: string): CircuitBreakerState {
-    if (!this.states.has(key)) {
-      this.states.set(key, {
-        state: 'CLOSED',
-        failureCount: 0,
-        successCount: 0,
-        lastFailureTime: 0,
-        nextAttemptTime: 0,
-      });
+    const existing = this.states.get(key);
+    if (existing) {
+      return existing;
     }
-    return this.states.get(key)!;
+    const initialState: CircuitBreakerState = {
+      state: 'CLOSED',
+      failureCount: 0,
+      successCount: 0,
+      lastFailureTime: 0,
+      nextAttemptTime: 0,
+    };
+    this.states.set(key, initialState);
+    return initialState;
   }
 
   async execute<T>(
@@ -236,8 +239,7 @@ class CircuitBreaker {
 // ============================================================================
 
 class RequestQueue {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private queue: RequestQueueItem<any>[] = [];
+  private queue: RequestQueueItem<unknown>[] = [];
   private running = 0;
   private hostConcurrency: Map<string, number> = new Map();
 
@@ -366,7 +368,7 @@ async function fetchWithRetry<T>(
 // ============================================================================
 
 class RequestManager {
-  private cache: LRUCache<string, any>;
+  private cache: LRUCache<string, unknown>;
   private circuitBreaker: CircuitBreaker;
   private queue: RequestQueue;
 
@@ -389,7 +391,7 @@ class RequestManager {
     const cacheKey = `fetch:${url}:${JSON.stringify(options)}`;
 
     // 1. 尝试从缓存获取
-    const cached = this.cache.get(cacheKey);
+    const cached = this.cache.get(cacheKey) as T | null;
     if (cached !== null) {
       console.log(`[缓存] 命中: ${url}`);
       return cached;

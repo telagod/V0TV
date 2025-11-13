@@ -10,6 +10,8 @@
 // 配置
 // ============================================================================
 
+import { logInfo, logWarn } from '@/lib/logger';
+
 const CLIENT_SPEED_TEST_CONFIG = {
   // 智能采样：从N个源中随机选择几个测速
   SAMPLE_SIZE: 3,
@@ -145,9 +147,9 @@ export async function smartSpeedTest<T extends SourceWithKey>(
 
   // 如果源数量少，不需要采样
   if (sources.length <= finalConfig.SAMPLE_SIZE) {
-    console.log(`[客户端测速] 源数量较少(${sources.length}个)，全部测速`);
+    logInfo(`[客户端测速] 源数量较少(${sources.length}个)，全部测速`);
   } else {
-    console.log(
+    logInfo(
       `[客户端测速] 从 ${sources.length} 个源中采样 ${finalConfig.SAMPLE_SIZE} 个进行测速`
     );
   }
@@ -172,7 +174,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
       batchIndex + finalConfig.BATCH_SIZE
     );
 
-    console.log(
+    logInfo(
       `[客户端测速] 批次 ${
         Math.floor(batchIndex / finalConfig.BATCH_SIZE) + 1
       }/${Math.ceil(samplingSources.length / finalConfig.BATCH_SIZE)}，测速 ${
@@ -193,14 +195,14 @@ export async function smartSpeedTest<T extends SourceWithKey>(
             '测速超时'
           );
 
-          console.log(
+          logInfo(
             `[客户端测速] ✅ ${sourceKey}: ${result.quality}, ${result.loadSpeed}, ${result.pingTime}ms`
           );
 
           return { sourceKey, result };
         } catch (error: unknown) {
           const err = error instanceof Error ? error : null;
-          console.warn(`[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`);
+          logWarn(`[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`);
 
           return {
             sourceKey,
@@ -232,7 +234,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
     }
   }
 
-  console.log(
+  logInfo(
     `[客户端测速] 完成，成功 ${
       Array.from(resultsMap.values()).filter((r) => !r.hasError).length
     }/${samplingSources.length}`

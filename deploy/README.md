@@ -1,218 +1,129 @@
-# 🚀 V0TV 部署指南总览
+# 🚀 V0TV 部署手册
 
-V0TV 支持多种部署方式，选择最适合你的方案。
-
----
-
-## 📋 部署方式对比
-
-| 部署方式             | 难度   | 成本     | 推荐场景             | 多用户 | 自动部署 |
-| -------------------- | ------ | -------- | -------------------- | ------ | -------- |
-| **Cloudflare Pages** | ⭐⭐   | 免费     | 全球访问、零成本     | ✅     | ✅       |
-| **Docker 单容器**    | ⭐     | 免费\*   | 个人使用、简单快速   | ❌     | ❌       |
-| **Docker + Redis**   | ⭐⭐   | 免费\*   | 家庭/团队使用        | ✅     | ❌       |
-| **Vercel**           | ⭐     | 免费     | 快速部署、自动 HTTPS | ✅\*\* | ✅       |
-| **Railway**          | ⭐     | 按量付费 | 简单管理、集成数据库 | ✅     | ✅       |
-| **VPS 服务器**       | ⭐⭐⭐ | 按月付费 | 完全控制、高性能     | ✅     | ❌       |
-
-> \*需要自己的服务器
-> \*\*需要配置 Upstash Redis
+无论你是只想在家里看剧，还是要面向团队提供服务，这份部署手册都能在几分钟内帮你上线 V0TV。
 
 ---
 
-## 🎯 快速选择
+## 🎯 如何选方案
 
-### 我是新手，想要最简单的方式
+| 目标 | 推荐方案 | 说明 |
+| --- | --- | --- |
+| 零成本、全球访问 | Cloudflare Pages + Pages Functions | 直接复用 GitHub 仓库，自动构建、支持 KV/Workers |
+| 有一台服务器，想尽快跑起来 | Docker 单容器 | 一条脚本搞定，所有依赖都封装在镜像里 |
+| 多用户 + 数据同步 | Docker Compose + Redis | 自带 Redis，支持播放记录/收藏跨设备同步 |
+| 习惯前端托管平台 | Vercel | 一键部署，自动 HTTPS，配合 Upstash/Redis 即可共享数据 |
+| 想托管在 Railway 之类的 PaaS | Railway | 官方模板，带 Redis/变量向导 |
+| 完全自定义的 VPS | `deploy/vps` 安装脚本 | 适合需要反向代理/多应用管理的场景 |
 
-→ **Cloudflare Pages（GitHub 自动部署）**
-
-1. Fork 项目到 GitHub
-2. 配置 Cloudflare Secrets
-3. 推送代码自动部署
-
-[查看教程](cloudflare/README.md)
-
----
-
-### 我有服务器，想要完全控制
-
-→ **Docker + Redis**
-
-```bash
-cd deploy/docker
-./deploy-redis.sh
-```
-
-[查看教程](docker/README.md)
+> 如果不确定，用 **Docker 单容器** 或 **Vercel** 最省心；要做高可用或离线混合部署，再考虑其他选项。
 
 ---
 
-### 我想要零配置快速部署
+## 🧭 标准部署流程
 
-→ **Vercel 一键部署**
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/V0TV)
-
-[查看教程](vercel/README.md)
+1. **拉代码**：`git clone https://github.com/telagod/V0TV.git && cd V0TV`
+2. **准备配置**：复制 `config.example.json` 或者设置环境变量（详见下文）
+3. **选择方案**：进入 `deploy/<方案>` 目录，阅读对应 README
+4. **执行脚本/按钮**：如 `./deploy-single.sh`、Vercel/Railway 按钮等
+5. **验证**：浏览器访问站点，确保首次访问需要密码且媒体源可搜索
 
 ---
 
-### 我需要灵活的云平台
+## 🧱 方案细节
 
-→ **Railway**
+### 1. Docker（本地或自托管）
+
+- **单容器（最快）**
+  ```bash
+  cd deploy/docker
+  ./deploy-single.sh
+  ```
+  脚本会拉取 `ghcr.io/telagod/v0tv:latest` 镜像并提示你输入访问密码。如需自定义配置，把 `config.json` 放在仓库根目录即可自动挂载。
+
+- **Docker Compose + Redis（推荐多用户）**
+  ```bash
+  cd deploy/docker
+  cp .env.example .env   # 修改密码、Redis 等变量
+  docker compose up -d
+  ```
+  Compose 文件会启动 `v0tv` 与 `v0tv-redis` 两个服务，Redis 数据持久化在 `v0tv-redis-data` 卷中。
+
+### 2. Cloudflare Pages
+
+1. Fork 仓库或直接导入 `telagod/V0TV`
+2. 在 Cloudflare Pages 选择 **Use direct upload → Connect to Git**
+3. 构建命令：`pnpm install && pnpm pages:build`
+4. 输出目录：`.open-next`
+5. 在 Pages 中添加以下 Secrets：
+   - `PASSWORD`
+   - `NEXT_PUBLIC_STORAGE_TYPE=d1`（或 upstash/redis）
+   - 与存储类型匹配的凭据（如 `D1_DATABASE_ID`、`UPSTASH_URL`、`UPSTASH_TOKEN`）
+6. 如需 Workers/CRON，可参考 `deploy/cloudflare/README.md`
+
+### 3. Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/telagod/V0TV)
+
+> 创建后在 Vercel Dashboard → Settings → Environment Variables 中配置 `PASSWORD`、`NEXT_PUBLIC_STORAGE_TYPE` 及 Redis/Upstash 相关变量。若使用 Upstash，可以直接复制连接字符串并在 Vercel “Add Integration” 中授权。
+
+### 4. Railway
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/v0tv)
 
-[查看教程](railway/README.md)
+模板已经预置了服务、环境变量说明和 Redis 依赖。部署后在 `Variables` 面板里更新密码即可。
 
----
-
-### 我有 VPS 服务器经验
-
-→ **自托管部署**
+### 5. VPS / 裸机
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/your-username/V0TV/main/deploy/vps/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/telagod/V0TV/main/deploy/vps/install.sh | bash
 ```
 
-[查看教程](vps/README.md)
+脚本会自动安装 Node.js、PM2、Nginx（可选）并将应用部署为服务。详细自定义步骤见 `deploy/vps/README.md`。
 
 ---
 
-## 📂 目录结构
+## 🔐 环境变量速查
 
-```
-deploy/
-├── cloudflare/          # Cloudflare Pages 部署
-│   ├── deploy.sh        # 一键部署脚本
-│   ├── check.sh         # 环境检查脚本
-│   ├── wrangler.toml    # Cloudflare 配置
-│   ├── github-actions.yml # GitHub Actions 配置
-│   └── README.md        # 详细文档
-│
-├── docker/              # Docker 部署
-│   ├── Dockerfile       # Docker 镜像文件
-│   ├── docker-compose.yml # Compose 配置
-│   ├── deploy-single.sh # 单容器部署
-│   ├── deploy-redis.sh  # Redis 部署
-│   └── README.md        # 详细文档
-│
-├── vercel/              # Vercel 部署
-│   ├── vercel.json      # Vercel 配置
-│   ├── deploy.sh        # 部署脚本
-│   └── README.md        # 详细文档
-│
-├── railway/             # Railway 部署
-│   ├── railway.json     # Railway 配置
-│   └── README.md        # 详细文档
-│
-├── vps/                 # VPS 服务器部署
-│   └── README.md        # 详细文档
-│
-└── README.md           # 本文件（总览）
-```
+| 变量 | 说明 | 是否必填 |
+| --- | --- | --- |
+| `PASSWORD` | 访问站点的主密码 | ✅ |
+| `NEXT_PUBLIC_STORAGE_TYPE` | `localstorage` / `redis` / `upstash` / `d1` | ✅ |
+| `REDIS_URL` | `redis://user:pass@host:port`，Docker/自建 Redis 用 | 取决于存储类型 |
+| `UPSTASH_URL` / `UPSTASH_TOKEN` | Upstash Redis 凭据 | 同上 |
+| `D1_DATABASE_ID` / `D1_TOKEN` | Cloudflare D1 所需 | 同上 |
+| `NEXTAUTH_SECRET` | 任意 32+ 位随机串，用于 NextAuth 加密 | ✅（生产环境） |
+| `SITE_NAME` | 覆盖默认的 “V0TV” 标题 | 可选 |
+| `NEXT_PUBLIC_ENABLE_REGISTER` | `true/false`，开启自助注册 | 可选 |
+| `NEXT_PUBLIC_IMAGE_PROXY` | 图片代理地址 | 可选 |
+
+> 任何方案都需要至少设置 `PASSWORD`；其余按部署目标按需配置。
 
 ---
 
-## 🔑 环境变量说明
-
-所有部署方式都需要配置以下环境变量：
-
-### 必填变量
+## 🛠️ 常用维护命令
 
 ```bash
-PASSWORD=your_password  # 访问密码
-```
+# 查看容器日志
+docker logs -f v0tv
 
-### 多用户配置（可选）
+# 更新镜像
+docker pull ghcr.io/telagod/v0tv:latest
+docker compose down && docker compose up -d
 
-```bash
-USERNAME=admin
-NEXT_PUBLIC_STORAGE_TYPE=redis|upstash|d1
-NEXT_PUBLIC_ENABLE_REGISTER=true
-
-# 根据存储类型选择
-REDIS_URL=redis://localhost:6379      # Docker Redis
-UPSTASH_URL=https://xxx.upstash.io    # Upstash
-UPSTASH_TOKEN=AX_xxx                   # Upstash Token
-```
-
-### 其他配置（可选）
-
-```bash
-SITE_NAME=V0TV
-NEXT_PUBLIC_SEARCH_MAX_PAGE=5
-NEXT_PUBLIC_IMAGE_PROXY=
+# 备份 Redis（Docker）
+docker run --rm \
+  -v v0tv-redis-data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/redis-backup.tgz /data
 ```
 
 ---
 
-## 🗺️ 部署流程图
+## 📚 更多资料
 
-```
-选择部署方式
-    │
-    ├─→ 免费 + 全球CDN？ → Cloudflare Pages
-    ├─→ 有服务器？ → Docker
-    ├─→ 想要简单？ → Vercel/Railway
-    └─→ 需要控制？ → VPS
-```
+- `deploy/cloudflare/`：Cloudflare Pages + Workers 全流程
+- `deploy/vercel/`：Vercel 特定配置、Serverless 限制说明
+- `deploy/vps/`：Systemd/PM2 模板与 Nginx 示例
+- `docs/troubleshooting.md`：常见错误排查
 
----
-
-## 📊 性能对比
-
-### Cloudflare Pages
-
-- ✅ 全球 CDN，访问速度快
-- ✅ 无限带宽
-- ✅ 自动 HTTPS
-- ⚠️ 冷启动可能较慢
-
-### Docker + Redis
-
-- ✅ 性能可控
-- ✅ 数据完全掌控
-- ✅ 可自定义优化
-- ⚠️ 需要服务器维护
-
-### Vercel
-
-- ✅ 部署快速
-- ✅ 自动优化
-- ✅ 全球 CDN
-- ⚠️ 免费版有限制
-
-### Railway
-
-- ✅ 简单管理
-- ✅ 集成数据库
-- ✅ 灵活扩展
-- ⚠️ 按使用量付费
-
----
-
-## 🆘 获取帮助
-
-1. **查看详细文档**：每个部署方式都有独立的 README.md
-2. **常见问题**：查看各目录下的故障排除章节
-3. **提交 Issue**：[GitHub Issues](https://github.com/your-username/V0TV/issues)
-
----
-
-## 🎉 下一步
-
-选择好部署方式后：
-
-1. 📖 阅读对应目录的 README.md
-2. 🔧 准备必要的工具和账号
-3. 🚀 运行部署脚本或按步骤操作
-4. ⚙️ 配置环境变量
-5. 🎬 配置视频源（config.json）
-6. ✅ 测试访问
-
----
-
-<div align="center">
-  <p><strong>祝你部署顺利！🚀</strong></p>
-</div>
+> 有新的部署需求，欢迎在 [Discussions](https://github.com/telagod/V0TV/discussions) 留言或提 Issue。

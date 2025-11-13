@@ -4,7 +4,7 @@ Vercel 是最简单的部署方式之一，提供免费托管和自动 HTTPS。
 
 ## 🚀 一键部署
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/V0TV)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/telagod/V0TV)
 
 点击按钮，自动 fork 并部署到 Vercel。
 

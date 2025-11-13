@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-// import { Inter } from 'next/font/google';
 
+// import { Inter } from 'next/font/google';
 import './globals.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
+import { BRAND_CONTACT, BRAND_NAME } from '@/lib/brand';
 import { getConfig } from '@/lib/config';
 
 import { SiteProvider } from '../components/SiteProvider';
@@ -13,17 +14,16 @@ import { ThemeProvider } from '../components/ThemeProvider';
 
 // 动态生成 metadata，支持配置更新后的标题变化
 export async function generateMetadata(): Promise<Metadata> {
-  let siteName = process.env.SITE_NAME || 'KatelyaTV';
-  if (
+  const defaultSiteName = process.env.SITE_NAME || BRAND_NAME;
+  const useRuntimeConfig =
     process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'd1' &&
-    process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'upstash'
-  ) {
-    const config = await getConfig();
-    siteName = config.SiteConfig.SiteName;
-  }
+    process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'upstash';
+  const resolvedSiteName = useRuntimeConfig
+    ? (await getConfig()).SiteConfig.SiteName
+    : defaultSiteName;
 
   return {
-    title: siteName,
+    title: resolvedSiteName,
     description: '影视聚合',
     manifest: '/manifest.json',
   };
@@ -50,24 +50,28 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let siteName = process.env.SITE_NAME || 'KatelyaTV';
-  let announcement =
+  const defaultSiteName = process.env.SITE_NAME || BRAND_NAME;
+  const defaultAnnouncement =
     process.env.ANNOUNCEMENT ||
-    '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。Link Me TG：@katelya77';
-  let enableRegister = process.env.NEXT_PUBLIC_ENABLE_REGISTER === 'true';
-  let imageProxy = process.env.NEXT_PUBLIC_IMAGE_PROXY || '';
-  let doubanProxy = process.env.NEXT_PUBLIC_DOUBAN_PROXY || '';
-  if (
+    `本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。${BRAND_CONTACT}`;
+  const defaultEnableRegister =
+    process.env.NEXT_PUBLIC_ENABLE_REGISTER === 'true';
+  const defaultImageProxy = process.env.NEXT_PUBLIC_IMAGE_PROXY || '';
+  const defaultDoubanProxy = process.env.NEXT_PUBLIC_DOUBAN_PROXY || '';
+  const shouldLoadConfig =
     process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'd1' &&
-    process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'upstash'
-  ) {
-    const config = await getConfig();
-    siteName = config.SiteConfig.SiteName;
-    announcement = config.SiteConfig.Announcement;
-    enableRegister = config.UserConfig.AllowRegister;
-    imageProxy = config.SiteConfig.ImageProxy;
-    doubanProxy = config.SiteConfig.DoubanProxy;
-  }
+    process.env.NEXT_PUBLIC_STORAGE_TYPE !== 'upstash';
+
+  const resolvedConfig = shouldLoadConfig ? await getConfig() : null;
+  const siteName = resolvedConfig?.SiteConfig.SiteName || defaultSiteName;
+  const announcement =
+    resolvedConfig?.SiteConfig.Announcement || defaultAnnouncement;
+  const enableRegister =
+    resolvedConfig?.UserConfig.AllowRegister ?? defaultEnableRegister;
+  const imageProxy =
+    resolvedConfig?.SiteConfig.ImageProxy || defaultImageProxy;
+  const doubanProxy =
+    resolvedConfig?.SiteConfig.DoubanProxy || defaultDoubanProxy;
 
   // 将运行时配置注入到全局 window 对象，供客户端在运行时读取
   const runtimeConfig = {

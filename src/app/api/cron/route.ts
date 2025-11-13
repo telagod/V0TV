@@ -1,19 +1,19 @@
-/* eslint-disable no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getDb } from '@/lib/get-db';
+import { DbManager } from '@/lib/db';
 import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
+import { getDb } from '@/lib/get-db';
+import { logError, logInfo, logWarn } from '@/lib/logger';
 import { Favorite, PlayRecord, SearchResult } from '@/lib/types';
 
 
 export async function GET(request: NextRequest) {
-  console.log(request.url);
+  logInfo('[cron] trigger', request.url);
   try {
     const db = await getDb();
-    console.log('Cron job triggered:', new Date().toISOString());
+    logInfo('[cron] job triggered', new Date().toISOString());
 
-    refreshRecordAndFavorites(db);
+    await refreshRecordAndFavorites(db);
 
     return NextResponse.json({
       success: true,
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Cron job failed:', error);
+    logError('[cron] job failed', error);
 
     return NextResponse.json(
       {
@@ -91,7 +91,7 @@ function filterRecentRecords<T extends { save_time: number }>(
   }
 
   if (skippedCount > 0) {
-    console.log(`⏭️ 跳过 ${skippedCount} 条超过 ${recentDays} 天的旧记录`);
+    logInfo(`⏭️ 跳过 ${skippedCount} 条超过 ${recentDays} 天的旧记录`);
   }
 
   return filtered;
@@ -113,7 +113,7 @@ async function processBatch<T>(
         await processFn(key, data);
         success++;
       } catch (err) {
-        console.error(`❌ 处理失败 (${key}):`, err);
+        logWarn(`❌ 处理失败 (${key})`, err);
         failed++;
       }
     })
@@ -122,11 +122,11 @@ async function processBatch<T>(
   return { success, failed };
 }
 
-async function refreshRecordAndFavorites(db: any) {
+async function refreshRecordAndFavorites(db: DbManager) {
   if (
     (process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage') === 'localstorage'
   ) {
-    console.log('⏭️ 跳过刷新：当前使用 localstorage 存储模式');
+    logInfo('⏭️ 跳过刷新：当前使用 localstorage 存储模式');
     return;
   }
 
@@ -138,8 +138,8 @@ async function refreshRecordAndFavorites(db: any) {
       users.push(process.env.USERNAME);
     }
 
-    console.log(`👥 开始处理 ${users.length} 个用户`);
-    console.log(`⚙️ 优化配置: ${JSON.stringify(CRON_CONFIG)}`);
+    logInfo(`👥 开始处理 ${users.length} 个用户`);
+    logInfo(`⚙️ 优化配置: ${JSON.stringify(CRON_CONFIG)}`);
 
     // 函数级缓存：key 为 `${source}+${id}`，值为 Promise<VideoDetail | null>
     const detailCache = new Map<string, Promise<SearchResult | null>>();
@@ -165,7 +165,7 @@ async function refreshRecordAndFavorites(db: any) {
             return detail;
           })
           .catch((err) => {
-            console.error(`❌ 获取视频详情失败 (${source}+${id}):`, err);
+            logWarn(`❌ 获取视频详情失败 (${source}+${id})`, err);
             return null;
           });
       }
@@ -173,7 +173,7 @@ async function refreshRecordAndFavorites(db: any) {
     };
 
     for (const user of users) {
-      console.log(`\n👤 开始处理用户: ${user}`);
+      logInfo(`\n👤 开始处理用户: ${user}`);
 
       // ========================================================================
       // 播放记录
@@ -188,7 +188,7 @@ async function refreshRecordAndFavorites(db: any) {
           : allPlayRecords;
 
         const totalRecords = Object.keys(playRecords).length;
-        console.log(
+        logInfo(
           `📺 播放记录: ${totalRecords} 条${
             totalRecordsBeforeFilter !== totalRecords
               ? ` (过滤前 ${totalRecordsBeforeFilter} 条)`
@@ -197,7 +197,7 @@ async function refreshRecordAndFavorites(db: any) {
         );
 
         if (totalRecords === 0) {
-          console.log('⏭️ 无需处理播放记录');
+          logInfo('⏭️ 无需处理播放记录');
         } else {
           const recordEntries = (Object.entries(playRecords) as [string, PlayRecord][]).map(
             ([key, record]) => ({ key, data: record })
@@ -219,7 +219,7 @@ async function refreshRecordAndFavorites(db: any) {
               recordEntries.length / CRON_CONFIG.batchSize
             );
 
-            console.log(
+            logInfo(
               `📦 处理播放记录批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`
             );
 
@@ -228,13 +228,13 @@ async function refreshRecordAndFavorites(db: any) {
               async (key, record) => {
                 const [source, id] = key.split('+');
                 if (!source || !id) {
-                  console.warn(`⚠️ 跳过无效的播放记录键: ${key}`);
+                  logWarn(`⚠️ 跳过无效的播放记录键: ${key}`);
                   return;
                 }
 
                 const detail = await getDetail(source, id, record.title);
                 if (!detail) {
-                  console.warn(`⚠️ 跳过无法获取详情的播放记录: ${key}`);
+                  logWarn(`⚠️ 跳过无法获取详情的播放记录: ${key}`);
                   return;
                 }
 
@@ -255,7 +255,7 @@ async function refreshRecordAndFavorites(db: any) {
                     save_time: record.save_time,
                     search_title: record.search_title,
                   });
-                  console.log(
+                  logInfo(
                     `✅ 更新播放记录: ${record.title} (${record.total_episodes} -> ${episodeCount})`
                   );
                   updatedRecords++;
@@ -275,12 +275,12 @@ async function refreshRecordAndFavorites(db: any) {
             }
           }
 
-          console.log(
+          logInfo(
             `✅ 播放记录处理完成: ${processedRecords}/${totalRecords} (更新 ${updatedRecords} 条, 失败 ${failedRecords} 条)`
           );
         }
       } catch (err) {
-        console.error(`❌ 获取用户播放记录失败 (${user}):`, err);
+        logError(`❌ 获取用户播放记录失败 (${user})`, err);
       }
 
       // ========================================================================
@@ -296,7 +296,7 @@ async function refreshRecordAndFavorites(db: any) {
           : allFavorites;
 
         const totalFavorites = Object.keys(favorites).length;
-        console.log(
+        logInfo(
           `⭐ 收藏: ${totalFavorites} 条${
             totalFavoritesBeforeFilter !== totalFavorites
               ? ` (过滤前 ${totalFavoritesBeforeFilter} 条)`
@@ -305,7 +305,7 @@ async function refreshRecordAndFavorites(db: any) {
         );
 
         if (totalFavorites === 0) {
-          console.log('⏭️ 无需处理收藏');
+          logInfo('⏭️ 无需处理收藏');
         } else {
           const favoriteEntries = (Object.entries(favorites) as [string, Favorite][]).map(
             ([key, fav]) => ({ key, data: fav })
@@ -327,7 +327,7 @@ async function refreshRecordAndFavorites(db: any) {
               favoriteEntries.length / CRON_CONFIG.batchSize
             );
 
-            console.log(
+            logInfo(
               `📦 处理收藏批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`
             );
 
@@ -336,13 +336,13 @@ async function refreshRecordAndFavorites(db: any) {
               async (key, fav) => {
                 const [source, id] = key.split('+');
                 if (!source || !id) {
-                  console.warn(`⚠️ 跳过无效的收藏键: ${key}`);
+                  logWarn(`⚠️ 跳过无效的收藏键: ${key}`);
                   return;
                 }
 
                 const favDetail = await getDetail(source, id, fav.title);
                 if (!favDetail) {
-                  console.warn(`⚠️ 跳过无法获取详情的收藏: ${key}`);
+                  logWarn(`⚠️ 跳过无法获取详情的收藏: ${key}`);
                   return;
                 }
 
@@ -360,7 +360,7 @@ async function refreshRecordAndFavorites(db: any) {
                     save_time: fav.save_time,
                     search_title: fav.search_title,
                   });
-                  console.log(
+                  logInfo(
                     `✅ 更新收藏: ${fav.title} (${fav.total_episodes} -> ${favEpisodeCount})`
                   );
                   updatedFavorites++;
@@ -380,21 +380,21 @@ async function refreshRecordAndFavorites(db: any) {
             }
           }
 
-          console.log(
+          logInfo(
             `✅ 收藏处理完成: ${processedFavorites}/${totalFavorites} (更新 ${updatedFavorites} 条, 失败 ${failedFavorites} 条)`
           );
         }
       } catch (err) {
-        console.error(`❌ 获取用户收藏失败 (${user}):`, err);
+        logError(`❌ 获取用户收藏失败 (${user})`, err);
       }
     }
 
     const endTime = Date.now();
     const duration = ((endTime - startTime) / 1000).toFixed(2);
 
-    console.log(`\n✅ 刷新播放记录/收藏任务完成 (耗时 ${duration}秒)`);
-    console.log(`📊 缓存统计: 共缓存 ${detailCache.size} 个视频详情`);
+    logInfo(`\n✅ 刷新播放记录/收藏任务完成 (耗时 ${duration}秒)`);
+    logInfo(`📊 缓存统计: 共缓存 ${detailCache.size} 个视频详情`);
   } catch (err) {
-    console.error('❌ 刷新播放记录/收藏任务启动失败', err);
+    logError('❌ 刷新播放记录/收藏任务启动失败', err);
   }
 }

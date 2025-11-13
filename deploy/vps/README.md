@@ -28,7 +28,7 @@
 curl -fsSL https://get.docker.com | sh
 
 # 克隆项目
-git clone https://github.com/your-username/V0TV.git
+git clone https://github.com/telagod/V0TV.git
 cd V0TV
 
 # 使用部署脚本
@@ -40,7 +40,7 @@ cd deploy/docker
 
 ```bash
 # 下载并运行安装脚本
-curl -fsSL https://raw.githubusercontent.com/your-username/V0TV/main/deploy/vps/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/telagod/V0TV/main/deploy/vps/install.sh | bash
 ```
 
 ---
@@ -64,7 +64,7 @@ npm install -g pnpm
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-username/V0TV.git
+git clone https://github.com/telagod/V0TV.git
 cd V0TV
 
 # 安装依赖

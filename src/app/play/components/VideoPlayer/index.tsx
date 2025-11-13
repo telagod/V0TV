@@ -5,7 +5,10 @@
 
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useEffect,useRef } from 'react';
+
+import { logInfo } from '@/lib/logger';
+
 import { useVideoPlayer } from '../../hooks/useVideoPlayer';
 import type { ArtPlayerInstance } from '../../types/player.types';
 
@@ -95,7 +98,7 @@ export function VideoPlayer(props: VideoPlayerProps) {
       // 延迟恢复，等待播放器准备就绪
       const timer = setTimeout(() => {
         seek(resumeTime);
-        console.log('恢复播放进度到:', resumeTime);
+        logInfo('恢复播放进度到', resumeTime);
       }, 1000);
 
       return () => clearTimeout(timer);

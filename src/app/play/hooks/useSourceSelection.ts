@@ -3,14 +3,17 @@
  * 管理播放源选择、搜索和换源
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { searchFromApi, getDetailFromApi } from '@/lib/downstream';
+import { useCallback, useRef,useState } from 'react';
+
 import { getConfig } from '@/lib/config';
-import type {
-  UseSourceSelectionReturn,
-  SwitchSourceOptions,
-} from '../types/player.types';
+import { getDetailFromApi,searchFromApi } from '@/lib/downstream';
+import { logError, logInfo } from '@/lib/logger';
 import type { SearchResult } from '@/lib/types';
+
+import type {
+  SwitchSourceOptions,
+  UseSourceSelectionReturn,
+} from '../types/player.types';
 
 interface UseSourceSelectionOptions {
   searchTitle: string;
@@ -25,7 +28,7 @@ interface UseSourceSelectionOptions {
 export function useSourceSelection(
   options: UseSourceSelectionOptions
 ): UseSourceSelectionReturn {
-  const { searchTitle, searchType, onSuccess, onError } = options;
+  const { searchTitle, searchType: _searchType, onSuccess, onError } = options;
 
   const [sources, setSources] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,7 +63,7 @@ export function useSourceSelection(
       // 并行搜索所有源
       const searchPromises = apiSites.map((site) =>
         searchFromApi(site, searchTitle).catch((err) => {
-          console.error(`${site.name} 搜索失败:`, err);
+          logError(`${site.name} 搜索失败`, err);
           return [];
         })
       );
@@ -84,6 +87,7 @@ export function useSourceSelection(
       const errorMsg = err instanceof Error ? err.message : '搜索失败';
       setError(errorMsg);
       onError?.(errorMsg);
+      logError('搜索播放源失败', err);
     } finally {
       setLoading(false);
     }
@@ -133,7 +137,7 @@ export function useSourceSelection(
         // 换源成功回调
         onSuccess?.(newDetail);
 
-        console.log('换源成功:', {
+        logInfo('换源成功', {
           newSource,
           newId,
           title: newDetail.title,
@@ -141,7 +145,7 @@ export function useSourceSelection(
         });
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : '换源失败';
-        console.error('换源失败:', err);
+        logError('换源失败', err);
         setError(errorMsg);
         onError?.(errorMsg);
 

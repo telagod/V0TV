@@ -3,6 +3,7 @@
 import { createClient, RedisClientType } from 'redis';
 
 import { AdminConfig } from './admin.types';
+import { BRAND_SLUG, LEGACY_BRAND_SLUGS } from './brand';
 import {
   EpisodeSkipConfig,
   Favorite,
@@ -340,11 +341,23 @@ export class RedisStorage implements IStorage {
 
   // 跳过配置相关
   private skipConfigKey(userName: string, key: string): string {
-    return `katelyatv:skip_config:${userName}:${key}`;
+    return `${BRAND_SLUG}:skip_config:${userName}:${key}`;
+  }
+
+  private legacySkipConfigKeys(userName: string, key: string): string[] {
+    return LEGACY_BRAND_SLUGS.map(
+      (slug) => `${slug}:skip_config:${userName}:${key}`
+    );
   }
 
   private skipConfigsKey(userName: string): string {
-    return `katelyatv:skip_configs:${userName}`;
+    return `${BRAND_SLUG}:skip_configs:${userName}`;
+  }
+
+  private legacySkipConfigsKeys(userName: string): string[] {
+    return LEGACY_BRAND_SLUGS.map(
+      (slug) => `${slug}:skip_configs:${userName}`
+    );
   }
 
   async getSkipConfig(
@@ -354,7 +367,18 @@ export class RedisStorage implements IStorage {
     const data = await withRetry(() =>
       this.client.get(this.skipConfigKey(userName, key))
     );
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      return JSON.parse(data) as EpisodeSkipConfig;
+    }
+
+    for (const legacyKey of this.legacySkipConfigKeys(userName, key)) {
+      const legacy = await withRetry(() => this.client.get(legacyKey));
+      if (legacy) {
+        return JSON.parse(legacy) as EpisodeSkipConfig;
+      }
+    }
+
+    return null;
   }
 
   async setSkipConfig(
@@ -363,31 +387,39 @@ export class RedisStorage implements IStorage {
     config: EpisodeSkipConfig
   ): Promise<void> {
     await withRetry(async () => {
-      // 保存到独立的key
       await this.client.set(
         this.skipConfigKey(userName, key),
         JSON.stringify(config)
       );
-      // 同时加入到用户的跳过配置集合中
       await this.client.sAdd(this.skipConfigsKey(userName), key);
+
+      for (const legacyKey of this.legacySkipConfigKeys(userName, key)) {
+        await this.client.del(legacyKey);
+      }
+      for (const legacySet of this.legacySkipConfigsKeys(userName)) {
+        await this.client.sRem(legacySet, key);
+      }
     });
   }
 
   async getAllSkipConfigs(
     userName: string
   ): Promise<{ [key: string]: EpisodeSkipConfig }> {
-    const keys = await withRetry(() =>
-      this.client.sMembers(this.skipConfigsKey(userName))
-    );
+    const memberLists = await Promise.all([
+      withRetry(() => this.client.sMembers(this.skipConfigsKey(userName))),
+      ...this.legacySkipConfigsKeys(userName).map((legacyKey) =>
+        withRetry(() => this.client.sMembers(legacyKey))
+      ),
+    ]);
+
+    const allKeys = new Set<string>();
+    memberLists.forEach((list) => list.forEach((item) => allKeys.add(item)));
 
     const configs: { [key: string]: EpisodeSkipConfig } = {};
-
-    for (const key of keys) {
-      const data = await withRetry(() =>
-        this.client.get(this.skipConfigKey(userName, key))
-      );
-      if (data) {
-        configs[key] = JSON.parse(data);
+    for (const key of allKeys) {
+      const config = await this.getSkipConfig(userName, key);
+      if (config) {
+        configs[key] = config;
       }
     }
 
@@ -396,20 +428,35 @@ export class RedisStorage implements IStorage {
 
   async deleteSkipConfig(userName: string, key: string): Promise<void> {
     await withRetry(async () => {
-      // 删除独立的key
       await this.client.del(this.skipConfigKey(userName, key));
-      // 从用户的跳过配置集合中移除
       await this.client.sRem(this.skipConfigsKey(userName), key);
+
+      for (const legacyKey of this.legacySkipConfigKeys(userName, key)) {
+        await this.client.del(legacyKey);
+      }
+      for (const legacySet of this.legacySkipConfigsKeys(userName)) {
+        await this.client.sRem(legacySet, key);
+      }
     });
   }
 }
 
 // 单例 Redis 客户端
 function getRedisClient(): RedisClientType {
-  const legacyKey = Symbol.for('__MOONTV_REDIS_CLIENT__');
-  const globalKey = Symbol.for('__KATELYATV_REDIS_CLIENT__');
-  let client: RedisClientType | undefined =
-    (global as any)[globalKey] || (global as any)[legacyKey];
+  const globalKey = Symbol.for('__V0TV_REDIS_CLIENT__');
+  const legacySymbols = [
+    Symbol.for('__KATELYATV_REDIS_CLIENT__'),
+    Symbol.for('__MOONTV_REDIS_CLIENT__'),
+  ];
+  let client: RedisClientType | undefined = (global as any)[globalKey];
+  if (!client) {
+    for (const legacyKey of legacySymbols) {
+      if ((global as any)[legacyKey]) {
+        client = (global as any)[legacyKey];
+        break;
+      }
+    }
+  }
 
   if (!client) {
     const url = process.env.REDIS_URL;

@@ -3,6 +3,7 @@
 import { Redis } from '@upstash/redis';
 
 import { AdminConfig } from './admin.types';
+import { BRAND_SLUG, LEGACY_BRAND_SLUGS } from './brand';
 import {
   EpisodeSkipConfig,
   Favorite,
@@ -277,11 +278,23 @@ export class UpstashRedisStorage implements IStorage {
 
   // 跳过配置相关
   private skipConfigKey(userName: string, key: string): string {
-    return `katelyatv:skip_config:${userName}:${key}`;
+    return `${BRAND_SLUG}:skip_config:${userName}:${key}`;
+  }
+
+  private legacySkipConfigKeys(userName: string, key: string): string[] {
+    return LEGACY_BRAND_SLUGS.map(
+      (slug) => `${slug}:skip_config:${userName}:${key}`
+    );
   }
 
   private skipConfigsKey(userName: string): string {
-    return `katelyatv:skip_configs:${userName}`;
+    return `${BRAND_SLUG}:skip_configs:${userName}`;
+  }
+
+  private legacySkipConfigsKeys(userName: string): string[] {
+    return LEGACY_BRAND_SLUGS.map(
+      (slug) => `${slug}:skip_configs:${userName}`
+    );
   }
 
   async getSkipConfig(
@@ -291,7 +304,18 @@ export class UpstashRedisStorage implements IStorage {
     const data = await withRetry(() =>
       this.client.get(this.skipConfigKey(userName, key))
     );
-    return data ? (data as EpisodeSkipConfig) : null;
+    if (data) {
+      return data as EpisodeSkipConfig;
+    }
+
+    for (const legacyKey of this.legacySkipConfigKeys(userName, key)) {
+      const legacy = await withRetry(() => this.client.get(legacyKey));
+      if (legacy) {
+        return legacy as EpisodeSkipConfig;
+      }
+    }
+
+    return null;
   }
 
   async setSkipConfig(
@@ -300,28 +324,38 @@ export class UpstashRedisStorage implements IStorage {
     config: EpisodeSkipConfig
   ): Promise<void> {
     await withRetry(async () => {
-      // 保存到独立的key
       await this.client.set(this.skipConfigKey(userName, key), config);
-      // 同时加入到用户的跳过配置集合中
       await this.client.sadd(this.skipConfigsKey(userName), key);
+
+      for (const legacyKey of this.legacySkipConfigKeys(userName, key)) {
+        await this.client.del(legacyKey);
+      }
+      for (const legacySet of this.legacySkipConfigsKeys(userName)) {
+        await this.client.srem(legacySet, key);
+      }
     });
   }
 
   async getAllSkipConfigs(
     userName: string
   ): Promise<{ [key: string]: EpisodeSkipConfig }> {
-    const keys = await withRetry(() =>
-      this.client.smembers(this.skipConfigsKey(userName))
+    const memberLists = await Promise.all([
+      withRetry(() => this.client.smembers(this.skipConfigsKey(userName))),
+      ...this.legacySkipConfigsKeys(userName).map((legacyKey) =>
+        withRetry(() => this.client.smembers(legacyKey))
+      ),
+    ]);
+
+    const keys = new Set<string>();
+    memberLists.forEach((list) =>
+      ensureStringArray(list || []).forEach((key) => keys.add(key))
     );
 
     const configs: { [key: string]: EpisodeSkipConfig } = {};
-
-    for (const key of ensureStringArray(keys || [])) {
-      const data = await withRetry(() =>
-        this.client.get(this.skipConfigKey(userName, key))
-      );
+    for (const key of keys) {
+      const data = await this.getSkipConfig(userName, key);
       if (data) {
-        configs[key] = data as EpisodeSkipConfig;
+        configs[key] = data;
       }
     }
 
@@ -330,10 +364,15 @@ export class UpstashRedisStorage implements IStorage {
 
   async deleteSkipConfig(userName: string, key: string): Promise<void> {
     await withRetry(async () => {
-      // 删除独立的key
       await this.client.del(this.skipConfigKey(userName, key));
-      // 从用户的跳过配置集合中移除
       await this.client.srem(this.skipConfigsKey(userName), key);
+
+      for (const legacyKey of this.legacySkipConfigKeys(userName, key)) {
+        await this.client.del(legacyKey);
+      }
+      for (const legacySet of this.legacySkipConfigsKeys(userName)) {
+        await this.client.srem(legacySet, key);
+      }
     });
   }
 

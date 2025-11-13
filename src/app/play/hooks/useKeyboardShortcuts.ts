@@ -4,6 +4,7 @@
  */
 
 import { useEffect } from 'react';
+
 import type { KeyboardShortcut } from '../types/player.types';
 
 /**

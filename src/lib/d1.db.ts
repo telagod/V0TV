@@ -44,16 +44,13 @@ interface D1UserSettingsRow {
   settings: string;
 }
 
-interface D1SearchHistoryRow {
-  keywords: string;
-}
-
 interface D1SkipConfigRow {
-  config: string;
-}
-
-interface D1AdminConfigRow {
-  config: string;
+  key: string;
+  source: string;
+  video_id: string;
+  title: string;
+  segments: string;
+  updated_time: number;
 }
 
 // D1 数据库接口
@@ -98,8 +95,9 @@ function getD1Database(dbInstance?: D1Database): D1Database {
   }
 
   // 降级：从 process.env 获取（开发环境 wrangler dev）
-  if ((process.env as any).DB) {
-    return (process.env as any).DB as D1Database;
+  const envWithDb = process.env as NodeJS.ProcessEnv & { DB?: D1Database };
+  if (envWithDb.DB) {
+    return envWithDb.DB;
   }
 
   throw new Error(
@@ -276,7 +274,7 @@ export class D1Storage implements IStorage {
       const result = await db
         .prepare('SELECT * FROM play_records WHERE username = ? AND key = ?')
         .bind(userName, key)
-        .first<any>();
+        .first<D1PlayRecordRow>();
 
       if (!result) return null;
 
@@ -390,7 +388,7 @@ export class D1Storage implements IStorage {
       const result = await db
         .prepare('SELECT * FROM favorites WHERE username = ? AND key = ?')
         .bind(userName, key)
-        .first<any>();
+        .first<D1FavoriteRow>();
 
       if (!result) return null;
 
@@ -701,7 +699,7 @@ export class D1Storage implements IStorage {
       const result = await db
         .prepare('SELECT * FROM skip_configs WHERE username = ? AND key = ?')
         .bind(userName, key)
-        .first<any>();
+        .first<D1SkipConfigRow>();
 
       if (!result) return null;
 
@@ -757,7 +755,7 @@ export class D1Storage implements IStorage {
       const result = await db
         .prepare('SELECT * FROM skip_configs WHERE username = ?')
         .bind(userName)
-        .all<any>();
+        .all<D1SkipConfigRow>();
 
       const configs: { [key: string]: EpisodeSkipConfig } = {};
 

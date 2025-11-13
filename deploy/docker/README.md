@@ -22,7 +22,7 @@ docker run -d \
   -e PASSWORD=your_password \
   -v $(pwd)/config.json:/app/config.json:ro \
   --restart unless-stopped \
-  ghcr.io/katelya77/katelyatv:latest
+  ghcr.io/telagod/v0tv:latest
 ```
 
 ### 方式二：Docker Compose + Redis（推荐）
@@ -116,7 +116,7 @@ docker volume ls | grep v0tv
 
 # 备份数据
 docker run --rm \
-  -v v0tv_redis-data:/data \
+  -v v0tv-redis-data:/data \
   -v $(pwd):/backup \
   alpine tar czf /backup/redis-backup.tar.gz /data
 

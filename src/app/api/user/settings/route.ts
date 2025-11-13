@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getStorage } from '@/lib/db';
+import { logError } from '@/lib/logger';
 import { UserSettings } from '@/lib/types';
 
 // 设置运行时为 Edge Runtime，确保部署兼容性
@@ -19,7 +20,7 @@ export async function GET(_request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dbInstance = (context.env as any).DB;
       } catch (error) {
-        console.error('[user/settings GET] 无法获取 Cloudflare Context:', error);
+        logError('[user/settings GET] 无法获取 Cloudflare Context', error);
       }
     }
 
@@ -58,8 +59,7 @@ export async function GET(_request: NextRequest) {
       }
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error getting user settings:', error);
+    logError('Error getting user settings', error);
     return NextResponse.json({ error: '获取用户设置失败' }, { status: 500 });
   }
 }
@@ -77,7 +77,7 @@ export async function PATCH(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dbInstance = (context.env as any).DB;
       } catch (error) {
-        console.error('[user/settings PATCH] 无法获取 Cloudflare Context:', error);
+        logError('[user/settings PATCH] 无法获取 Cloudflare Context', error);
       }
     }
 
@@ -125,8 +125,7 @@ export async function PATCH(request: NextRequest) {
       }
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error updating user settings:', error);
+    logError('Error updating user settings', error);
     return NextResponse.json({ error: '更新用户设置失败' }, { status: 500 });
   }
 }
@@ -144,7 +143,7 @@ export async function PUT(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dbInstance = (context.env as any).DB;
       } catch (error) {
-        console.error('[user/settings PUT] 无法获取 Cloudflare Context:', error);
+        logError('[user/settings PUT] 无法获取 Cloudflare Context', error);
       }
     }
 
@@ -183,8 +182,7 @@ export async function PUT(request: NextRequest) {
       message: '设置已重置',
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error resetting user settings:', error);
+    logError('Error resetting user settings', error);
     return NextResponse.json({ error: '重置用户设置失败' }, { status: 500 });
   }
 }

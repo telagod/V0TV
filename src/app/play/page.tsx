@@ -4,8 +4,10 @@
  */
 
 import { Suspense } from 'react';
-import PlayPageClient from './PlayPageClient';
+
 import PageLayout from '@/components/PageLayout';
+
+import PlayPageClient from './PlayPageClient';
 
 // 强制动态渲染（因为使用了 useSearchParams）
 export const dynamic = 'force-dynamic';

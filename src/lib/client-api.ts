@@ -16,6 +16,26 @@
 
 import { ApiSite } from '@/lib/types';
 
+const isDevelopment = () => process.env.NODE_ENV !== 'production';
+
+const logDebug = (...messages: unknown[]) => {
+  if (!isDevelopment()) return;
+  // eslint-disable-next-line no-console
+  console.log(...messages);
+};
+
+const logWarn = (...messages: unknown[]) => {
+  if (!isDevelopment()) return;
+  // eslint-disable-next-line no-console
+  console.warn(...messages);
+};
+
+const logError = (...messages: unknown[]) => {
+  if (!isDevelopment()) return;
+  // eslint-disable-next-line no-console
+  console.error(...messages);
+};
+
 // ============================================================================
 // 配置
 // ============================================================================
@@ -74,11 +94,11 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
 
   // 检查缓存
   if (DEFAULT_CONFIG.cacheCorsCheck && corsCache.has(domain)) {
-    const cached = corsCache.get(domain)!;
-    console.log(
-      `[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`
-    );
-    return cached;
+    const cached = corsCache.get(domain);
+    if (typeof cached === 'boolean') {
+      logDebug(`[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`);
+      return cached;
+    }
   }
 
   try {
@@ -96,7 +116,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
       corsCache.set(domain, supported);
     }
 
-    console.log(
+    logDebug(
       `[CORS检测] ${domain} - ${supported ? '✅ 支持CORS' : '❌ 不支持CORS'}`
     );
     return supported;
@@ -112,7 +132,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
       corsCache.set(domain, false);
     }
 
-    console.log(
+    logDebug(
       `[CORS检测] ${domain} - ❌ 不支持CORS (${
         isCorsError ? 'CORS错误' : '网络错误'
       })`
@@ -132,11 +152,11 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
  * @param timeout 超时时间（毫秒）
  * @returns API响应数据
  */
-async function fetchDirectly<T = any>(
+async function fetchDirectly<T = unknown>(
   apiUrl: string,
   timeout: number
 ): Promise<T> {
-  console.log(`[客户端直连] 尝试直接请求: ${apiUrl}`);
+  logDebug(`[客户端直连] 尝试直接请求: ${apiUrl}`);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -156,7 +176,7 @@ async function fetchDirectly<T = any>(
     }
 
     const data = (await response.json()) as T;
-    console.log(`[客户端直连] ✅ 成功`);
+    logDebug(`[客户端直连] ✅ 成功`);
     return data;
   } catch (error: unknown) {
     clearTimeout(timeoutId);
@@ -168,7 +188,7 @@ async function fetchDirectly<T = any>(
       err?.message?.includes('Origin') ||
       err?.name === 'TypeError';
 
-    console.warn(
+    logWarn(
       `[客户端直连] ❌ 失败: ${isCorsError ? 'CORS限制' : err?.message || '未知错误'}`
     );
     throw error;
@@ -187,7 +207,7 @@ async function fetchDirectly<T = any>(
  * @param timeout 超时时间（毫秒）
  * @returns API响应数据
  */
-async function fetchViaProxy<T = any>(
+async function fetchViaProxy<T = unknown>(
   endpoint: string,
   params: Record<string, string>,
   timeout: number
@@ -195,7 +215,7 @@ async function fetchViaProxy<T = any>(
   const queryString = new URLSearchParams(params).toString();
   const proxyUrl = `${endpoint}?${queryString}`;
 
-  console.log(`[服务端代理] 降级到服务端: ${proxyUrl}`);
+  logDebug(`[服务端代理] 降级到服务端: ${proxyUrl}`);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -213,12 +233,12 @@ async function fetchViaProxy<T = any>(
     }
 
     const data = (await response.json()) as T;
-    console.log(`[服务端代理] ✅ 成功`);
+    logDebug(`[服务端代理] ✅ 成功`);
     return data;
   } catch (error: unknown) {
     clearTimeout(timeoutId);
     const err = error instanceof Error ? error : null;
-    console.error(`[服务端代理] ❌ 失败: ${err?.message || '未知错误'}`);
+    logError(`[服务端代理] ❌ 失败: ${err?.message || '未知错误'}`);
     throw error;
   }
 }
@@ -235,14 +255,14 @@ async function fetchViaProxy<T = any>(
  * @param proxyParams 代理参数
  * @returns API响应数据
  */
-async function smartFetch<T = any>(
+async function smartFetch<T = unknown>(
   apiUrl: string,
   proxyEndpoint: string,
   proxyParams: Record<string, string>
 ): Promise<T> {
   // 检查是否启用客户端直连
   if (!DEFAULT_CONFIG.enableDirectConnection) {
-    console.log('[智能请求] 客户端直连已禁用，直接使用服务端代理');
+    logDebug('[智能请求] 客户端直连已禁用，直接使用服务端代理');
     return await fetchViaProxy<T>(
       proxyEndpoint,
       proxyParams,
@@ -263,9 +283,9 @@ async function smartFetch<T = any>(
       err?.name === 'TypeError';
 
     if (isCorsError) {
-      console.log('[智能请求] CORS失败，自动降级到服务端代理');
+      logDebug('[智能请求] CORS失败，自动降级到服务端代理');
     } else {
-      console.log(
+      logDebug(
         `[智能请求] 客户端请求失败(${err?.message || '未知错误'})，降级到服务端代理`
       );
     }
@@ -293,7 +313,7 @@ async function smartFetch<T = any>(
 export async function clientSearch(
   apiSite: ApiSite,
   query: string
-): Promise<any> {
+): Promise<unknown> {
   const encodedQuery = encodeURIComponent(query.trim());
 
   // 构建直连API URL
@@ -322,7 +342,7 @@ export async function clientSearch(
 export async function clientDetail(
   apiSite: ApiSite,
   videoId: string
-): Promise<any> {
+): Promise<unknown> {
   // 构建直连API URL
   const apiUrl = `${apiSite.api}?ac=detail&ids=${videoId}`;
 
@@ -344,7 +364,7 @@ export async function clientDetail(
  */
 export function updateClientApiConfig(config: Partial<ClientApiConfig>) {
   Object.assign(DEFAULT_CONFIG, config);
-  console.log('[配置更新]', DEFAULT_CONFIG);
+  logDebug('[配置更新]', DEFAULT_CONFIG);
 }
 
 /**
@@ -359,7 +379,7 @@ export function getClientApiConfig(): ClientApiConfig {
  */
 export function clearCorsCache() {
   corsCache.clear();
-  console.log('[CORS缓存] 已清空');
+  logDebug('[CORS缓存] 已清空');
 }
 
 /**

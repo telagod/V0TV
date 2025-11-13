@@ -103,6 +103,8 @@ V0TV 是一个现代化的自托管影视聚合平台，支持多源内容聚合
 - Node.js 18+ 或 Docker
 - （可选）Redis 用于多用户部署
 
+> 📘 需要更完整的部署矩阵、环境变量说明与脚本，请直接阅读 [deploy/README.md](deploy/README.md)。
+
 ### 方式一：使用 Docker（推荐）⭐
 
 **单容器部署**（适合个人使用）
@@ -132,69 +134,18 @@ chmod +x deploy-redis.sh
 
 ---
 
-### 方式二：Cloudflare Workers（免费托管）✨
+### 方式二：Cloudflare Pages / Workers（免费托管）✨
 
-Cloudflare Workers 提供两种部署方式：**本地手动部署**和 **Git 自动部署**。
+- 适合零成本 + 全球访问量的场景
+- 支持 Cloudflare Pages Functions 或 Workers + D1
+- 推荐流程：
+  1. Fork 或导入 `https://github.com/telagod/V0TV`
+  2. Cloudflare Pages 构建命令：`pnpm install && pnpm pages:build`，产物目录 `.open-next`
+  3. 在 Pages Secrets 中配置 `PASSWORD`、`NEXT_PUBLIC_STORAGE_TYPE=d1` 以及 D1/Upstash 凭据
+  4. 需要全自动脚本时执行 `bash scripts/auto-deploy.sh`（创建 D1、配置变量、部署一次搞定）
+  5. GitHub Actions / 手动部署的完整说明见 [deploy/cloudflare/README.md](deploy/cloudflare/README.md)
 
-#### 选项 A：本地手动部署（推荐新手）⭐
-
-**🎉 一键自动部署脚本！**
-
-```bash
-# 克隆仓库
-git clone https://github.com/telagod/V0TV.git
-cd V0TV
-
-# 运行自动部署脚本
-bash scripts/auto-deploy.sh
-```
-
-脚本会自动：
-- ✅ 生成 32 位随机密码
-- ✅ 配置所有环境变量
-- ✅ 创建 D1 数据库
-- ✅ 初始化数据库表
-- ✅ 部署到 Cloudflare Workers
-- ✅ 保存凭据到本地文件
-
-[查看自动部署脚本说明 →](scripts/README.md)
-
-#### 选项 B：Git 自动部署（推荐进阶用户）🚀
-
-点击下方按钮，自动 Fork 仓库并配置 Git 自动部署：
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
-
-**Git 自动部署特性：**
-- 📝 推送代码自动触发部署
-- 🔄 无需本地构建
-- 👥 适合团队协作
-
-**重要：Git 自动部署后需要手动设置 PASSWORD**
-
-```bash
-# 克隆你 Fork 的仓库
-git clone https://github.com/你的用户名/V0TV.git
-cd V0TV
-
-# 运行 PASSWORD 设置脚本
-bash scripts/set-password-only.sh
-```
-
-[查看 Git 自动部署详细教程 →](CLOUDFLARE_GIT_AUTO_DEPLOY.md)
-
----
-
-**Cloudflare Workers 特性：**
-- 🌍 **全球边缘网络** - 部署到 300+ 城市
-- 🚀 **自动扩展** - 无需担心流量
-- 💾 **D1 数据库** - 自动创建和初始化
-- 🔒 **多用户支持** - 内置用户系统和管理面板
-- 💰 **免费额度充足** - 每天 100,000 次请求
-
-**更多教程：**
-- [D1 数据库配置](CLOUDFLARE_D1_AUTO_SETUP.md)
-- [手动部署指南](CLOUDFLARE_WORKERS_MANUAL_DEPLOY.md)
+[查看 Cloudflare 详细教程 →](deploy/cloudflare/README.md)
 
 ---
 
@@ -217,7 +168,7 @@ bash scripts/set-password-only.sh
 ### 方式五：VPS 服务器
 
 ```bash
-# 一键安装脚本（即将推出）
+# 一键安装脚本
 curl -fsSL https://raw.githubusercontent.com/telagod/V0TV/main/deploy/vps/install.sh | bash
 ```
 
@@ -231,14 +182,14 @@ curl -fsSL https://raw.githubusercontent.com/telagod/V0TV/main/deploy/vps/instal
 | --------------------------- | ------ | ------ | ---------- | -------------------------------- |
 | **Docker 单容器**           | ⭐     | 免费\* | ⚡⚡⚡     | 个人使用，快速部署               |
 | **Docker + Redis**          | ⭐⭐   | 免费\* | ⚡⚡⚡⚡   | 多用户，需要数据同步             |
-| **Cloudflare Workers** ✨   | ⭐     | 免费   | ⚡⚡⚡⚡⚡ | 全球访问，CDN 加速，自动扩展     |
+| **Cloudflare Pages/Workers** ✨ | ⭐ | 免费   | ⚡⚡⚡⚡⚡ | 全球访问，CDN 加速，自动扩展     |
 | **Vercel**                  | ⭐     | 免费   | ⚡⚡⚡     | 快速部署，简单管理               |
 | **Railway**                 | ⭐     | 付费   | ⚡⚡⚡⚡   | 托管服务，简单管理               |
 | **VPS**                     | ⭐⭐⭐ | 付费   | ⚡⚡⚡⚡⚡ | 完全控制，自定义配置             |
 
 > \*需要自己的服务器或本地运行
 
-**Cloudflare Workers 新特性：**
+**Cloudflare 部署亮点：**
 - ✅ 一键自动部署脚本 - 零配置
 - ✅ D1 数据库自动创建 - 无需手动操作
 - ✅ 随机密码自动生成 - 更安全

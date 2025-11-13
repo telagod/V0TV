@@ -427,7 +427,7 @@ export const UserMenu: React.FC = () => {
           {/* 版本信息 */}
           <button
             onClick={() =>
-              window.open('https://github.com/katelya77/KatelyaTV', '_blank')
+              window.open('https://github.com/telagod/V0TV', '_blank')
             }
             className='w-full px-3 py-2 text-center flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-xs'
           >

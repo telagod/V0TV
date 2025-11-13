@@ -24,15 +24,15 @@ import PaginatedRow from '@/components/PaginatedRow';
 import { useSite } from '@/components/SiteProvider';
 import VideoCard from '@/components/VideoCard';
 
-// 主内容区大型 KatelyaTV Logo 组件
-const MainKatelyaLogo = () => {
+// 主内容区大型 V0TV Logo 组件
+const MainV0TVLogo = () => {
   return (
     <div className='main-logo-container'>
       {/* 背景光效 */}
       <div className='logo-background-glow'></div>
 
       {/* 主 Logo */}
-      <div className='main-katelya-logo'>KatelyaTV</div>
+      <div className='main-v0tv-logo'>V0TV</div>
 
       {/* 副标题 */}
       <div className='mt-3 text-center'>
@@ -52,8 +52,8 @@ const MainKatelyaLogo = () => {
   );
 };
 
-// KatelyaTV 底部 Logo 组件
-const BottomKatelyaLogo = () => {
+// V0TV 底部 Logo 组件
+const BottomV0TVLogo = () => {
   return (
     <div className='bottom-logo-container'>
       {/* 浮动几何形状装饰 */}
@@ -65,9 +65,9 @@ const BottomKatelyaLogo = () => {
       </div>
 
       <div className='text-center'>
-        <div className='bottom-logo'>KatelyaTV</div>
+        <div className='bottom-logo'>V0TV</div>
         <div className='mt-2 text-sm text-gray-500 dark:text-gray-400 opacity-75'>
-          Powered by KatelyaTV Core
+          Powered by V0TV Core
         </div>
       </div>
     </div>
@@ -320,8 +320,8 @@ function HomeClient() {
   return (
     <PageLayout>
       <div className='px-4 sm:px-8 lg:px-12 py-4 sm:py-8 overflow-visible'>
-        {/* 主内容区大型 KatelyaTV Logo - 仅在首页显示 */}
-        {activeTab === 'home' && <MainKatelyaLogo />}
+        {/* 主内容区大型 V0TV Logo - 仅在首页显示 */}
+        {activeTab === 'home' && <MainV0TVLogo />}
 
         {/* 顶部 Tab 切换 */}
         <div className='mb-8 flex justify-center'>
@@ -381,7 +381,7 @@ function HomeClient() {
               </section>
 
               {/* 收藏夹页面底部 Logo */}
-              <BottomKatelyaLogo />
+              <BottomV0TVLogo />
             </>
           ) : (
             // 首页视图
@@ -529,7 +529,7 @@ function HomeClient() {
               </section>
 
               {/* 首页底部 Logo */}
-              <BottomKatelyaLogo />
+              <BottomV0TVLogo />
             </>
           )}
         </div>

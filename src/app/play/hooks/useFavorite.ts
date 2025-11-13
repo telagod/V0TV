@@ -3,13 +3,16 @@
  * 管理收藏功能
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback,useEffect, useState } from 'react';
+
 import {
+  deleteFavorite,
   isFavorited,
   saveFavorite,
-  deleteFavorite,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
+import { logError } from '@/lib/logger';
+
 import type { UseFavoriteReturn } from '../types/player.types';
 
 interface UseFavoriteOptions {
@@ -41,7 +44,7 @@ export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
         const status = await isFavorited(source, id);
         setFavorited(status);
       } catch (err) {
-        console.error('读取收藏状态失败:', err);
+        logError('读取收藏状态失败', err);
       }
     };
 
@@ -79,7 +82,7 @@ export function useFavorite(options: UseFavoriteOptions): UseFavoriteReturn {
         setFavorited(true);
       }
     } catch (err) {
-      console.error('切换收藏失败:', err);
+      logError('切换收藏失败', err);
     } finally {
       setLoading(false);
     }

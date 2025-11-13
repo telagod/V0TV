@@ -5,11 +5,11 @@
 import {
   closestCenter,
   DndContext,
+  DragEndEvent,
   PointerSensor,
   TouchSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
 import {
   restrictToParentElement,
@@ -37,6 +37,7 @@ import Swal from 'sweetalert2';
 
 import { AdminConfig, AdminConfigResult } from '@/lib/admin.types';
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
+import { RuntimeConfig } from '@/lib/types';
 
 import PageLayout from '@/components/PageLayout';
 
@@ -72,6 +73,45 @@ interface DataSource {
   disabled?: boolean;
   from: 'config' | 'custom';
   is_adult?: boolean; // 添加成人内容标记字段
+}
+
+type SourceActionPayload =
+  | { action: 'enable' | 'disable' | 'delete'; key: string }
+  | {
+      action: 'add';
+      key: string;
+      name: string;
+      api: string;
+      detail?: string;
+      is_adult?: boolean;
+    }
+  | { action: 'sort'; order: string[] };
+
+type StorageType = 'localstorage' | 'redis' | 'upstash' | 'd1';
+
+type WindowWithRuntime = Window & { RUNTIME_CONFIG?: RuntimeConfig };
+
+const getRuntimeStorageType = (): StorageType | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  return (window as WindowWithRuntime).RUNTIME_CONFIG
+    ?.STORAGE_TYPE as StorageType | undefined;
+};
+
+interface ConfigFileEntry {
+  api: string;
+  name: string;
+  detail?: string;
+  is_adult?: boolean;
+}
+
+interface ConfigExportFile {
+  cache_time: number;
+  api_site: Record<string, ConfigFileEntry>;
+}
+
+interface ConfigImportFile {
+  cache_time?: number;
+  api_site: Record<string, Partial<ConfigFileEntry>>;
 }
 
 // 可折叠标签组件
@@ -138,12 +178,9 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
   const currentUsername = getAuthInfoFromBrowserCookie()?.username || null;
 
   // 检测存储类型是否为 d1
-  const isD1Storage =
-    typeof window !== 'undefined' &&
-    (window as any).RUNTIME_CONFIG?.STORAGE_TYPE === 'd1';
-  const isUpstashStorage =
-    typeof window !== 'undefined' &&
-    (window as any).RUNTIME_CONFIG?.STORAGE_TYPE === 'upstash';
+  const runtimeStorageType = getRuntimeStorageType();
+  const isD1Storage = runtimeStorageType === 'd1';
+  const isUpstashStorage = runtimeStorageType === 'upstash';
 
   useEffect(() => {
     if (config?.UserConfig) {
@@ -675,7 +712,7 @@ const VideoSourceConfig = ({
   }, [config]);
 
   // 通用 API 请求
-  const callSourceApi = async (body: Record<string, any>) => {
+  const callSourceApi = async (body: SourceActionPayload) => {
     try {
       const resp = await fetch('/api/admin/source', {
         method: 'POST',
@@ -876,9 +913,9 @@ const VideoSourceConfig = ({
   const handleExportConfig = () => {
     try {
       // 构建符合要求的配置格式
-      const exportConfig = {
+      const exportConfig: ConfigExportFile = {
         cache_time: config?.SiteConfig?.SiteInterfaceCacheTime || 7200,
-        api_site: {} as Record<string, any>,
+        api_site: {},
       };
 
       // 将视频源转换为config.json格式
@@ -929,7 +966,7 @@ const VideoSourceConfig = ({
     reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
-        const importConfig = JSON.parse(content);
+        const importConfig = JSON.parse(content) as ConfigImportFile;
 
         // 验证配置格式
         if (
@@ -972,12 +1009,7 @@ const VideoSourceConfig = ({
               throw new Error(`${key}: 无效的配置对象`);
             }
 
-            const sourceObj = source as {
-              api?: string;
-              name?: string;
-              detail?: string;
-              is_adult?: boolean;
-            };
+            const sourceObj = source as Partial<ConfigFileEntry>;
 
             if (!sourceObj.api || !sourceObj.name) {
               throw new Error(`${key}: 缺少必要字段 api 或 name`);
@@ -1423,12 +1455,9 @@ const SiteConfigComponent = ({ config }: { config: AdminConfig | null }) => {
   const [saving, setSaving] = useState(false);
 
   // 检测存储类型是否为 d1 或 upstash
-  const isD1Storage =
-    typeof window !== 'undefined' &&
-    (window as any).RUNTIME_CONFIG?.STORAGE_TYPE === 'd1';
-  const isUpstashStorage =
-    typeof window !== 'undefined' &&
-    (window as any).RUNTIME_CONFIG?.STORAGE_TYPE === 'upstash';
+  const runtimeStorageType = getRuntimeStorageType();
+  const isD1Storage = runtimeStorageType === 'd1';
+  const isUpstashStorage = runtimeStorageType === 'upstash';
 
   useEffect(() => {
     if (config?.SiteConfig) {
@@ -1711,13 +1740,16 @@ function AdminPageClient() {
       }
 
       const response = await fetch(`/api/admin/config`);
+      const payload = await response.json();
 
       if (!response.ok) {
-        const data = (await response.json()) as any;
-        throw new Error(`获取配置失败: ${data.error}`);
+        const errorPayload = payload as { error?: string };
+        throw new Error(
+          `获取配置失败: ${errorPayload.error || response.statusText}`
+        );
       }
 
-      const data = (await response.json()) as AdminConfigResult;
+      const data = payload as AdminConfigResult;
       setConfig(data.Config);
       setRole(data.Role);
     } catch (err) {

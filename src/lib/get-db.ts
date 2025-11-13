@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { DbManager } from './db';
+import { logError } from './logger';
 
 /**
  * 获取数据库管理器实例
@@ -31,7 +32,7 @@ export async function getDb(): Promise<DbManager> {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return new DbManager((context.env as any).DB);
     } catch (error) {
-      console.error('[getDb] 无法获取 Cloudflare Context:', error);
+      logError('[getDb] 无法获取 Cloudflare Context', error);
       // 降级：返回不带 DB 实例的 DbManager（开发环境）
       return new DbManager();
     }

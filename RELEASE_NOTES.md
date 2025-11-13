@@ -1,4 +1,4 @@
-# Version 0.8.0-katelya Release Notes
+# Version 0.8.0-v0tv Release Notes
 
 ## 🎉 重大更新：播放页面完全重构
 
@@ -302,7 +302,7 @@ src/app/play/
 ---
 
 **发布时间**: 2025-11-12
-**版本**: 0.8.0-katelya
+**版本**: 0.8.0-v0tv
 **代号**: Architecture Refactor
 
 ---

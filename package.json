@@ -1,6 +1,6 @@
 {
-  "name": "katelyatv",
-  "version": "0.8.0-katelya",
+  "name": "v0tv",
+  "version": "0.8.0-v0tv",
   "private": true,
   "scripts": {
     "dev": "pnpm gen:runtime && pnpm gen:manifest && next dev -H 0.0.0.0",

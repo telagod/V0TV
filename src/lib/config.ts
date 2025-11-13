@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, no-console, @typescript-eslint/no-non-null-assertion */
 
 import { AdminConfig } from './admin.types';
+import { BRAND_CONTACT, BRAND_NAME } from './brand';
 import { getStorage } from './db';
 import runtimeConfig from './runtime';
 
@@ -157,10 +158,10 @@ async function initConfig() {
         }
         adminConfig = {
           SiteConfig: {
-            SiteName: process.env.SITE_NAME || 'KatelyaTV',
+            SiteName: process.env.SITE_NAME || BRAND_NAME,
             Announcement:
               process.env.ANNOUNCEMENT ||
-              '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。',
+              `本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。${BRAND_CONTACT}`,
             SearchDownstreamMaxPage:
               Number(process.env.NEXT_PUBLIC_SEARCH_MAX_PAGE) || 5,
             SiteInterfaceCacheTime: fileConfig.cache_time || 7200,
@@ -197,10 +198,10 @@ async function initConfig() {
     // 本地存储直接使用文件配置
     cachedConfig = {
       SiteConfig: {
-        SiteName: process.env.SITE_NAME || 'KatelyaTV',
+        SiteName: process.env.SITE_NAME || BRAND_NAME,
         Announcement:
           process.env.ANNOUNCEMENT ||
-          '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。',
+          `本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。${BRAND_CONTACT}`,
         SearchDownstreamMaxPage:
           Number(process.env.NEXT_PUBLIC_SEARCH_MAX_PAGE) || 5,
         SiteInterfaceCacheTime: fileConfig.cache_time || 7200,
@@ -237,10 +238,10 @@ export async function getConfig(): Promise<AdminConfig> {
   }
   if (adminConfig) {
     // 合并一些环境变量配置
-    adminConfig.SiteConfig.SiteName = process.env.SITE_NAME || 'KatelyaTV';
+    adminConfig.SiteConfig.SiteName = process.env.SITE_NAME || BRAND_NAME;
     adminConfig.SiteConfig.Announcement =
       process.env.ANNOUNCEMENT ||
-      '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。';
+      `本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。${BRAND_CONTACT}`;
     adminConfig.UserConfig.AllowRegister =
       process.env.NEXT_PUBLIC_ENABLE_REGISTER === 'true';
     adminConfig.SiteConfig.ImageProxy =
@@ -351,7 +352,7 @@ export async function resetConfig() {
   }
   const adminConfig = {
     SiteConfig: {
-      SiteName: process.env.SITE_NAME || 'KatelyaTV',
+      SiteName: process.env.SITE_NAME || BRAND_NAME,
       Announcement:
         process.env.ANNOUNCEMENT ||
         '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。',

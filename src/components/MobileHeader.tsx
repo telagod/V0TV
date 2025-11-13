@@ -15,27 +15,20 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
   const { siteName } = useSite();
   return (
     <header className='md:hidden relative w-full bg-white/70 backdrop-blur-xl border-b border-purple-200/50 shadow-sm dark:bg-gray-900/70 dark:border-purple-700/50'>
-      <div className='h-12 flex items-center justify-between px-4'>
-        {/* 左侧：返回按钮和设置按钮 */}
+      <div className='h-12 grid grid-cols-[auto,1fr,auto] items-center px-4 gap-2'>
         <div className='flex items-center gap-2'>
           {showBackButton && <BackButton />}
         </div>
-
-        {/* 右侧按钮 */}
-        <div className='flex items-center gap-2'>
-          <ThemeToggle />
-          <UserMenu />
-        </div>
-      </div>
-
-      {/* 中间：Logo（绝对居中）- 应用彩虹渐变效果 */}
-      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         <Link
           href='/'
-          className='text-2xl font-bold katelya-logo tracking-tight hover:opacity-80 transition-opacity'
+          className='justify-self-center text-lg font-bold v0tv-logo tracking-tight hover:opacity-80 transition-opacity truncate'
         >
           {siteName}
         </Link>
+        <div className='flex items-center gap-2 justify-end'>
+          <ThemeToggle />
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

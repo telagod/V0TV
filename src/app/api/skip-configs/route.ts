@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
 import { getStorage } from '@/lib/db';
+import { logError } from '@/lib/logger';
 import { EpisodeSkipConfig } from '@/lib/types';
 
 // 配置 Edge Runtime - Cloudflare Pages 要求
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dbInstance = (context.env as any).DB;
       } catch (error) {
-        console.error('[skip-configs] 无法获取 Cloudflare Context:', error);
+        logError('[skip-configs] 无法获取 Cloudflare Context', error);
       }
     }
 
@@ -118,8 +119,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('跳过配置 API 错误:', error);
+    logError('跳过配置 API 错误', error);
     return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
   }
 }

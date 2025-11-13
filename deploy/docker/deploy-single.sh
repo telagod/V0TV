@@ -36,7 +36,7 @@ fi
 
 echo ""
 echo "📦 拉取最新镜像..."
-docker pull ghcr.io/katelya77/katelyatv:latest
+docker pull ghcr.io/telagod/v0tv:latest
 
 echo ""
 echo "🚀 启动容器..."
@@ -49,14 +49,14 @@ if [ -f "config.json" ]; then
       -e PASSWORD="$PASSWORD" \
       -v "$(pwd)/config.json:/app/config.json:ro" \
       --restart unless-stopped \
-      ghcr.io/katelya77/katelyatv:latest
+      ghcr.io/telagod/v0tv:latest
 else
     docker run -d \
       --name v0tv \
       -p $PORT:3000 \
       -e PASSWORD="$PASSWORD" \
       --restart unless-stopped \
-      ghcr.io/katelya77/katelyatv:latest
+      ghcr.io/telagod/v0tv:latest
 fi
 
 echo ""

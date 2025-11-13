@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { AdminConfig } from './admin.types';
+import { BRAND_SLUG, LEGACY_BRAND_SLUGS } from './brand';
 import {
   EpisodeSkipConfig,
   Favorite,
@@ -8,20 +9,107 @@ import {
   UserSettings,
 } from './types';
 
+const ADMIN_CONFIG_KEY = `${BRAND_SLUG}_admin_config`;
+const LEGACY_ADMIN_CONFIG_KEYS = LEGACY_BRAND_SLUGS.map(
+  (slug) => `${slug}_admin_config`
+);
+
 /**
  * LocalStorage 存储实现
  * 主要用于本地开发和简单部署场景
  */
 export class LocalStorage implements IStorage {
+  private static initialized = false;
+
+  constructor() {
+    if (!LocalStorage.initialized && typeof window !== 'undefined') {
+      this.migrateLegacyKeys();
+      LocalStorage.initialized = true;
+    }
+  }
+
+  private migrateLegacyKeys(): void {
+    const legacyPrefixes = LEGACY_BRAND_SLUGS.map((slug) => `${slug}_`);
+    const regex = new RegExp(`^(${LEGACY_BRAND_SLUGS.join('|')})_`);
+    const keys: string[] = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const storageKey = localStorage.key(i);
+      if (
+        storageKey &&
+        legacyPrefixes.some((prefix) => storageKey.startsWith(prefix))
+      ) {
+        keys.push(storageKey);
+      }
+    }
+
+    keys.forEach((legacyKey) => {
+      const value = localStorage.getItem(legacyKey);
+      if (!value) {
+        return;
+      }
+      const migratedKey = legacyKey.replace(regex, `${BRAND_SLUG}_`);
+      localStorage.setItem(migratedKey, value);
+      localStorage.removeItem(legacyKey);
+    });
+  }
+
+  private formatKey(
+    brand: string,
+    prefix: string,
+    userName: string,
+    key?: string
+  ): string {
+    return key
+      ? `${brand}_${prefix}_${userName}_${key}`
+      : `${brand}_${prefix}_${userName}`;
+  }
+
   private getStorageKey(
     prefix: string,
     userName: string,
     key?: string
   ): string {
-    if (key) {
-      return `katelyatv_${prefix}_${userName}_${key}`;
+    return this.formatKey(BRAND_SLUG, prefix, userName, key);
+  }
+
+  private getLegacyStorageKeys(
+    prefix: string,
+    userName: string,
+    key?: string
+  ): string[] {
+    return LEGACY_BRAND_SLUGS.map((legacy) =>
+      this.formatKey(legacy, prefix, userName, key)
+    );
+  }
+
+  private removeLegacyStorageKeys(
+    prefix: string,
+    userName: string,
+    key?: string
+  ): void {
+    this.getLegacyStorageKeys(prefix, userName, key).forEach((storageKey) => {
+      localStorage.removeItem(storageKey);
+    });
+  }
+
+  private getStorageValue(
+    prefix: string,
+    userName: string,
+    key?: string
+  ): string | null {
+    const storageKey = this.getStorageKey(prefix, userName, key);
+    const primary = localStorage.getItem(storageKey);
+    if (primary) {
+      return primary;
     }
-    return `katelyatv_${prefix}_${userName}`;
+    for (const legacyKey of this.getLegacyStorageKeys(prefix, userName, key)) {
+      const legacy = localStorage.getItem(legacyKey);
+      if (legacy) {
+        return legacy;
+      }
+    }
+    return null;
   }
 
   // ---------- 播放记录 ----------
@@ -32,8 +120,7 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return null;
 
     try {
-      const storageKey = this.getStorageKey('playrecord', userName, key);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('playrecord', userName, key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error('Error getting play record:', error);
@@ -51,6 +138,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('playrecord', userName, key);
       localStorage.setItem(storageKey, JSON.stringify(record));
+      this.removeLegacyStorageKeys('playrecord', userName, key);
     } catch (error) {
       console.error('Error setting play record:', error);
     }
@@ -62,16 +150,21 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return {};
 
     try {
-      const prefix = this.getStorageKey('playrecord', userName);
+      const prefixes = [
+        ...this.getLegacyStorageKeys('playrecord', userName),
+        this.getStorageKey('playrecord', userName),
+      ];
       const records: { [key: string]: PlayRecord } = {};
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const storageKey = localStorage.key(i);
-        if (storageKey && storageKey.startsWith(prefix + '_')) {
-          const key = storageKey.replace(prefix + '_', '');
-          const data = localStorage.getItem(storageKey);
-          if (data) {
-            records[key] = JSON.parse(data);
+      for (const prefix of prefixes) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i);
+          if (storageKey && storageKey.startsWith(prefix + '_')) {
+            const key = storageKey.replace(prefix + '_', '');
+            const data = localStorage.getItem(storageKey);
+            if (data) {
+              records[key] = JSON.parse(data);
+            }
           }
         }
       }
@@ -89,6 +182,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('playrecord', userName, key);
       localStorage.removeItem(storageKey);
+      this.removeLegacyStorageKeys('playrecord', userName, key);
     } catch (error) {
       console.error('Error deleting play record:', error);
     }
@@ -99,8 +193,7 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return null;
 
     try {
-      const storageKey = this.getStorageKey('favorite', userName, key);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('favorite', userName, key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error('Error getting favorite:', error);
@@ -118,6 +211,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('favorite', userName, key);
       localStorage.setItem(storageKey, JSON.stringify(favorite));
+      this.removeLegacyStorageKeys('favorite', userName, key);
     } catch (error) {
       console.error('Error setting favorite:', error);
     }
@@ -129,16 +223,21 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return {};
 
     try {
-      const prefix = this.getStorageKey('favorite', userName);
+      const prefixes = [
+        ...this.getLegacyStorageKeys('favorite', userName),
+        this.getStorageKey('favorite', userName),
+      ];
       const favorites: { [key: string]: Favorite } = {};
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const storageKey = localStorage.key(i);
-        if (storageKey && storageKey.startsWith(prefix + '_')) {
-          const key = storageKey.replace(prefix + '_', '');
-          const data = localStorage.getItem(storageKey);
-          if (data) {
-            favorites[key] = JSON.parse(data);
+      for (const prefix of prefixes) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i);
+          if (storageKey && storageKey.startsWith(prefix + '_')) {
+            const key = storageKey.replace(prefix + '_', '');
+            const data = localStorage.getItem(storageKey);
+            if (data) {
+              favorites[key] = JSON.parse(data);
+            }
           }
         }
       }
@@ -156,6 +255,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('favorite', userName, key);
       localStorage.removeItem(storageKey);
+      this.removeLegacyStorageKeys('favorite', userName, key);
     } catch (error) {
       console.error('Error deleting favorite:', error);
     }
@@ -169,6 +269,7 @@ export class LocalStorage implements IStorage {
       const storageKey = this.getStorageKey('user', userName);
       const userData = { password, createdAt: new Date().toISOString() };
       localStorage.setItem(storageKey, JSON.stringify(userData));
+      this.removeLegacyStorageKeys('user', userName);
     } catch (error) {
       console.error('Error registering user:', error);
       throw error;
@@ -179,8 +280,7 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return false;
 
     try {
-      const storageKey = this.getStorageKey('user', userName);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('user', userName);
       if (!data) return false;
 
       const userData = JSON.parse(data);
@@ -195,8 +295,8 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return false;
 
     try {
-      const storageKey = this.getStorageKey('user', userName);
-      return localStorage.getItem(storageKey) !== null;
+      const data = this.getStorageValue('user', userName);
+      return data !== null;
     } catch (error) {
       console.error('Error checking user existence:', error);
       return false;
@@ -208,8 +308,7 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return [];
 
     try {
-      const storageKey = this.getStorageKey('searchhistory', userName);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('searchhistory', userName);
       return data ? JSON.parse(data) : [];
     } catch (error) {
       console.error('Error getting search history:', error);
@@ -232,6 +331,7 @@ export class LocalStorage implements IStorage {
 
       const storageKey = this.getStorageKey('searchhistory', userName);
       localStorage.setItem(storageKey, JSON.stringify(limitedHistory));
+      this.removeLegacyStorageKeys('searchhistory', userName);
     } catch (error) {
       console.error('Error adding search history:', error);
     }
@@ -246,11 +346,13 @@ export class LocalStorage implements IStorage {
       if (!keyword) {
         // 删除所有搜索历史
         localStorage.removeItem(storageKey);
+        this.removeLegacyStorageKeys('searchhistory', userName);
       } else {
         // 删除特定搜索历史
         const history = await this.getSearchHistory(userName);
         const newHistory = history.filter((item) => item !== keyword);
         localStorage.setItem(storageKey, JSON.stringify(newHistory));
+        this.removeLegacyStorageKeys('searchhistory', userName);
       }
     } catch (error) {
       console.error('Error deleting search history:', error);
@@ -265,8 +367,7 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return null;
 
     try {
-      const storageKey = this.getStorageKey('skipconfig', userName, key);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('skipconfig', userName, key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
       console.error('Error getting skip config:', error);
@@ -284,6 +385,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('skipconfig', userName, key);
       localStorage.setItem(storageKey, JSON.stringify(config));
+      this.removeLegacyStorageKeys('skipconfig', userName, key);
     } catch (error) {
       console.error('Error setting skip config:', error);
     }
@@ -295,16 +397,21 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return {};
 
     try {
-      const prefix = this.getStorageKey('skipconfig', userName);
+      const prefixes = [
+        ...this.getLegacyStorageKeys('skipconfig', userName),
+        this.getStorageKey('skipconfig', userName),
+      ];
       const configs: { [key: string]: EpisodeSkipConfig } = {};
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const storageKey = localStorage.key(i);
-        if (storageKey && storageKey.startsWith(prefix + '_')) {
-          const key = storageKey.replace(prefix + '_', '');
-          const data = localStorage.getItem(storageKey);
-          if (data) {
-            configs[key] = JSON.parse(data);
+      for (const prefix of prefixes) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i);
+          if (storageKey && storageKey.startsWith(prefix + '_')) {
+            const key = storageKey.replace(prefix + '_', '');
+            const data = localStorage.getItem(storageKey);
+            if (data) {
+              configs[key] = JSON.parse(data);
+            }
           }
         }
       }
@@ -322,6 +429,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('skipconfig', userName, key);
       localStorage.removeItem(storageKey);
+      this.removeLegacyStorageKeys('skipconfig', userName, key);
     } catch (error) {
       console.error('Error deleting skip config:', error);
     }
@@ -332,8 +440,7 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return null;
 
     try {
-      const storageKey = this.getStorageKey('settings', userName);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('settings', userName);
       if (data) {
         return JSON.parse(data);
       }
@@ -363,6 +470,7 @@ export class LocalStorage implements IStorage {
     try {
       const storageKey = this.getStorageKey('settings', userName);
       localStorage.setItem(storageKey, JSON.stringify(settings));
+      this.removeLegacyStorageKeys('settings', userName);
     } catch (error) {
       console.error('Error setting user settings:', error);
     }
@@ -389,13 +497,25 @@ export class LocalStorage implements IStorage {
 
     try {
       const users: string[] = [];
-      const prefix = 'katelyatv_user_';
+      const prefixes = [
+        this.formatKey(BRAND_SLUG, 'user', ''),
+        ...LEGACY_BRAND_SLUGS.map((legacy) =>
+          this.formatKey(legacy, 'user', '')
+        ),
+      ];
 
+      const seen = new Set<string>();
       for (let i = 0; i < localStorage.length; i++) {
         const storageKey = localStorage.key(i);
-        if (storageKey && storageKey.startsWith(prefix)) {
-          const userName = storageKey.replace(prefix, '');
-          users.push(userName);
+        if (!storageKey) continue;
+        for (const prefix of prefixes) {
+          if (storageKey.startsWith(prefix)) {
+            const userName = storageKey.replace(prefix, '');
+            if (!seen.has(userName)) {
+              seen.add(userName);
+              users.push(userName);
+            }
+          }
         }
       }
 
@@ -410,8 +530,17 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return null;
 
     try {
-      const data = localStorage.getItem('katelyatv_admin_config');
-      return data ? JSON.parse(data) : null;
+      const primary = localStorage.getItem(ADMIN_CONFIG_KEY);
+      if (primary) {
+        return JSON.parse(primary);
+      }
+      for (const legacyKey of LEGACY_ADMIN_CONFIG_KEYS) {
+        const legacy = localStorage.getItem(legacyKey);
+        if (legacy) {
+          return JSON.parse(legacy);
+        }
+      }
+      return null;
     } catch (error) {
       console.error('Error getting admin config:', error);
       return null;
@@ -422,7 +551,10 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return;
 
     try {
-      localStorage.setItem('katelyatv_admin_config', JSON.stringify(config));
+      localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(config));
+      LEGACY_ADMIN_CONFIG_KEYS.forEach((legacyKey) =>
+        localStorage.removeItem(legacyKey)
+      );
     } catch (error) {
       console.error('Error setting admin config:', error);
     }
@@ -433,16 +565,17 @@ export class LocalStorage implements IStorage {
     if (typeof window === 'undefined') return;
 
     try {
-      const storageKey = this.getStorageKey('user', userName);
-      const data = localStorage.getItem(storageKey);
+      const data = this.getStorageValue('user', userName);
       if (!data) {
         throw new Error('用户不存在');
       }
 
+      const storageKey = this.getStorageKey('user', userName);
       const userData = JSON.parse(data);
       userData.password = newPassword;
       userData.updatedAt = new Date().toISOString();
       localStorage.setItem(storageKey, JSON.stringify(userData));
+      this.removeLegacyStorageKeys('user', userName);
     } catch (error) {
       console.error('Error changing password:', error);
       throw error;
@@ -456,6 +589,7 @@ export class LocalStorage implements IStorage {
       // 删除用户账号
       const userKey = this.getStorageKey('user', userName);
       localStorage.removeItem(userKey);
+      this.removeLegacyStorageKeys('user', userName);
 
       // 删除用户相关的所有数据
       const prefixes = [
@@ -467,17 +601,22 @@ export class LocalStorage implements IStorage {
       ];
 
       for (const prefix of prefixes) {
-        const dataPrefix = this.getStorageKey(prefix, userName);
-        const keysToRemove: string[] = [];
+        const dataPrefixes = [
+          ...this.getLegacyStorageKeys(prefix, userName),
+          this.getStorageKey(prefix, userName),
+        ];
+        const keysToRemove = new Set<string>();
 
-        for (let i = 0; i < localStorage.length; i++) {
-          const storageKey = localStorage.key(i);
-          if (
-            storageKey &&
-            (storageKey === dataPrefix ||
-              storageKey.startsWith(dataPrefix + '_'))
-          ) {
-            keysToRemove.push(storageKey);
+        for (const dataPrefix of dataPrefixes) {
+          for (let i = 0; i < localStorage.length; i++) {
+            const storageKey = localStorage.key(i);
+            if (
+              storageKey &&
+              (storageKey === dataPrefix ||
+                storageKey.startsWith(dataPrefix + '_'))
+            ) {
+              keysToRemove.add(storageKey);
+            }
           }
         }
 

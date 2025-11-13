@@ -3,6 +3,8 @@
 import { Shield, ShieldOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { logError, logInfo, logWarn } from '@/lib/logger';
+
 interface AdultContentFilterProps {
   userName: string;
   onUpdate?: (enabled: boolean) => void;
@@ -36,8 +38,7 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
         }
       } catch (err) {
         setError('网络连接失败');
-        // eslint-disable-next-line no-console
-        console.error('Failed to fetch user settings:', err);
+        logError('Failed to fetch user settings', err);
       }
     };
 
@@ -77,10 +78,10 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
               Authorization: `Bearer ${userName}`,
             },
           });
-          console.log('[成人内容过滤] 缓存刷新成功');
+          logInfo('[成人内容过滤] 缓存刷新成功');
         } catch (refreshError) {
           // 缓存刷新失败不影响设置更新
-          console.warn('[成人内容过滤] 缓存刷新失败:', refreshError);
+          logWarn('[成人内容过滤] 缓存刷新失败', refreshError);
         }
 
         onUpdate?.(newState);
@@ -90,8 +91,7 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
       }
     } catch (err) {
       setError('网络连接失败');
-      // eslint-disable-next-line no-console
-      console.error('Failed to update user settings:', err);
+      logError('Failed to update user settings', err);
     } finally {
       setIsLoading(false);
     }

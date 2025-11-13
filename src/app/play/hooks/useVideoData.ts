@@ -3,17 +3,19 @@
  * 管理视频数据获取和状态
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { searchFromApi, getDetailFromApi } from '@/lib/downstream';
-import { getConfig } from '@/lib/config';
+import { useCallback,useEffect, useState } from 'react';
+
 import { smartSpeedTest } from '@/lib/client-speed-test';
+import { getConfig } from '@/lib/config';
+import { getDetailFromApi,searchFromApi } from '@/lib/downstream';
+import { logError } from '@/lib/logger';
 import { getVideoResolutionFromM3u8 } from '@/lib/utils';
+
 import type {
-  VideoData,
-  UseVideoDataReturn,
   LoadingStage,
+  UseVideoDataReturn,
+  VideoData,
 } from '../types/player.types';
-import type { SearchResult } from '@/lib/types';
 
 interface UseVideoDataOptions {
   initialSource: string;
@@ -37,7 +39,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
     initialYear,
     needPrefer,
     searchTitle,
-    searchType,
+    searchType: _searchType,
   } = options;
 
   const [data, setData] = useState<VideoData>({
@@ -52,7 +54,8 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
   });
 
   const [loading, setLoading] = useState(true);
-  const [loadingStage, setLoadingStage] = useState<LoadingStage>('searching');
+  const [_loadingStage, setLoadingStage] =
+    useState<LoadingStage>('searching');
   const [error, setError] = useState<string | null>(null);
 
   // 加载视频数据
@@ -90,7 +93,10 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
           }));
 
           const searchPromises = apiSites.map((site) =>
-            searchFromApi(site, searchTitle).catch(() => [])
+            searchFromApi(site, searchTitle).catch((err) => {
+              logError(`${site.name} 搜索失败`, err);
+              return [];
+            })
           );
 
           const searchResults = await Promise.all(searchPromises);
@@ -159,10 +165,13 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
             // 继续获取详情
             setLoadingStage('fetching');
-            const detail = await getDetailFromApi(
-              apiSites.find((s) => s.key === bestSource.source)!,
-              bestSource.id
+            const bestSite = apiSites.find(
+              (s) => s.key === bestSource.source
             );
+            if (!bestSite) {
+              throw new Error('未找到最佳播放源配置');
+            }
+            const detail = await getDetailFromApi(bestSite, bestSource.id);
 
             setData((prev) => ({
               ...prev,
@@ -205,7 +214,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
         setLoadingStage('ready');
         setLoading(false);
       } catch (err) {
-        console.error('加载视频数据失败:', err);
+        logError('加载视频数据失败', err);
         setError(err instanceof Error ? err.message : '加载失败');
         setLoading(false);
       }
