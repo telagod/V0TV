@@ -49,6 +49,15 @@
     }
   ],
 
+  // 环境变量（公开，非敏感）
+  // PASSWORD 等敏感变量需要通过 wrangler secret put 命令设置
+  // 或者使用 scripts/auto-deploy.sh 自动部署脚本
+  "vars": {
+    "USERNAME": "admin",
+    "NEXT_PUBLIC_STORAGE_TYPE": "d1",
+    "NEXT_PUBLIC_ENABLE_REGISTER": "true"
+  },
+
   // 环境变量说明
   // 这些变量需要在 Cloudflare Dashboard 中设置：
   // Workers & Pages > 你的项目 > Settings > Variables

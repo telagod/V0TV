@@ -44,3 +44,6 @@ sitemap-*.xml
 src/lib/runtime.ts
 public/manifest.json.open-next
 .open-next/
+
+# deployment credentials
+.credentials.txt
