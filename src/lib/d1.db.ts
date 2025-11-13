@@ -1,7 +1,5 @@
 /* eslint-disable no-console, @typescript-eslint/no-non-null-assertion */
 
-import { getCloudflareContext } from '@opennextjs/cloudflare';
-
 import { AdminConfig } from './admin.types';
 import {
   EpisodeSkipConfig,
@@ -89,33 +87,43 @@ interface D1ExecResult {
   duration: number;
 }
 
-// 获取全局D1数据库实例
-// 在 Cloudflare Workers 中，D1 绑定必须通过 getCloudflareContext().env 访问
-// 参考：https://opennextjs.js.org/cloudflare/bindings
-function getD1Database(): D1Database {
-  try {
-    // 尝试从 Cloudflare 上下文获取 D1 绑定（生产环境）
-    const context = getCloudflareContext();
-    if (context?.env?.DB) {
-      return context.env.DB as D1Database;
-    }
-  } catch (error) {
-    // getCloudflareContext() 在非 Cloudflare 环境会抛出错误
-    console.warn('[D1] 非 Cloudflare Workers 环境，尝试从 process.env 获取');
+// 获取 D1 数据库实例
+// 在 Cloudflare Workers 中，D1 绑定通过 getCloudflareContext().env.DB 访问
+// 但由于模块系统限制，这里只从 process.env 获取（用于 wrangler dev）
+// 生产环境中，DB 实例应该从 API 路由通过 getCloudflareContext() 获取并传递进来
+function getD1Database(dbInstance?: D1Database): D1Database {
+  // 如果提供了 DB 实例（从 API 路由传入），直接使用
+  if (dbInstance) {
+    return dbInstance;
   }
 
-  // 降级：尝试从 process.env 获取（开发环境通过 wrangler dev）
+  // 降级：从 process.env 获取（开发环境 wrangler dev）
   if ((process.env as any).DB) {
     return (process.env as any).DB as D1Database;
   }
 
-  throw new Error('[D1] 无法获取 D1 数据库绑定。请确保在 wrangler.jsonc 中配置了 d1_databases 绑定。');
+  throw new Error(
+    '[D1] 无法获取 D1 数据库绑定。' +
+      '在生产环境中，请通过 getCloudflareContext().env.DB 获取 DB 并传递给 D1Storage 构造函数。' +
+      '在开发环境中，请使用 wrangler dev 启动。'
+  );
 }
 
 export class D1Storage implements IStorage {
   private db: D1Database | null = null;
   private static initialized = false;
   private static initPromise: Promise<void> | null = null;
+
+  /**
+   * 构造函数
+   * @param dbInstance 可选的 D1 数据库实例
+   *                   在 API 路由中，应该从 getCloudflareContext().env.DB 获取并传入
+   */
+  constructor(dbInstance?: D1Database) {
+    if (dbInstance) {
+      this.db = dbInstance;
+    }
+  }
 
   private async getDatabase(): Promise<D1Database> {
     if (!this.db) {
