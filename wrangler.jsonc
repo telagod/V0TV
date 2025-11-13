@@ -46,7 +46,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "v0tv-db"
+      "database_name": "v0tv-db",
+      "database_id": "6c7fa8ae-74aa-49ad-b032-8bae2344c4de"
     }
   ],
 
