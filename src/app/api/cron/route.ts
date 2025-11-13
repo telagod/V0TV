@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getDb } from '@/lib/get-db';
 import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
-import { SearchResult } from '@/lib/types';
+import { Favorite, PlayRecord, SearchResult } from '@/lib/types';
 
 
 export async function GET(request: NextRequest) {
@@ -223,7 +223,7 @@ async function refreshRecordAndFavorites(db: any) {
               `📦 处理播放记录批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`
             );
 
-            const { success, failed } = await processBatch(
+            const { success, failed } = await processBatch<PlayRecord>(
               batch,
               async (key, record) => {
                 const [source, id] = key.split('+');
@@ -331,7 +331,7 @@ async function refreshRecordAndFavorites(db: any) {
               `📦 处理收藏批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`
             );
 
-            const { success, failed } = await processBatch(
+            const { success, failed } = await processBatch<Favorite>(
               batch,
               async (key, fav) => {
                 const [source, id] = key.split('+');
