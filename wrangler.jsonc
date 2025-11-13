@@ -50,8 +50,14 @@
   ],
 
   // 环境变量（公开，非敏感）
-  // PASSWORD 等敏感变量需要通过 wrangler secret put 命令设置
+  // 敏感变量（PASSWORD）必须通过 wrangler secret put 命令设置
   // 或者使用 scripts/auto-deploy.sh 自动部署脚本
+  //
+  // 完整的环境变量列表：
+  // 1. USERNAME（公开，vars） - 管理员用户名
+  // 2. PASSWORD（敏感，secret） - 管理员密码
+  // 3. NEXT_PUBLIC_STORAGE_TYPE（公开，vars） - 存储类型
+  // 4. NEXT_PUBLIC_ENABLE_REGISTER（公开，vars） - 是否允许用户注册
   "vars": {
     "USERNAME": "admin",
     "NEXT_PUBLIC_STORAGE_TYPE": "d1",
