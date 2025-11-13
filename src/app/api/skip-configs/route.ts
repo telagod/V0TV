@@ -8,6 +8,20 @@ import { EpisodeSkipConfig } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
+    // 获取 D1 数据库实例
+    let dbInstance;
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
+      } catch (error) {
+        console.error('[skip-configs] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     const body = await request.json();
     const { action, key, config, username } = body;
 
@@ -27,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建存储实例
-    const storage = getStorage();
+    const storage = getStorage(dbInstance);
 
     switch (action) {
       case 'get': {

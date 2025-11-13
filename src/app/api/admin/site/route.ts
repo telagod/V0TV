@@ -19,6 +19,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // 获取 D1 数据库实例
+    let dbInstance;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
+      } catch (error) {
+        console.error('[admin/site] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     const body = await request.json();
 
     const authInfo = getAuthInfoFromCookie(request);
@@ -56,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     const adminConfig = await getConfig();
-    const storage = getStorage();
+    const storage = getStorage(dbInstance);
 
     // 权限校验
     if (username !== process.env.USERNAME) {

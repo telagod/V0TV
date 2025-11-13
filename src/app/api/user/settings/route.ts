@@ -9,6 +9,20 @@ import { UserSettings } from '@/lib/types';
 // 获取用户设置
 export async function GET(_request: NextRequest) {
   try {
+    // 获取 D1 数据库实例
+    let dbInstance;
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
+      } catch (error) {
+        console.error('[user/settings GET] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     const headersList = headers();
     const authorization = headersList.get('Authorization');
 
@@ -22,7 +36,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
     }
 
-    const storage = getStorage();
+    const storage = getStorage(dbInstance);
     const settings = await storage.getUserSettings(userName);
 
     return NextResponse.json(
@@ -53,6 +67,20 @@ export async function GET(_request: NextRequest) {
 // 更新用户设置
 export async function PATCH(request: NextRequest) {
   try {
+    // 获取 D1 数据库实例
+    let dbInstance;
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
+      } catch (error) {
+        console.error('[user/settings PATCH] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     const headersList = headers();
     const authorization = headersList.get('Authorization');
 
@@ -73,7 +101,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: '设置数据不能为空' }, { status: 400 });
     }
 
-    const storage = getStorage();
+    const storage = getStorage(dbInstance);
 
     // 验证用户存在
     const userExists = await storage.checkUserExist(userName);
@@ -106,6 +134,20 @@ export async function PATCH(request: NextRequest) {
 // 重置用户设置
 export async function PUT(request: NextRequest) {
   try {
+    // 获取 D1 数据库实例
+    let dbInstance;
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
+      } catch (error) {
+        console.error('[user/settings PUT] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     const headersList = headers();
     const authorization = headersList.get('Authorization');
 
@@ -126,7 +168,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: '设置数据不能为空' }, { status: 400 });
     }
 
-    const storage = getStorage();
+    const storage = getStorage(dbInstance);
 
     // 验证用户存在
     const userExists = await storage.checkUserExist(userName);

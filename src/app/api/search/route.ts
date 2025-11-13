@@ -43,11 +43,25 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 获取 D1 数据库实例
+    let dbInstance;
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dbInstance = (context.env as any).DB;
+      } catch (error) {
+        console.error('[search] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     // 获取用户的成人内容过滤设置（完全依赖服务端，移除客户端参数）
     let shouldFilterAdult = true; // 默认过滤
     if (userName) {
       try {
-        const storage = getStorage();
+        const storage = getStorage(dbInstance);
         const userSettings = await storage.getUserSettings(userName);
         // 如果用户设置存在且明确设为false，则不过滤；否则默认过滤
         shouldFilterAdult = userSettings?.filter_adult_content !== false;
