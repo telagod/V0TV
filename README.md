@@ -134,7 +134,11 @@ chmod +x deploy-redis.sh
 
 ### 方式二：Cloudflare Workers（免费托管）✨
 
-**🎉 新功能：一键自动部署脚本！**
+Cloudflare Workers 提供两种部署方式：**本地手动部署**和 **Git 自动部署**。
+
+#### 选项 A：本地手动部署（推荐新手）⭐
+
+**🎉 一键自动部署脚本！**
 
 ```bash
 # 克隆仓库
@@ -153,20 +157,44 @@ bash scripts/auto-deploy.sh
 - ✅ 部署到 Cloudflare Workers
 - ✅ 保存凭据到本地文件
 
-**特性：**
+[查看自动部署脚本说明 →](scripts/README.md)
+
+#### 选项 B：Git 自动部署（推荐进阶用户）🚀
+
+点击下方按钮，自动 Fork 仓库并配置 Git 自动部署：
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
+
+**Git 自动部署特性：**
+- 📝 推送代码自动触发部署
+- 🔄 无需本地构建
+- 👥 适合团队协作
+
+**重要：Git 自动部署后需要手动设置 PASSWORD**
+
+```bash
+# 克隆你 Fork 的仓库
+git clone https://github.com/你的用户名/V0TV.git
+cd V0TV
+
+# 运行 PASSWORD 设置脚本
+bash scripts/set-password-only.sh
+```
+
+[查看 Git 自动部署详细教程 →](CLOUDFLARE_GIT_AUTO_DEPLOY.md)
+
+---
+
+**Cloudflare Workers 特性：**
 - 🌍 **全球边缘网络** - 部署到 300+ 城市
 - 🚀 **自动扩展** - 无需担心流量
 - 💾 **D1 数据库** - 自动创建和初始化
 - 🔒 **多用户支持** - 内置用户系统和管理面板
 - 💰 **免费额度充足** - 每天 100,000 次请求
 
-**手动部署按钮：**
-
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
-
-点击按钮会自动 Fork 仓库、配置资源（D1 数据库）、设置 CI/CD。
-
-[查看详细教程 →](CLOUDFLARE_D1_AUTO_SETUP.md) | [自动部署脚本说明 →](scripts/README.md)
+**更多教程：**
+- [D1 数据库配置](CLOUDFLARE_D1_AUTO_SETUP.md)
+- [手动部署指南](CLOUDFLARE_WORKERS_MANUAL_DEPLOY.md)
 
 ---
 
