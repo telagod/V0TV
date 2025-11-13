@@ -199,8 +199,8 @@ async function refreshRecordAndFavorites(db: any) {
         if (totalRecords === 0) {
           console.log('⏭️ 无需处理播放记录');
         } else {
-          const recordEntries = Object.entries(playRecords).map(
-            ([key, record]: [string, PlayRecord]) => ({ key, data: record })
+          const recordEntries = (Object.entries(playRecords) as [string, PlayRecord][]).map(
+            ([key, record]) => ({ key, data: record })
           );
 
           let processedRecords = 0;
@@ -307,8 +307,8 @@ async function refreshRecordAndFavorites(db: any) {
         if (totalFavorites === 0) {
           console.log('⏭️ 无需处理收藏');
         } else {
-          const favoriteEntries = Object.entries(favorites).map(
-            ([key, fav]: [string, Favorite]) => ({ key, data: fav })
+          const favoriteEntries = (Object.entries(favorites) as [string, Favorite][]).map(
+            ([key, fav]) => ({ key, data: fav })
           );
 
           let processedFavorites = 0;
