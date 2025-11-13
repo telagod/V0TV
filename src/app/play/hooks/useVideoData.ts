@@ -57,8 +57,16 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
   // 加载视频数据
   useEffect(() => {
-    if (!initialSource || !initialId) {
+    // 如果不是优选模式，必须有 source 和 id
+    if (!needPrefer && (!initialSource || !initialId)) {
       setError('缺少必要参数');
+      setLoading(false);
+      return;
+    }
+
+    // 如果是优选模式，必须有 searchTitle
+    if (needPrefer && !searchTitle) {
+      setError('缺少搜索标题');
       setLoading(false);
       return;
     }

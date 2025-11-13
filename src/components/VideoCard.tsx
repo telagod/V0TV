@@ -199,7 +199,7 @@ export default function VideoCard({
       router.push(
         `/play?title=${encodeURIComponent(actualTitle.trim())}${
           actualYear ? `&year=${actualYear}` : ''
-        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}&prefer=true&stitle=${encodeURIComponent(actualTitle.trim())}`
       );
     } else if (actualSource && actualId) {
       router.push(

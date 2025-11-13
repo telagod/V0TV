@@ -94,12 +94,148 @@ function getD1Database(): D1Database {
 
 export class D1Storage implements IStorage {
   private db: D1Database | null = null;
+  private static initialized = false;
+  private static initPromise: Promise<void> | null = null;
 
   private async getDatabase(): Promise<D1Database> {
     if (!this.db) {
       this.db = getD1Database();
+      // 自动初始化数据库（仅执行一次）
+      await this.initializeDatabase();
     }
     return this.db;
+  }
+
+  /**
+   * 自动初始化数据库表结构
+   * 使用 CREATE TABLE IF NOT EXISTS 确保幂等性
+   */
+  private async initializeDatabase(): Promise<void> {
+    // 如果已经初始化，直接返回
+    if (D1Storage.initialized) {
+      return;
+    }
+
+    // 如果正在初始化，等待完成
+    if (D1Storage.initPromise) {
+      return D1Storage.initPromise;
+    }
+
+    // 开始初始化
+    D1Storage.initPromise = (async () => {
+      try {
+        console.log('[D1] 开始自动初始化数据库...');
+
+        const initSQL = `
+          -- 用户表
+          CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            created_at INTEGER DEFAULT (unixepoch()),
+            updated_at INTEGER DEFAULT (unixepoch())
+          );
+
+          -- 播放记录表
+          CREATE TABLE IF NOT EXISTS play_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            key TEXT NOT NULL,
+            title TEXT NOT NULL,
+            source_name TEXT NOT NULL,
+            cover TEXT,
+            year TEXT,
+            index_episode INTEGER DEFAULT 0,
+            total_episodes INTEGER DEFAULT 0,
+            play_time REAL DEFAULT 0,
+            total_time REAL DEFAULT 0,
+            save_time INTEGER DEFAULT (unixepoch()),
+            search_title TEXT,
+            created_at INTEGER DEFAULT (unixepoch()),
+            UNIQUE(username, key)
+          );
+
+          -- 收藏表
+          CREATE TABLE IF NOT EXISTS favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            key TEXT NOT NULL,
+            title TEXT NOT NULL,
+            source_name TEXT NOT NULL,
+            cover TEXT,
+            year TEXT,
+            total_episodes INTEGER DEFAULT 0,
+            save_time INTEGER DEFAULT (unixepoch()),
+            search_title TEXT,
+            created_at INTEGER DEFAULT (unixepoch()),
+            UNIQUE(username, key)
+          );
+
+          -- 搜索历史表
+          CREATE TABLE IF NOT EXISTS search_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            keyword TEXT NOT NULL,
+            created_at INTEGER DEFAULT (unixepoch())
+          );
+
+          -- 跳过配置表
+          CREATE TABLE IF NOT EXISTS skip_configs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            key TEXT NOT NULL,
+            source TEXT NOT NULL,
+            video_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            segments TEXT NOT NULL,
+            updated_time INTEGER DEFAULT (unixepoch()),
+            created_at INTEGER DEFAULT (unixepoch()),
+            UNIQUE(username, key)
+          );
+
+          -- 用户设置表
+          CREATE TABLE IF NOT EXISTS user_settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            settings TEXT NOT NULL,
+            updated_time INTEGER DEFAULT (unixepoch()),
+            created_at INTEGER DEFAULT (unixepoch())
+          );
+
+          -- 管理员配置表
+          CREATE TABLE IF NOT EXISTS admin_configs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            config_key TEXT UNIQUE NOT NULL,
+            config_value TEXT,
+            description TEXT,
+            created_at INTEGER DEFAULT (unixepoch()),
+            updated_at INTEGER DEFAULT (unixepoch())
+          );
+
+          -- 创建索引以提高查询性能
+          CREATE INDEX IF NOT EXISTS idx_play_records_username ON play_records(username);
+          CREATE INDEX IF NOT EXISTS idx_play_records_key ON play_records(key);
+          CREATE INDEX IF NOT EXISTS idx_favorites_username ON favorites(username);
+          CREATE INDEX IF NOT EXISTS idx_favorites_key ON favorites(key);
+          CREATE INDEX IF NOT EXISTS idx_search_history_username ON search_history(username);
+          CREATE INDEX IF NOT EXISTS idx_skip_configs_username ON skip_configs(username);
+          CREATE INDEX IF NOT EXISTS idx_skip_configs_key ON skip_configs(key);
+          CREATE INDEX IF NOT EXISTS idx_user_settings_username ON user_settings(username);
+        `;
+
+        await this.db!.exec(initSQL);
+
+        D1Storage.initialized = true;
+        console.log('[D1] 数据库初始化完成');
+      } catch (error) {
+        console.error('[D1] 数据库初始化失败:', error);
+        // 初始化失败时重置状态，允许下次重试
+        D1Storage.initPromise = null;
+        throw error;
+      }
+    })();
+
+    return D1Storage.initPromise;
   }
 
   // 播放记录相关
