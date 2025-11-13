@@ -40,10 +40,46 @@ bash scripts/auto-deploy.sh
    - 使用 `wrangler secret put` 设置 PASSWORD
    - 非交互式自动设置
 
-6. **部署到 Cloudflare**
+6. **验证 Secret 设置**
+   - 使用 `wrangler secret list` 验证 PASSWORD 是否已设置
+   - 失败时会提示手动设置方法
+
+7. **部署到 Cloudflare**
    - 自动创建 D1 数据库（首次部署）
    - 部署 Worker 代码
    - 首次访问时自动初始化数据库表
+
+## 🔍 验证部署
+
+### 使用验证脚本
+
+```bash
+bash scripts/verify-secret.sh
+```
+
+这个脚本会：
+- 检查 Wrangler 登录状态
+- 列出所有已设置的 Secrets
+- 验证 PASSWORD secret 是否存在
+- 提供详细的故障排查建议
+
+### 在 Cloudflare Dashboard 中查看
+
+**重要：Secrets 和 Environment Variables 是分开显示的！**
+
+1. 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Workers & Pages → 你的项目（v0tv）→ Settings → Variables
+3. 你会看到两个部分：
+
+   **Environment Variables（环境变量）**
+   - `USERNAME`: admin（明文显示）
+   - `NEXT_PUBLIC_STORAGE_TYPE`: d1（明文显示）
+   - `NEXT_PUBLIC_ENABLE_REGISTER`: true（明文显示）
+
+   **Secrets（加密变量）**
+   - `PASSWORD`（只显示名称，不显示值）
+
+**💡 这是正常的！** Secrets 不会显示明文值，这是 Cloudflare 的安全设计。
 
 ## 📝 部署后操作
 
@@ -132,6 +168,48 @@ pnpm run pages:build && npx wrangler deploy
 ### Q: 如何查看我的密码？
 
 **A**: 查看 `.credentials.txt` 文件。
+
+### Q: 如何验证 PASSWORD secret 是否已设置？
+
+**A**: 有两种方法：
+
+**方法 1 - 使用验证脚本**（推荐）：
+```bash
+bash scripts/verify-secret.sh
+```
+
+**方法 2 - 手动检查**：
+```bash
+npx wrangler secret list
+```
+
+如果看到 `PASSWORD` 在列表中，说明已设置成功。
+
+**方法 3 - Cloudflare Dashboard**：
+1. 访问 Dashboard → Workers & Pages → v0tv → Settings → Variables
+2. 在 "Secrets" 部分（不是 "Environment Variables"）查看
+3. 应该能看到 `PASSWORD`（只显示名称，不显示值）
+
+### Q: 为什么我在 Dashboard 只看到 3 个纯文本变量，没有看到 PASSWORD？
+
+**A**: 这是正常的！PASSWORD 是 **Secret（加密变量）**，不是普通的 Environment Variable。
+
+在 Cloudflare Dashboard 中：
+- **Environment Variables 部分** 显示 3 个公开变量的明文：
+  - USERNAME
+  - NEXT_PUBLIC_STORAGE_TYPE
+  - NEXT_PUBLIC_ENABLE_REGISTER
+
+- **Secrets 部分** 显示 PASSWORD（只显示名称，不显示密码明文）
+
+这是 Cloudflare 的安全设计，Secrets 永远不会显示明文值。
+
+### Q: 如何确认 PASSWORD secret 真的生效了？
+
+**A**: 最简单的方法是尝试登录：
+1. 访问你的 Worker URL
+2. 使用 `.credentials.txt` 中的用户名和密码登录
+3. 如果能成功登录，说明 PASSWORD secret 已正确设置
 
 ### Q: 忘记密码怎么办？
 

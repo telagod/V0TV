@@ -100,13 +100,31 @@ set_password_secret() {
     echo -e "${BLUE}🔐 设置密码 secret...${NC}"
 
     # 使用管道传递密码给 wrangler（非交互式）
-    echo "$password" | npx wrangler secret put PASSWORD 2>/dev/null || {
-        echo -e "${RED}❌ 设置 secret 失败，可能需要先登录${NC}"
-        echo -e "${YELLOW}请手动运行: echo '$password' | npx wrangler secret put PASSWORD${NC}"
+    # 不抑制错误输出，以便调试
+    if echo "$password" | npx wrangler secret put PASSWORD; then
+        echo -e "${GREEN}✅ 密码 secret 已设置${NC}"
+        return 0
+    else
+        echo -e "${RED}❌ 设置 secret 失败${NC}"
+        echo -e "${YELLOW}请手动运行以下命令设置密码：${NC}"
+        echo -e "  echo '$password' | npx wrangler secret put PASSWORD"
         return 1
-    }
+    fi
+}
 
-    echo -e "${GREEN}✅ 密码 secret 已设置${NC}"
+# 验证 secret 是否设置成功
+verify_secret() {
+    echo -e "${BLUE}🔍 验证 secret 设置...${NC}"
+
+    # 列出所有 secrets
+    if npx wrangler secret list 2>/dev/null | grep -q "PASSWORD"; then
+        echo -e "${GREEN}✅ PASSWORD secret 已成功设置${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}⚠️  无法验证 PASSWORD secret${NC}"
+        echo -e "${YELLOW}   请在 Cloudflare Dashboard 中手动检查${NC}"
+        return 1
+    fi
 }
 
 # 主流程
@@ -163,10 +181,16 @@ EOF
     echo ""
 
     # 6. 设置密码 secret
-    set_password_secret "$PASSWORD"
+    set_password_secret "$PASSWORD" || {
+        echo -e "${YELLOW}⚠️  Secret 设置可能失败，但继续部署...${NC}"
+    }
     echo ""
 
-    # 7. 部署
+    # 7. 验证 secret 设置
+    verify_secret
+    echo ""
+
+    # 8. 部署
     echo -e "${BLUE}🚀 部署到 Cloudflare Workers...${NC}"
     npx wrangler deploy || {
         echo -e "${RED}❌ 部署失败${NC}"
@@ -174,7 +198,7 @@ EOF
     }
     echo ""
 
-    # 8. 完成
+    # 9. 完成
     echo -e "${GREEN}=================================${NC}"
     echo -e "${GREEN}🎉 部署成功！${NC}"
     echo -e "${GREEN}=================================${NC}"
@@ -184,6 +208,17 @@ EOF
     echo -e "  管理员密码: ${GREEN}$PASSWORD${NC}"
     echo ""
     echo -e "${YELLOW}⚠️  凭据已保存到: .credentials.txt${NC}"
+    echo ""
+    echo -e "${BLUE}🔍 如何验证 PASSWORD secret 已设置：${NC}"
+    echo "  1. 访问 Cloudflare Dashboard"
+    echo "  2. Workers & Pages → v0tv → Settings → Variables"
+    echo "  3. 查看 'Secrets' 部分（加密的，只显示名称 'PASSWORD'）"
+    echo "  4. 'Environment Variables' 部分显示其他 3 个公开变量"
+    echo ""
+    echo -e "${BLUE}💡 重要说明：${NC}"
+    echo "  - Secrets（PASSWORD）是加密的，Dashboard 中不会显示密码明文"
+    echo "  - Environment Variables 显示公开变量（USERNAME 等）的明文"
+    echo "  - 这是正常的安全设计！"
     echo ""
     echo -e "${BLUE}📝 下一步：${NC}"
     echo "  1. 访问你的 Worker URL"
