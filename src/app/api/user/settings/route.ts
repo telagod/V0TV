@@ -9,8 +9,7 @@ import { UserSettings } from '@/lib/types';
 // 获取用户设置
 export async function GET(_request: NextRequest) {
   try {
-    const db = await getDb();
-const headersList = headers();
+    const headersList = headers();
     const authorization = headersList.get('Authorization');
 
     if (!authorization) {
@@ -54,8 +53,7 @@ const headersList = headers();
 // 更新用户设置
 export async function PATCH(request: NextRequest) {
   try {
-    const db = await getDb();
-const headersList = headers();
+    const headersList = headers();
     const authorization = headersList.get('Authorization');
 
     if (!authorization) {
@@ -108,8 +106,7 @@ const headersList = headers();
 // 重置用户设置
 export async function PUT(request: NextRequest) {
   try {
-    const db = await getDb();
-const headersList = headers();
+    const headersList = headers();
     const authorization = headersList.get('Authorization');
 
     if (!authorization) {
