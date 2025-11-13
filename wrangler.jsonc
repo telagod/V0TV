@@ -36,20 +36,18 @@
   //   }
   // ],
 
-  // D1 数据库绑定（可选，用于多用户和数据同步）
-  // 使用步骤：
-  // 1. 创建数据库：npx wrangler d1 create v0tv-db
-  // 2. 将返回的 database_id 填入下方配置
-  // 3. 取消注释以下配置
-  // 4. 数据库表会在 Worker 首次运行时自动创建
+  // D1 数据库绑定（自动 provisioning 模式）
+  // Wrangler 4.45.0+ 支持自动创建 D1 数据库
+  // 首次部署时会自动创建数据库并更新此配置文件
+  // 数据库表结构会在 Worker 首次运行时自动创建
   //
-  // "d1_databases": [
-  //   {
-  //     "binding": "DB",
-  //     "database_name": "v0tv-db",
-  //     "database_id": "your-database-id-here"
-  //   }
-  // ],
+  // 注意：自动创建后，Wrangler 会自动填入 database_id
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "v0tv-db"
+    }
+  ],
 
   // 环境变量说明
   // 这些变量需要在 Cloudflare Dashboard 中设置：
