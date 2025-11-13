@@ -1,5 +1,7 @@
 /* eslint-disable no-console, @typescript-eslint/no-non-null-assertion */
 
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+
 import { AdminConfig } from './admin.types';
 import {
   EpisodeSkipConfig,
@@ -88,8 +90,26 @@ interface D1ExecResult {
 }
 
 // 获取全局D1数据库实例
+// 在 Cloudflare Workers 中，D1 绑定必须通过 getCloudflareContext().env 访问
+// 参考：https://opennextjs.js.org/cloudflare/bindings
 function getD1Database(): D1Database {
-  return (process.env as any).DB as D1Database;
+  try {
+    // 尝试从 Cloudflare 上下文获取 D1 绑定（生产环境）
+    const context = getCloudflareContext();
+    if (context?.env?.DB) {
+      return context.env.DB as D1Database;
+    }
+  } catch (error) {
+    // getCloudflareContext() 在非 Cloudflare 环境会抛出错误
+    console.warn('[D1] 非 Cloudflare Workers 环境，尝试从 process.env 获取');
+  }
+
+  // 降级：尝试从 process.env 获取（开发环境通过 wrangler dev）
+  if ((process.env as any).DB) {
+    return (process.env as any).DB as D1Database;
+  }
+
+  throw new Error('[D1] 无法获取 D1 数据库绑定。请确保在 wrangler.jsonc 中配置了 d1_databases 绑定。');
 }
 
 export class D1Storage implements IStorage {
