@@ -1,5 +1,20 @@
 # Cloudflare Workers 手动部署指南
 
+> 💡 **推荐：使用一键自动部署脚本**
+>
+> 更简单的方式：`bash scripts/auto-deploy.sh`
+>
+> - ✅ 自动生成随机密码
+> - ✅ 自动配置环境变量
+> - ✅ 自动创建 D1 数据库
+> - ✅ 一键完成部署
+>
+> [查看自动部署指南 →](CLOUDFLARE_D1_AUTO_SETUP.md) | [脚本说明 →](scripts/README.md)
+>
+> **以下为手动��署教程（高级用户）**
+
+---
+
 ## 1. 禁用 Cloudflare Dashboard 自动部署
 
 ### 步骤：

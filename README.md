@@ -132,20 +132,41 @@ chmod +x deploy-redis.sh
 
 ---
 
-### 方式二：Cloudflare Workers（免费托管）
+### 方式二：Cloudflare Workers（免费托管）✨
+
+**🎉 新功能：一键自动部署脚本！**
+
+```bash
+# 克隆仓库
+git clone https://github.com/telagod/V0TV.git
+cd V0TV
+
+# 运行自动部署脚本
+bash scripts/auto-deploy.sh
+```
+
+脚本会自动：
+- ✅ 生成 32 位随机密码
+- ✅ 配置所有环境变量
+- ✅ 创建 D1 数据库
+- ✅ 初始化数据库表
+- ✅ 部署到 Cloudflare Workers
+- ✅ 保存凭据到本地文件
+
+**特性：**
+- 🌍 **全球边缘网络** - 部署到 300+ 城市
+- 🚀 **自动扩展** - 无需担心流量
+- 💾 **D1 数据库** - 自动创建和初始化
+- 🔒 **多用户支持** - 内置用户系统和管理面板
+- 💰 **免费额度充足** - 每天 100,000 次请求
+
+**手动部署按钮：**
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/telagod/V0TV)
 
-真正的一键部署！自动 Fork 仓库、配置资源（D1 数据库）、设置 CI/CD。支持全球边缘计算、静态资产免费。
+点击按钮会自动 Fork 仓库、配置资源（D1 数据库）、设置 CI/CD。
 
-**部署后配置**：
-
-1. 访问 Cloudflare Dashboard → Workers & Pages → 你的项目 → Settings → Variables
-2. 添加环境变量 `PASSWORD=你的密码`
-3. 点击 Save and Deploy
-4. 访问 `https://你的项目名.你的账号.workers.dev`
-
-[查看详细教程 →](deploy/cloudflare/README.md)
+[查看详细教程 →](CLOUDFLARE_D1_AUTO_SETUP.md) | [自动部署脚本说明 →](scripts/README.md)
 
 ---
 
@@ -178,16 +199,22 @@ curl -fsSL https://raw.githubusercontent.com/telagod/V0TV/main/deploy/vps/instal
 
 ## 📋 部署方式对比
 
-| 部署方式             | 难度   | 成本   | 性能       | 推荐场景             |
-| -------------------- | ------ | ------ | ---------- | -------------------- |
-| **Docker 单容器**    | ⭐     | 免费\* | ⚡⚡⚡     | 个人使用，快速部署   |
-| **Docker + Redis**   | ⭐⭐   | 免费\* | ⚡⚡⚡⚡   | 多用户，需要数据同步 |
-| **Cloudflare Pages** | ⭐⭐   | 免费   | ⚡⚡⚡⚡   | 全球访问，CDN 加速   |
-| **Vercel**           | ⭐     | 免费   | ⚡⚡⚡     | 快速部署，简单管理   |
-| **Railway**          | ⭐     | 付费   | ⚡⚡⚡⚡   | 托管服务，简单管理   |
-| **VPS**              | ⭐⭐⭐ | 付费   | ⚡⚡⚡⚡⚡ | 完全控制，自定义配置 |
+| 部署方式                    | 难度   | 成本   | 性能       | 推荐场景                         |
+| --------------------------- | ------ | ------ | ---------- | -------------------------------- |
+| **Docker 单容器**           | ⭐     | 免费\* | ⚡⚡⚡     | 个人使用，快速部署               |
+| **Docker + Redis**          | ⭐⭐   | 免费\* | ⚡⚡⚡⚡   | 多用户，需要数据同步             |
+| **Cloudflare Workers** ✨   | ⭐     | 免费   | ⚡⚡⚡⚡⚡ | 全球访问，CDN 加速，自动扩展     |
+| **Vercel**                  | ⭐     | 免费   | ⚡⚡⚡     | 快速部署，简单管理               |
+| **Railway**                 | ⭐     | 付费   | ⚡⚡⚡⚡   | 托管服务，简单管理               |
+| **VPS**                     | ⭐⭐⭐ | 付费   | ⚡⚡⚡⚡⚡ | 完全控制，自定义配置             |
 
 > \*需要自己的服务器或本地运行
+
+**Cloudflare Workers 新特性：**
+- ✅ 一键自动部署脚本 - 零配置
+- ✅ D1 数据库自动创建 - 无需手动操作
+- ✅ 随机密码自动生成 - 更安全
+- ✅ 多用户和管理面板 - 开箱即用
 
 [查看详细对比和选择建议 →](deploy/README.md)
 
@@ -349,6 +376,8 @@ pnpm build
 
 - [快速开始指南](docs/quick-start.md)
 - [部署指南](deploy/README.md)
+  - [Cloudflare Workers 自动部署](CLOUDFLARE_D1_AUTO_SETUP.md) ⭐
+  - [自动部署脚本说明](scripts/README.md) ⭐
 - [配置说明](docs/configuration.md)
 - [常见问题](docs/faq.md)
 - [故障排除](docs/troubleshooting.md)
