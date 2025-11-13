@@ -32,19 +32,20 @@ async function withRetry<T>(
     try {
       return await operation();
     } catch (err: unknown) {
+      const error = err instanceof Error ? err : null;
       const isLastAttempt = i === maxRetries - 1;
       const isConnectionError =
-        err.message?.includes('Connection') ||
-        err.message?.includes('ECONNREFUSED') ||
-        err.message?.includes('ENOTFOUND') ||
-        err.code === 'ECONNRESET' ||
-        err.code === 'EPIPE';
+        error?.message?.includes('Connection') ||
+        error?.message?.includes('ECONNREFUSED') ||
+        error?.message?.includes('ENOTFOUND') ||
+        (error as NodeJS.ErrnoException)?.code === 'ECONNRESET' ||
+        (error as NodeJS.ErrnoException)?.code === 'EPIPE';
 
       if (isConnectionError && !isLastAttempt) {
         console.log(
           `Redis operation failed, retrying... (${i + 1}/${maxRetries})`
         );
-        console.error('Error:', err.message);
+        console.error('Error:', error?.message || String(err));
 
         // 等待一段时间后重试
         await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));

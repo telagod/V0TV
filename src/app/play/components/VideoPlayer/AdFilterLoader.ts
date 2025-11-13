@@ -115,85 +115,28 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 /**
  * 自定义HLS Loader，支持广告过滤
  */
-
-interface LoaderContext {
-  type: string;
-  url: string;
-  frag?: unknown;
-  level?: number;
-}
-
-interface LoaderConfig {
-  maxRetry?: number;
-  timeout?: number;
-  retryDelay?: number;
-  maxRetryDelay?: number;
-}
-
-interface LoaderStats {
-  aborted?: boolean;
-  loaded?: number;
-  retry?: number;
-  total?: number;
-  chunkCount?: number;
-  bwEstimate?: number;
-  loading?: { start: number; first: number; end: number };
-}
-
-interface LoaderResponse {
-  url: string;
-  data: string | ArrayBuffer;
-}
-
-interface LoaderCallbacks {
-  onSuccess: (
-    response: LoaderResponse,
-    stats: LoaderStats,
-    context: LoaderContext,
-    networkDetails?: unknown
-  ) => void;
-  onError: (
-    error: { code: number; text: string },
-    context: LoaderContext,
-    networkDetails?: unknown
-  ) => void;
-  onTimeout: (
-    stats: LoaderStats,
-    context: LoaderContext,
-    networkDetails?: unknown
-  ) => void;
-  onProgress?: (
-    stats: LoaderStats,
-    context: LoaderContext,
-    data: string | ArrayBuffer,
-    networkDetails?: unknown
-  ) => void;
-}
-
 export class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
-  constructor(config: LoaderConfig) {
+  constructor(config: any) {
     super(config);
     const load = this.load.bind(this);
-    this.load = function (
-      context: LoaderContext,
-      config: LoaderConfig,
-      callbacks: LoaderCallbacks
-    ) {
+    this.load = function (context: any, config: any, callbacks: any) {
       // 拦截manifest和level请求
-      if (context.type === 'manifest' || context.type === 'level') {
+      if (
+        (context as any).type === 'manifest' ||
+        (context as any).type === 'level'
+      ) {
         const onSuccess = callbacks.onSuccess;
         callbacks.onSuccess = function (
-          response: LoaderResponse,
-          stats: LoaderStats,
-          context: LoaderContext,
-          networkDetails?: unknown
+          response: any,
+          stats: any,
+          context: any
         ) {
           // 如果是m3u8文件，处理内容以移除广告分段
           if (response.data && typeof response.data === 'string') {
             // 过滤掉广告段
             response.data = filterAdsFromM3U8(response.data);
           }
-          return onSuccess(response, stats, context, networkDetails);
+          return onSuccess(response, stats, context, null);
         };
       }
       // 执行原始load方法

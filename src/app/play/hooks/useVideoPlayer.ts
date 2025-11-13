@@ -301,7 +301,7 @@ export function useVideoPlayer(
       };
     } catch (err) {
       console.error('创建播放器失败:', err);
-      onError?.(err);
+      onError?.(err instanceof Error ? err : String(err));
     }
   }, [url, loading]); // 最小化依赖
 

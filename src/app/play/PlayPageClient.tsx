@@ -9,6 +9,7 @@ import {
   useRef,
 } from 'react';
 import type { SearchResult } from '@/lib/types';
+import type { ArtPlayerInstance } from './types/player.types';
 
 // Hooks
 import { useVideoData } from './hooks/useVideoData';

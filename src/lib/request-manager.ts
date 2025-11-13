@@ -236,7 +236,8 @@ class CircuitBreaker {
 // ============================================================================
 
 class RequestQueue {
-  private queue: RequestQueueItem[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private queue: RequestQueueItem<any>[] = [];
   private running = 0;
   private hostConcurrency: Map<string, number> = new Map();
 
@@ -270,8 +271,8 @@ class RequestQueue {
     try {
       const result = await item.fn();
       item.resolve(result);
-    } catch (error) {
-      item.reject(error);
+    } catch (error: unknown) {
+      item.reject(error instanceof Error ? error : new Error(String(error)));
     } finally {
       this.running--;
       const currentCount = this.hostConcurrency.get(item.host) || 1;
@@ -321,7 +322,7 @@ async function fetchWithRetry<T>(
     try {
       return await fn();
     } catch (error: unknown) {
-      lastError = error;
+      lastError = error instanceof Error ? error : new Error(String(error));
 
       // 最后一次尝试，直接抛出
       if (attempt === maxRetries) {
@@ -329,15 +330,17 @@ async function fetchWithRetry<T>(
       }
 
       // 检查是否是可重试的错误
+      const err = error instanceof Error ? error : null;
       const isRetryable = retryableErrors.some(
         (errCode) =>
-          error.code === errCode ||
-          error.message?.includes(errCode) ||
-          error.cause?.code === errCode
+          (err as NodeJS.ErrnoException)?.code === errCode ||
+          err?.message?.includes(errCode) ||
+          ((err as NodeJS.ErrnoException)?.cause as NodeJS.ErrnoException)
+            ?.code === errCode
       );
 
       if (!isRetryable) {
-        console.log(`[重试] 不可重试的错误: ${error.message}`);
+        console.log(`[重试] 不可重试的错误: ${err?.message || String(error)}`);
         throw error;
       }
 

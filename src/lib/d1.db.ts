@@ -30,12 +30,30 @@ interface D1PlayRecordRow {
 
 interface D1FavoriteRow {
   username: string;
-  video_id: string;
-  video_title: string;
-  video_year: string;
-  video_cover: string;
-  source_key: string;
+  key: string;
+  title: string;
+  source_name: string;
+  cover: string;
+  year: string;
+  total_episodes: number;
   save_time: number;
+  search_title?: string;
+}
+
+interface D1UserSettingsRow {
+  settings: string;
+}
+
+interface D1SearchHistoryRow {
+  keywords: string;
+}
+
+interface D1SkipConfigRow {
+  config: string;
+}
+
+interface D1AdminConfigRow {
+  config: string;
 }
 
 // D1 数据库接口
@@ -177,7 +195,7 @@ export class D1Storage implements IStorage {
           play_time: row.play_time,
           total_time: row.total_time,
           save_time: row.save_time,
-          search_title: row.search_title || undefined,
+          search_title: row.search_title || '',
         };
       });
 
@@ -279,7 +297,7 @@ export class D1Storage implements IStorage {
           year: row.year,
           total_episodes: row.total_episodes,
           save_time: row.save_time,
-          search_title: row.search_title,
+          search_title: row.search_title || '',
         };
       });
 
@@ -616,7 +634,7 @@ export class D1Storage implements IStorage {
       const row = await db
         .prepare('SELECT settings FROM user_settings WHERE username = ?')
         .bind(userName)
-        .first();
+        .first<D1UserSettingsRow>();
 
       if (row && row.settings) {
         return JSON.parse(row.settings as string) as UserSettings;

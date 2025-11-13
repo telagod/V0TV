@@ -42,7 +42,8 @@ interface SpeedTestResult {
 interface SourceWithKey {
   source: string;
   id: string;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 // ============================================================================
@@ -198,7 +199,8 @@ export async function smartSpeedTest<T extends SourceWithKey>(
 
           return { sourceKey, result };
         } catch (error: unknown) {
-          console.warn(`[客户端测速] ❌ ${sourceKey} 失败: ${error.message}`);
+          const err = error instanceof Error ? error : null;
+          console.warn(`[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`);
 
           return {
             sourceKey,

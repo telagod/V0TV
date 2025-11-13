@@ -2,13 +2,15 @@
   // Cloudflare Workers 配置文件
   // 使用 @opennextjs/cloudflare 适配器部署 Next.js 应用
 
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "v0tv",
   "main": ".open-next/worker.js",
 
   // 兼容性设置
   "compatibility_date": "2025-04-01",
   "compatibility_flags": [
-    "nodejs_compat"  // 启用 Node.js 兼容模式
+    "nodejs_compat",  // 启用 Node.js 兼容模式
+    "global_fetch_strictly_public"  // 允许 URL 获取（OpenNext 必需）
   ],
 
   // 静态资产配置
@@ -16,6 +18,14 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+
+  // Worker 自引用服务绑定（OpenNext 必需）
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "v0tv"
+    }
+  ],
 
   // KV 命名空间绑定（可选，用于缓存加速）
   // 取消注释以启用：

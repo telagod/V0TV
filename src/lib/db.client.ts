@@ -379,19 +379,19 @@ async function handleDatabaseOperationFailure(
         freshData = await fetchFromApi<Record<string, PlayRecord>>(
           `/api/playrecords`
         );
-        cacheManager.cachePlayRecords(freshData);
+        cacheManager.cachePlayRecords(freshData as Record<string, PlayRecord>);
         eventName = 'playRecordsUpdated';
         break;
       case 'favorites':
         freshData = await fetchFromApi<Record<string, Favorite>>(
           `/api/favorites`
         );
-        cacheManager.cacheFavorites(freshData);
+        cacheManager.cacheFavorites(freshData as Record<string, Favorite>);
         eventName = 'favoritesUpdated';
         break;
       case 'searchHistory':
         freshData = await fetchFromApi<string[]>(`/api/searchhistory`);
-        cacheManager.cacheSearchHistory(freshData);
+        cacheManager.cacheSearchHistory(freshData as string[]);
         eventName = 'searchHistoryUpdated';
         break;
     }

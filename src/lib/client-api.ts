@@ -102,10 +102,11 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
     return supported;
   } catch (error: unknown) {
     // CORS错误或网络错误
+    const err = error instanceof Error ? error : null;
     const isCorsError =
-      error.message?.includes('CORS') ||
-      error.message?.includes('Origin') ||
-      error.name === 'TypeError';
+      err?.message?.includes('CORS') ||
+      err?.message?.includes('Origin') ||
+      err?.name === 'TypeError';
 
     if (DEFAULT_CONFIG.cacheCorsCheck) {
       corsCache.set(domain, false);
@@ -161,13 +162,14 @@ async function fetchDirectly<T = any>(
     clearTimeout(timeoutId);
 
     // 判断是否为CORS错误
+    const err = error instanceof Error ? error : null;
     const isCorsError =
-      error.message?.includes('CORS') ||
-      error.message?.includes('Origin') ||
-      error.name === 'TypeError';
+      err?.message?.includes('CORS') ||
+      err?.message?.includes('Origin') ||
+      err?.name === 'TypeError';
 
     console.warn(
-      `[客户端直连] ❌ 失败: ${isCorsError ? 'CORS限制' : error.message}`
+      `[客户端直连] ❌ 失败: ${isCorsError ? 'CORS限制' : err?.message || '未知错误'}`
     );
     throw error;
   }
@@ -215,7 +217,8 @@ async function fetchViaProxy<T = any>(
     return data;
   } catch (error: unknown) {
     clearTimeout(timeoutId);
-    console.error(`[服务端代理] ❌ 失败: ${error.message}`);
+    const err = error instanceof Error ? error : null;
+    console.error(`[服务端代理] ❌ 失败: ${err?.message || '未知错误'}`);
     throw error;
   }
 }
@@ -253,16 +256,17 @@ async function smartFetch<T = any>(
     return data;
   } catch (error: unknown) {
     // 判断是否为CORS错误
+    const err = error instanceof Error ? error : null;
     const isCorsError =
-      error.message?.includes('CORS') ||
-      error.message?.includes('Origin') ||
-      error.name === 'TypeError';
+      err?.message?.includes('CORS') ||
+      err?.message?.includes('Origin') ||
+      err?.name === 'TypeError';
 
     if (isCorsError) {
       console.log('[智能请求] CORS失败，自动降级到服务端代理');
     } else {
       console.log(
-        `[智能请求] 客户端请求失败(${error.message})，降级到服务端代理`
+        `[智能请求] 客户端请求失败(${err?.message || '未知错误'})，降级到服务端代理`
       );
     }
 
