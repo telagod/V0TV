@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/get-db';
 import { fetchVideoDetail } from '@/lib/fetchVideoDetail';
 import { SearchResult } from '@/lib/types';
 
@@ -10,9 +10,10 @@ import { SearchResult } from '@/lib/types';
 export async function GET(request: NextRequest) {
   console.log(request.url);
   try {
+    const db = await getDb();
     console.log('Cron job triggered:', new Date().toISOString());
 
-    refreshRecordAndFavorites();
+    refreshRecordAndFavorites(db);
 
     return NextResponse.json({
       success: true,
@@ -121,7 +122,7 @@ async function processBatch<T>(
   return { success, failed };
 }
 
-async function refreshRecordAndFavorites() {
+async function refreshRecordAndFavorites(db: any) {
   if (
     (process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage') === 'localstorage'
   ) {

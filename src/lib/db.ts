@@ -19,7 +19,7 @@ const STORAGE_TYPE =
     | undefined) || 'localstorage';
 
 // 创建存储实例
-function createStorage(): IStorage {
+function createStorage(dbInstance?: any): IStorage {
   switch (STORAGE_TYPE) {
     case 'redis':
       return new RedisStorage();
@@ -28,7 +28,7 @@ function createStorage(): IStorage {
     case 'upstash':
       return new UpstashRedisStorage();
     case 'd1':
-      return new D1Storage();
+      return new D1Storage(dbInstance);
     case 'localstorage':
     default:
       // 使用 LocalStorage 实现，适用于本地开发和简单部署
@@ -36,10 +36,22 @@ function createStorage(): IStorage {
   }
 }
 
-// 单例存储实例
+// 单例存储实例（仅用于非 D1 存储类型）
 let storageInstance: IStorage | null = null;
 
-export function getStorage(): IStorage {
+/**
+ * 获取存储实例
+ * @param dbInstance 可选的 D1 数据库实例（仅在使用 D1 存储时需要）
+ *                   在 API 路由中，应该从 getCloudflareContext().env.DB 获取并传入
+ * @returns IStorage 实例
+ */
+export function getStorage(dbInstance?: any): IStorage {
+  // D1 存储需要为每个请求创建新实例（传入特定的 DB 绑定）
+  if (STORAGE_TYPE === 'd1' && dbInstance) {
+    return createStorage(dbInstance);
+  }
+
+  // 其他存储类型使用单例模式
   if (!storageInstance) {
     storageInstance = createStorage();
   }
@@ -54,9 +66,16 @@ export function generateStorageKey(source: string, id: string): string {
 // 导出便捷方法
 export class DbManager {
   private storage: IStorage;
+  private dbInstance?: any;
 
-  constructor() {
-    this.storage = getStorage();
+  /**
+   * 构造函数
+   * @param dbInstance 可选的 D1 数据库实例
+   *                   在 API 路由中，应该从 getCloudflareContext().env.DB 获取并传入
+   */
+  constructor(dbInstance?: any) {
+    this.dbInstance = dbInstance;
+    this.storage = getStorage(dbInstance);
   }
 
   // 播放记录相关方法

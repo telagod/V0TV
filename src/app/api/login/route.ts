@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/get-db';
 
 // Auth数据接口
 interface AuthData {
@@ -76,7 +76,8 @@ async function generateAuthCookie(
 
 export async function POST(req: NextRequest) {
   try {
-    // 本地 / localStorage 模式——仅校验固定密码
+    const db = await getDb();
+// 本地 / localStorage 模式——仅校验固定密码
     if (STORAGE_TYPE === 'localstorage') {
       const envPassword = process.env.PASSWORD;
 

@@ -21,6 +21,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // 获取 D1 数据库实例（如果使用 D1）
+    let dbInstance;
+    if (storageType === 'd1') {
+      try {
+        const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+        const context = getCloudflareContext();
+        dbInstance = context.env.DB;
+      } catch (error) {
+        console.error('[change-password] 无法获取 Cloudflare Context:', error);
+      }
+    }
+
     const body = await request.json();
     const { newPassword } = body;
 
@@ -46,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取存储实例
-    const storage: IStorage | null = getStorage();
+    const storage: IStorage | null = getStorage(dbInstance);
     if (!storage || typeof storage.changePassword !== 'function') {
       return NextResponse.json(
         { error: '存储服务不支持修改密码' },

@@ -8,7 +8,8 @@ import { EpisodeSkipConfig } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const db = await getDb();
+const body = await request.json();
     const { action, key, config, username } = body;
 
     // 验证请求参数

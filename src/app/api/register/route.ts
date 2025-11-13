@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
-import { db } from '@/lib/db';
+import { getDb } from '@/lib/get-db';
 
 // Auth数据接口
 interface AuthData {
@@ -66,7 +66,8 @@ async function generateAuthCookie(username: string): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    // localstorage 模式下不支持注册
+    const db = await getDb();
+// localstorage 模式下不支持注册
     if (STORAGE_TYPE === 'localstorage') {
       return NextResponse.json(
         { error: '当前模式不支持注册' },
