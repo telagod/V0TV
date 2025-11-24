@@ -1,28 +1,11 @@
 /**
  * 广告过滤自定义HLS Loader
+ * 使用组合模式包装默认 Loader
  */
 
 import Hls from 'hls.js';
 
 import { logInfo } from '@/lib/logger';
-
-type LoaderContext = {
-  type?: string;
-};
-
-type LoaderResponse = {
-  data?: string;
-};
-
-type LoaderCallbacks = {
-  onSuccess?: (
-    response: LoaderResponse,
-    stats: unknown,
-    context: LoaderContext,
-    networkDetails?: unknown
-  ) => void;
-  [key: string]: unknown;
-};
 
 /**
  * 从M3U8内容中过滤广告
@@ -131,27 +114,47 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 }
 
 /**
- * 自定义HLS Loader，支持广告过滤
+ * 创建带广告过滤的自定义 HLS Loader
+ * 使用组合模式包装默认 Loader
  */
-export class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
-  constructor(config: Hls.LoaderConfig) {
-    super(config);
-    const originalLoad = this.load.bind(this);
+export function createAdFilterLoader() {
+  const DefaultLoader = Hls.DefaultConfig.loader;
 
-    this.load = (
-      context: LoaderContext,
-      loaderConfig: Hls.LoaderConfig,
-      callbacks: LoaderCallbacks
-    ) => {
-      const isInterceptTarget =
-        context.type === 'manifest' || context.type === 'level';
+  return class AdFilterLoader {
+    private loader: InstanceType<typeof DefaultLoader>;
+
+    constructor(config: unknown) {
+      this.loader = new DefaultLoader(config);
+    }
+
+    destroy() {
+      if (this.loader.destroy) {
+        this.loader.destroy();
+      }
+    }
+
+    abort() {
+      if (this.loader.abort) {
+        this.loader.abort();
+      }
+    }
+
+    load(context: unknown, config: unknown, callbacks: Record<string, unknown>) {
+      const ctx = context as { type?: string };
+      const isInterceptTarget = ctx.type === 'manifest' || ctx.type === 'level';
 
       if (isInterceptTarget && callbacks.onSuccess) {
-        const originalOnSuccess = callbacks.onSuccess.bind(this);
-        callbacks.onSuccess = (
-          response: LoaderResponse,
+        const originalOnSuccess = callbacks.onSuccess as (
+          response: { data?: string },
           stats: unknown,
-          callbackContext: LoaderContext,
+          context: unknown,
+          networkDetails?: unknown
+        ) => void;
+
+        callbacks.onSuccess = (
+          response: { data?: string },
+          stats: unknown,
+          callbackContext: unknown,
           networkDetails?: unknown
         ) => {
           if (response.data && typeof response.data === 'string') {
@@ -166,7 +169,20 @@ export class CustomHlsJsLoader extends Hls.DefaultConfig.loader {
         };
       }
 
-      originalLoad(context, loaderConfig, callbacks as never);
-    };
-  }
+      this.loader.load(context, config, callbacks);
+    }
+
+    get context() {
+      return this.loader.context;
+    }
+
+    get stats() {
+      return this.loader.stats;
+    }
+  };
 }
+
+/**
+ * 自定义HLS Loader类，用于向后兼容
+ */
+export const CustomHlsJsLoader = createAdFilterLoader();
