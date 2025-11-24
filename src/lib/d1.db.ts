@@ -84,17 +84,21 @@ interface D1ExecResult {
   duration: number;
 }
 
-// 获取 D1 数据库实例
-// 在 Cloudflare Workers 中，D1 绑定通过 getCloudflareContext().env.DB 访问
-// 但由于模块系统限制，这里只从 process.env 获取（用于 wrangler dev）
-// 生产环境中，DB 实例应该从 API 路由通过 getCloudflareContext() 获取并传递进来
 function getD1Database(dbInstance?: D1Database): D1Database {
-  // 如果提供了 DB 实例（从 API 路由传入），直接使用
   if (dbInstance) {
     return dbInstance;
   }
 
-  // 降级：从 process.env 获取（开发环境 wrangler dev）
+  try {
+    const { getCloudflareContext } = require('@opennextjs/cloudflare');
+    const ctx = getCloudflareContext();
+    if (ctx?.env?.DB) {
+      return ctx.env.DB;
+    }
+  } catch (e) {
+    // getCloudflareContext 不可用，继续尝试其他方式
+  }
+
   const envWithDb = process.env as NodeJS.ProcessEnv & { DB?: D1Database };
   if (envWithDb.DB) {
     return envWithDb.DB;
