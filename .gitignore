@@ -47,3 +47,4 @@ public/manifest.json.open-next
 
 # deployment credentials
 .credentials.txt
+.wrangler/
