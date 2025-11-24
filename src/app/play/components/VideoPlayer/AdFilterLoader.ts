@@ -125,7 +125,7 @@ export function createAdFilterLoader() {
 
     constructor(config: unknown) {
       this.loader = new DefaultLoader(
-        config as Parameters<typeof DefaultLoader>[0]
+        config as ConstructorParameters<typeof DefaultLoader>[0]
       );
     }
 
