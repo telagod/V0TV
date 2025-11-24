@@ -244,8 +244,8 @@ class RequestQueue {
   private hostConcurrency: Map<string, number> = new Map();
 
   async add<T>(fn: () => Promise<T>, host: string): Promise<T> {
-    return new Promise((resolve, reject) => {
-      this.queue.push({ fn, resolve, reject, host });
+    return new Promise<T>((resolve, reject) => {
+      this.queue.push({ fn, resolve, reject, host } as RequestQueueItem<unknown>);
       this.process();
     });
   }

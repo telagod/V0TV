@@ -175,7 +175,7 @@ export function createAdFilterLoader() {
         };
       }
 
-      this.loader.load(context, config, callbacks);
+      this.loader.load(context as any, config as any, callbacks as any);
     }
 
     get context() {

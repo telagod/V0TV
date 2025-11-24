@@ -164,9 +164,9 @@ export function useVideoPlayer(
               maxBufferLength: 30,
               backBufferLength: 30,
               maxBufferSize: 60 * 1000 * 1000,
-              loader: blockAdRef.current
+              loader: (blockAdRef.current
                 ? CustomHlsJsLoader
-                : Hls.DefaultConfig.loader,
+                : Hls.DefaultConfig.loader) as any,
             });
 
             hls.loadSource(url);

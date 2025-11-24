@@ -602,7 +602,7 @@ export async function getDetailFromApi(
     // ✅ 使用改进的年份提取函数
     year: extractYear(videoDetail.vod_year),
 
-    desc: cleanHtmlTags(videoDetail.vod_content),
+    desc: cleanHtmlTags(videoDetail.vod_content || ''),
     type_name: videoDetail.type_name,
     douban_id: videoDetail.vod_douban_id,
   };

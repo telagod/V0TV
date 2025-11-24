@@ -288,7 +288,7 @@ export class D1Storage implements IStorage {
         play_time: result.play_time,
         total_time: result.total_time,
         save_time: result.save_time,
-        search_title: result.search_title || undefined,
+        search_title: result.search_title || '',
       };
     } catch (err) {
       console.error('Failed to get play record:', err);
@@ -399,7 +399,7 @@ export class D1Storage implements IStorage {
         year: result.year,
         total_episodes: result.total_episodes,
         save_time: result.save_time,
-        search_title: result.search_title,
+        search_title: result.search_title || '',
       };
     } catch (err) {
       console.error('Failed to get favorite:', err);

@@ -96,10 +96,19 @@ export async function GET(request: Request) {
   const target = `https://m.douban.com/rexxar/api/v2/subject/recent_hot/${kind}?start=${pageStart}&limit=${pageLimit}&category=${category}&type=${type}`;
 
   try {
-    // 调用豆瓣 API
     const doubanData = await fetchDoubanData(target);
 
-    // 转换数据格式
+    if (!doubanData || !doubanData.items || !Array.isArray(doubanData.items)) {
+      return NextResponse.json(
+        {
+          code: 200,
+          message: '暂无数据',
+          list: [],
+        },
+        { status: 200 }
+      );
+    }
+
     const list: DoubanItem[] = doubanData.items.map((item) => ({
       id: item.id,
       title: item.title,
@@ -123,9 +132,14 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
+    console.error('获取豆瓣数据失败:', error);
     return NextResponse.json(
-      { error: '获取豆瓣数据失败', details: (error as Error).message },
-      { status: 500 }
+      {
+        code: 200,
+        message: '暂无数据',
+        list: [],
+      },
+      { status: 200 }
     );
   }
 }

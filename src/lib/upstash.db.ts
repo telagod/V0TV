@@ -350,7 +350,7 @@ export class UpstashRedisStorage implements IStorage {
     );
 
     const configs: { [key: string]: EpisodeSkipConfig } = {};
-    for (const key of keys) {
+    for (const key of Array.from(keys)) {
       const data = await this.getSkipConfig(userName, key);
       if (data) {
         configs[key] = data;

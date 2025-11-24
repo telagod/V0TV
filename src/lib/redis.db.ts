@@ -414,7 +414,7 @@ export class RedisStorage implements IStorage {
     memberLists.forEach((list) => list.forEach((item) => allKeys.add(item)));
 
     const configs: { [key: string]: EpisodeSkipConfig } = {};
-    for (const key of allKeys) {
+    for (const key of Array.from(allKeys)) {
       const config = await this.getSkipConfig(userName, key);
       if (config) {
         configs[key] = config;
