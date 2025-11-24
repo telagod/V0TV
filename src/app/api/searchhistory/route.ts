@@ -15,20 +15,16 @@ const HISTORY_LIMIT = 20;
 export async function GET(request: NextRequest) {
   try {
     const db = await getDb();
-    // 从 cookie 获取用户信息
     const authInfo = getAuthInfoFromCookie(request);
     if (!authInfo || !authInfo.username) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const history = await db.getSearchHistory(authInfo.username);
-    return NextResponse.json(history, { status: 200 });
+    return NextResponse.json(history || [], { status: 200 });
   } catch (err) {
     console.error('获取搜索历史失败', err);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return NextResponse.json([], { status: 200 });
   }
 }
 
