@@ -32,10 +32,12 @@ pnpm run pages:build
 ```
 
 这将：
+
 - 运行 `gen:runtime` 和 `gen:manifest` 生成运行时配置
 - 执行 `opennextjs-cloudflare build` 构建 Worker
 
 构建产物：
+
 - `.open-next/worker.js` - Worker 脚本
 - `.open-next/assets/` - 静态资产
 - `.open-next/server-functions/` - 服务端函数
@@ -47,6 +49,7 @@ pnpm run preview
 ```
 
 或直接使用 wrangler：
+
 ```bash
 wrangler dev
 ```
@@ -91,17 +94,17 @@ wrangler deploy
 
 #### 必需变量
 
-| 变量名 | 说明 |
-|--------|------|
+| 变量名     | 说明             |
+| ---------- | ---------------- |
 | `PASSWORD` | 访问密码（必填） |
 
 #### 可选变量
 
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| `USERNAME` | 管理员用户名 | `admin` |
-| `NEXT_PUBLIC_STORAGE_TYPE` | 存储类型（localStorage/d1） | `localStorage` |
-| `NEXT_PUBLIC_ENABLE_REGISTER` | 是否允许注册 | `false` |
+| 变量名                        | 说明                        | 默认值         |
+| ----------------------------- | --------------------------- | -------------- |
+| `USERNAME`                    | 管理员用户名                | `admin`        |
+| `NEXT_PUBLIC_STORAGE_TYPE`    | 存储类型（localStorage/d1） | `localStorage` |
+| `NEXT_PUBLIC_ENABLE_REGISTER` | 是否允许注册                | `false`        |
 
 ### D1 数据库绑定（可选）
 
@@ -118,6 +121,7 @@ wrangler d1 execute v0tv-db --file=scripts/d1-init.sql
 ```
 
 在 `wrangler.jsonc` 添加：
+
 ```jsonc
 {
   "d1_databases": [
@@ -131,6 +135,7 @@ wrangler d1 execute v0tv-db --file=scripts/d1-init.sql
 ```
 
 然后设置环境变量：
+
 ```
 NEXT_PUBLIC_STORAGE_TYPE=d1
 ```
@@ -146,11 +151,11 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 3. 选择你的 GitHub 仓库
 4. 配置构建设置：
 
-| 配置项 | 值 |
-|--------|-----|
-| **Build command** | `pnpm run pages:build` |
-| **Build output directory** | `.open-next` |
-| **Root directory** | `/` |
+| 配置项                     | 值                     |
+| -------------------------- | ---------------------- |
+| **Build command**          | `pnpm run pages:build` |
+| **Build output directory** | `.open-next`           |
+| **Root directory**         | `/`                    |
 
 5. 添加环境变量（至少需要 `PASSWORD`）
 6. 点击 **Save and Deploy**
@@ -158,6 +163,7 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 ### 自动部署
 
 推送代码到 GitHub 后，Cloudflare 会自动：
+
 1. 拉取最新代码
 2. 运行构建命令
 3. 部署到全球边缘网络
@@ -166,14 +172,14 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 
 ## 🛠️ 常用命令
 
-| 命令 | 说明 |
-|------|------|
-| `pnpm dev` | 本地开发服务器（Next.js）|
-| `pnpm run pages:build` | 构建 Cloudflare Worker |
-| `pnpm run preview` | 本地预览 Worker |
-| `pnpm run deploy` | 构建并部署 |
-| `wrangler dev` | 直接运行 Worker 开发服务器 |
-| `wrangler deploy` | 直接部署 Worker |
+| 命令                   | 说明                       |
+| ---------------------- | -------------------------- |
+| `pnpm dev`             | 本地开发服务器（Next.js）  |
+| `pnpm run pages:build` | 构建 Cloudflare Worker     |
+| `pnpm run preview`     | 本地预览 Worker            |
+| `pnpm run deploy`      | 构建并部署                 |
+| `wrangler dev`         | 直接运行 Worker 开发服务器 |
+| `wrangler deploy`      | 直接部署 Worker            |
 
 ---
 
@@ -193,6 +199,7 @@ NEXT_PUBLIC_STORAGE_TYPE=d1
 **错误：`pnpm: not found`**
 
 在 Cloudflare Dashboard 添加环境变量：
+
 ```
 PNPM_VERSION=10.12.4
 ```
@@ -200,6 +207,7 @@ PNPM_VERSION=10.12.4
 **错误：构建超时**
 
 优化措施：
+
 - 确保 `node_modules` 在 `.gitignore` 中
 - 使用 `package.json` 中的 `packageManager` 字段
 
@@ -208,6 +216,7 @@ PNPM_VERSION=10.12.4
 **数据库连接失败**
 
 检查：
+
 1. D1 数据库是否已创建
 2. `wrangler.jsonc` 中的绑定配置是否正确
 3. 环境变量 `NEXT_PUBLIC_STORAGE_TYPE` 是否设置为 `d1`
@@ -215,6 +224,7 @@ PNPM_VERSION=10.12.4
 **环境变量未生效**
 
 确保：
+
 1. 环境变量已在 Cloudflare Dashboard 配置
 2. 变量名拼写正确
 3. 已重新部署
@@ -237,21 +247,23 @@ PNPM_VERSION=10.12.4
 
 ### 主要变化
 
-| 项目 | next-on-pages | @opennextjs/cloudflare |
-|------|--------------|----------------------|
-| 部署命令 | `wrangler pages deploy` | `wrangler deploy` |
-| 配置文件 | `wrangler.toml` | `wrangler.jsonc` |
-| Runtime | Edge Runtime | Node.js Runtime |
-| 输出目录 | `.vercel/output/static` | `.open-next` |
+| 项目     | next-on-pages           | @opennextjs/cloudflare |
+| -------- | ----------------------- | ---------------------- |
+| 部署命令 | `wrangler pages deploy` | `wrangler deploy`      |
+| 配置文件 | `wrangler.toml`         | `wrangler.jsonc`       |
+| Runtime  | Edge Runtime            | Node.js Runtime        |
+| 输出目录 | `.vercel/output/static` | `.open-next`           |
 
 ### 迁移步骤
 
 1. 移除旧依赖：
+
 ```bash
 pnpm remove @cloudflare/next-on-pages
 ```
 
 2. 安装新适配器：
+
 ```bash
 pnpm add -D @opennextjs/cloudflare wrangler@latest
 ```
@@ -261,11 +273,13 @@ pnpm add -D @opennextjs/cloudflare wrangler@latest
 4. 移除 API 路由中的 `export const runtime = 'edge'` 声明
 
 5. 更新 `.gitignore`：
+
 ```
 .open-next
 ```
 
 6. 测试构建：
+
 ```bash
 pnpm run pages:build
 ```

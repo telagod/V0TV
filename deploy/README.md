@@ -6,14 +6,14 @@
 
 ## 🎯 如何选方案
 
-| 目标 | 推荐方案 | 说明 |
-| --- | --- | --- |
-| 零成本、全球访问 | Cloudflare Pages + Pages Functions | 直接复用 GitHub 仓库，自动构建、支持 KV/Workers |
-| 有一台服务器，想尽快跑起来 | Docker 单容器 | 一条脚本搞定，所有依赖都封装在镜像里 |
-| 多用户 + 数据同步 | Docker Compose + Redis | 自带 Redis，支持播放记录/收藏跨设备同步 |
-| 习惯前端托管平台 | Vercel | 一键部署，自动 HTTPS，配合 Upstash/Redis 即可共享数据 |
-| 想托管在 Railway 之类的 PaaS | Railway | 官方模板，带 Redis/变量向导 |
-| 完全自定义的 VPS | `deploy/vps` 安装脚本 | 适合需要反向代理/多应用管理的场景 |
+| 目标                         | 推荐方案                           | 说明                                                  |
+| ---------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| 零成本、全球访问             | Cloudflare Pages + Pages Functions | 直接复用 GitHub 仓库，自动构建、支持 KV/Workers       |
+| 有一台服务器，想尽快跑起来   | Docker 单容器                      | 一条脚本搞定，所有依赖都封装在镜像里                  |
+| 多用户 + 数据同步            | Docker Compose + Redis             | 自带 Redis，支持播放记录/收藏跨设备同步               |
+| 习惯前端托管平台             | Vercel                             | 一键部署，自动 HTTPS，配合 Upstash/Redis 即可共享数据 |
+| 想托管在 Railway 之类的 PaaS | Railway                            | 官方模板，带 Redis/变量向导                           |
+| 完全自定义的 VPS             | `deploy/vps` 安装脚本              | 适合需要反向代理/多应用管理的场景                     |
 
 > 如果不确定，用 **Docker 单容器** 或 **Vercel** 最省心；要做高可用或离线混合部署，再考虑其他选项。
 
@@ -34,10 +34,12 @@
 ### 1. Docker（本地或自托管）
 
 - **单容器（最快）**
+
   ```bash
   cd deploy/docker
   ./deploy-single.sh
   ```
+
   脚本会拉取 `ghcr.io/telagod/v0tv:latest` 镜像并提示你输入访问密码。如需自定义配置，把 `config.json` 放在仓库根目录即可自动挂载。
 
 - **Docker Compose + Redis（推荐多用户）**
@@ -84,17 +86,17 @@ curl -fsSL https://raw.githubusercontent.com/telagod/V0TV/main/deploy/vps/instal
 
 ## 🔐 环境变量速查
 
-| 变量 | 说明 | 是否必填 |
-| --- | --- | --- |
-| `PASSWORD` | 访问站点的主密码 | ✅ |
-| `NEXT_PUBLIC_STORAGE_TYPE` | `localstorage` / `redis` / `upstash` / `d1` | ✅ |
-| `REDIS_URL` | `redis://user:pass@host:port`，Docker/自建 Redis 用 | 取决于存储类型 |
-| `UPSTASH_URL` / `UPSTASH_TOKEN` | Upstash Redis 凭据 | 同上 |
-| `D1_DATABASE_ID` / `D1_TOKEN` | Cloudflare D1 所需 | 同上 |
-| `NEXTAUTH_SECRET` | 任意 32+ 位随机串，用于 NextAuth 加密 | ✅（生产环境） |
-| `SITE_NAME` | 覆盖默认的 “V0TV” 标题 | 可选 |
-| `NEXT_PUBLIC_ENABLE_REGISTER` | `true/false`，开启自助注册 | 可选 |
-| `NEXT_PUBLIC_IMAGE_PROXY` | 图片代理地址 | 可选 |
+| 变量                            | 说明                                                | 是否必填       |
+| ------------------------------- | --------------------------------------------------- | -------------- |
+| `PASSWORD`                      | 访问站点的主密码                                    | ✅             |
+| `NEXT_PUBLIC_STORAGE_TYPE`      | `localstorage` / `redis` / `upstash` / `d1`         | ✅             |
+| `REDIS_URL`                     | `redis://user:pass@host:port`，Docker/自建 Redis 用 | 取决于存储类型 |
+| `UPSTASH_URL` / `UPSTASH_TOKEN` | Upstash Redis 凭据                                  | 同上           |
+| `D1_DATABASE_ID` / `D1_TOKEN`   | Cloudflare D1 所需                                  | 同上           |
+| `NEXTAUTH_SECRET`               | 任意 32+ 位随机串，用于 NextAuth 加密               | ✅（生产环境） |
+| `SITE_NAME`                     | 覆盖默认的 “V0TV” 标题                              | 可选           |
+| `NEXT_PUBLIC_ENABLE_REGISTER`   | `true/false`，开启自助注册                          | 可选           |
+| `NEXT_PUBLIC_IMAGE_PROXY`       | 图片代理地址                                        | 可选           |
 
 > 任何方案都需要至少设置 `PASSWORD`；其余按部署目标按需配置。
 

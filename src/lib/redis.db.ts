@@ -355,9 +355,7 @@ export class RedisStorage implements IStorage {
   }
 
   private legacySkipConfigsKeys(userName: string): string[] {
-    return LEGACY_BRAND_SLUGS.map(
-      (slug) => `${slug}:skip_configs:${userName}`
-    );
+    return LEGACY_BRAND_SLUGS.map((slug) => `${slug}:skip_configs:${userName}`);
   }
 
   async getSkipConfig(

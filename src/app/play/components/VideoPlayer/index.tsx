@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useEffect,useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { logInfo } from '@/lib/logger';
 

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 import { addCorsHeaders, handleOptionsRequest } from '@/lib/cors';
 
-
 // 处理OPTIONS预检请求（OrionTV客户端需要）
 export async function OPTIONS() {
   return handleOptionsRequest();

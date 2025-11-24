@@ -21,26 +21,32 @@ bash scripts/auto-deploy.sh
 ## 📋 脚本执行流程
 
 1. **生成随机密码**
+
    - 使用 OpenSSL 生成 32 字符的安全随机密码
    - 默认管理员用户名：`admin`
 
 2. **保存凭据**
+
    - 凭据保存到 `.credentials.txt`
    - 此文件已加入 `.gitignore`，不会被提交到 Git
 
 3. **检查登录状态**
+
    - 自动检测 Wrangler 登录状态
    - 未登录时自动启动浏览器登录
 
 4. **构建项目**
+
    - 执行 `pnpm run pages:build`
    - 编译 Next.js 应用为 Cloudflare Workers 格式
 
 5. **设置密码 Secret**
+
    - 使用 `wrangler secret put` 设置 PASSWORD
    - 非交互式自动设置
 
 6. **验证 Secret 设置**
+
    - 使用 `wrangler secret list` 验证 PASSWORD 是否已设置
    - 失败时会提示手动设置方法
 
@@ -58,6 +64,7 @@ bash scripts/verify-secret.sh
 ```
 
 这个脚本会：
+
 - 检查 Wrangler 登录状态
 - 列出所有已设置的 Secrets
 - 验证 PASSWORD secret 是否存在
@@ -72,11 +79,13 @@ bash scripts/verify-secret.sh
 3. 你会看到两个部分：
 
    **Environment Variables（环境变量）**
+
    - `USERNAME`: admin（明文显示）
    - `NEXT_PUBLIC_STORAGE_TYPE`: d1（明文显示）
    - `NEXT_PUBLIC_ENABLE_REGISTER`: true（明文显示）
 
    **Secrets（加密变量）**
+
    - `PASSWORD`（只显示名称，不显示值）
 
 **💡 这是正常的！** Secrets 不会显示明文值，这是 Cloudflare 的安全设计。
@@ -125,6 +134,7 @@ bash scripts/verify-secret.sh
 ```
 
 **⚠️ 重要提示：**
+
 - 请妥善保管此文件
 - 不要分享给他人
 - 此文件已添加到 `.gitignore`，不会被 Git 跟踪
@@ -145,6 +155,7 @@ npx wrangler deploy
 ```
 
 环境变量已在 `wrangler.jsonc` 中预配置：
+
 - `USERNAME=admin`
 - `NEXT_PUBLIC_STORAGE_TYPE=d1`
 - `NEXT_PUBLIC_ENABLE_REGISTER=true`
@@ -174,11 +185,13 @@ pnpm run pages:build && npx wrangler deploy
 **A**: 有两种方法：
 
 **方法 1 - 使用验证脚本**（推荐）：
+
 ```bash
 bash scripts/verify-secret.sh
 ```
 
 **方法 2 - 手动检查**：
+
 ```bash
 npx wrangler secret list
 ```
@@ -186,6 +199,7 @@ npx wrangler secret list
 如果看到 `PASSWORD` 在列表中，说明已设置成功。
 
 **方法 3 - Cloudflare Dashboard**：
+
 1. 访问 Dashboard → Workers & Pages → v0tv → Settings → Variables
 2. 在 "Secrets" 部分（不是 "Environment Variables"）查看
 3. 应该能看到 `PASSWORD`（只显示名称，不显示值）
@@ -195,7 +209,9 @@ npx wrangler secret list
 **A**: 这是正常的！PASSWORD 是 **Secret（加密变量）**，不是普通的 Environment Variable。
 
 在 Cloudflare Dashboard 中：
+
 - **Environment Variables 部分** 显示 3 个公开变量的明文：
+
   - USERNAME
   - NEXT_PUBLIC_STORAGE_TYPE
   - NEXT_PUBLIC_ENABLE_REGISTER
@@ -207,6 +223,7 @@ npx wrangler secret list
 ### Q: 如何确认 PASSWORD secret 真的生效了？
 
 **A**: 最简单的方法是尝试登录：
+
 1. 访问你的 Worker URL
 2. 使用 `.credentials.txt` 中的用户名和密码登录
 3. 如果能成功登录，说明 PASSWORD secret 已正确设置
@@ -226,6 +243,7 @@ bash scripts/auto-deploy.sh
 ### Q: 密码安全吗？
 
 **A**:
+
 - 密码使用 OpenSSL 生成，32 字符随机字符串
 - 使用 Cloudflare Secrets 存储（加密）
 - 不会出现在 Git 历史或日志中
@@ -240,6 +258,7 @@ bash scripts/auto-deploy.sh
 ### 脚本执行失败
 
 1. **检查依赖**
+
    ```bash
    # 确保已安装 Node.js 和 pnpm
    node --version
@@ -247,6 +266,7 @@ bash scripts/auto-deploy.sh
    ```
 
 2. **重新登录 Wrangler**
+
    ```bash
    npx wrangler logout
    npx wrangler login

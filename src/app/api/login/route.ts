@@ -77,7 +77,7 @@ async function generateAuthCookie(
 export async function POST(req: NextRequest) {
   try {
     const db = await getDb();
-// 本地 / localStorage 模式——仅校验固定密码
+    // 本地 / localStorage 模式——仅校验固定密码
     if (STORAGE_TYPE === 'localstorage') {
       const envPassword = process.env.PASSWORD;
 

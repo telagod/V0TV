@@ -93,8 +93,9 @@ type WindowWithRuntime = Window & { RUNTIME_CONFIG?: RuntimeConfig };
 
 const getRuntimeStorageType = (): StorageType | undefined => {
   if (typeof window === 'undefined') return undefined;
-  return (window as WindowWithRuntime).RUNTIME_CONFIG
-    ?.STORAGE_TYPE as StorageType | undefined;
+  return (window as WindowWithRuntime).RUNTIME_CONFIG?.STORAGE_TYPE as
+    | StorageType
+    | undefined;
 };
 
 interface ConfigFileEntry {

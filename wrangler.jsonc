@@ -5,13 +5,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "v0tv",
   "main": ".open-next/worker.js",
-  "keep_names": false,  // 修复 __name is not defined 错误（官方文档：https://opennext.js.org/cloudflare/howtos/keep_names）
+  "keep_names": false, // 修复 __name is not defined 错误（官方文档：https://opennext.js.org/cloudflare/howtos/keep_names）
 
   // 兼容性设置
-  "compatibility_date": "2025-05-05",  // 支持 FinalizationRegistry 等现代 JavaScript API
+  "compatibility_date": "2025-05-05", // 支持 FinalizationRegistry 等现代 JavaScript API
   "compatibility_flags": [
-    "nodejs_compat",  // 启用 Node.js 兼容模式
-    "global_fetch_strictly_public"  // 允许 URL 获取（OpenNext 必需）
+    "nodejs_compat", // 启用 Node.js 兼容模式
+    "global_fetch_strictly_public" // 允许 URL 获取（OpenNext 必需）
   ],
 
   // 静态资产配置

@@ -34,8 +34,7 @@ function VersionDisplay() {
     <button
       onClick={() =>
         window.open(
-          process.env.NEXT_PUBLIC_REPO_URL ||
-            'https://github.com/telagod/V0TV',
+          process.env.NEXT_PUBLIC_REPO_URL || 'https://github.com/telagod/V0TV',
           '_blank'
         )
       }

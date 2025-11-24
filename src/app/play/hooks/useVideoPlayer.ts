@@ -5,7 +5,7 @@
 
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
-import { useCallback,useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { logError, logInfo } from '@/lib/logger';
 

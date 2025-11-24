@@ -85,6 +85,4 @@ if (!hasPnpm && hasNpm) {
   );
 }
 
-console.log(
-  '\n✨ V0TV 支持智能包管理器检测，任何包管理器都可以正常工作！'
-);
+console.log('\n✨ V0TV 支持智能包管理器检测，任何包管理器都可以正常工作！');

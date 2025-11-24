@@ -54,7 +54,6 @@ async function fetchDoubanData(
   }
 }
 
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 

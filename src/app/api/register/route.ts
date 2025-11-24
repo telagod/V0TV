@@ -67,7 +67,7 @@ async function generateAuthCookie(username: string): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     const db = await getDb();
-// localstorage 模式下不支持注册
+    // localstorage 模式下不支持注册
     if (STORAGE_TYPE === 'localstorage') {
       return NextResponse.json(
         { error: '当前模式不支持注册' },

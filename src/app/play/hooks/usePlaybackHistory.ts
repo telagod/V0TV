@@ -3,7 +3,7 @@
  * 管理播放记录的保存、加载和删除
  */
 
-import { useCallback, useEffect, useRef,useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   deletePlayRecord,

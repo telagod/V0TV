@@ -98,9 +98,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
     if (skipNext && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       // 只跳过第一个片段，避免误删
       if (process.env.NODE_ENV === 'development') {
-        logInfo(
-          `[广告过滤] DISCONTINUITY后片段: ${line.substring(0, 50)}...`
-        );
+        logInfo(`[广告过滤] DISCONTINUITY后片段: ${line.substring(0, 50)}...`);
       }
       skipNext = false;
       removedCount++;

@@ -11,7 +11,7 @@
 >
 > [查看自动部署指南 →](CLOUDFLARE_D1_AUTO_SETUP.md) | [脚本说明 →](scripts/README.md)
 >
-> **以下为手动��署教程（高级用户）**
+> **以下为手动 �� 署教程（高级用户）**
 
 ---
 
@@ -79,10 +79,10 @@ npx wrangler deploy
 ```jsonc
 {
   "name": "v0tv",
-  "main": ".open-next/worker.js",  // Workers 入口文件
+  "main": ".open-next/worker.js", // Workers 入口文件
   "compatibility_flags": [
     "nodejs_compat",
-    "global_fetch_strictly_public"  // OpenNext 要求
+    "global_fetch_strictly_public" // OpenNext 要求
   ],
   "services": [
     {
@@ -113,7 +113,7 @@ npx wrangler deploy
 name: 手动部署到 Cloudflare Workers
 
 on:
-  workflow_dispatch:  # 仅手动触发
+  workflow_dispatch: # 仅手动触发
 
 jobs:
   deploy:

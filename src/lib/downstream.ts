@@ -433,12 +433,12 @@ export async function searchFromApi(
             const pageData = await requestManager.fetch<ApiSearchResponse>(
               pageUrl,
               {
-              headers: API_CONFIG.search.headers,
-              timeout: 8000,
-              retryOptions: {
-                maxRetries: 1, // 分页请求只重试1次
-              },
-            }
+                headers: API_CONFIG.search.headers,
+                timeout: 8000,
+                retryOptions: {
+                  maxRetries: 1, // 分页请求只重试1次
+                },
+              }
             );
 
             if (!pageData || !pageData.list || !Array.isArray(pageData.list))

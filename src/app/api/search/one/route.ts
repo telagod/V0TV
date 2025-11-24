@@ -4,7 +4,6 @@ import { getAvailableApiSites, getCacheTime } from '@/lib/config';
 import { addCorsHeaders, handleOptionsRequest } from '@/lib/cors';
 import { searchFromApi } from '@/lib/downstream';
 
-
 // 处理OPTIONS预检请求（OrionTV客户端需要）
 export async function OPTIONS() {
   return handleOptionsRequest();

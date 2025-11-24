@@ -6,7 +6,6 @@ import { getDb } from '@/lib/get-db';
 import { logError, logInfo, logWarn } from '@/lib/logger';
 import { Favorite, PlayRecord, SearchResult } from '@/lib/types';
 
-
 export async function GET(request: NextRequest) {
   logInfo('[cron] trigger', request.url);
   try {
@@ -199,9 +198,9 @@ async function refreshRecordAndFavorites(db: DbManager) {
         if (totalRecords === 0) {
           logInfo('⏭️ 无需处理播放记录');
         } else {
-          const recordEntries = (Object.entries(playRecords) as [string, PlayRecord][]).map(
-            ([key, record]) => ({ key, data: record })
-          );
+          const recordEntries = (
+            Object.entries(playRecords) as [string, PlayRecord][]
+          ).map(([key, record]) => ({ key, data: record }));
 
           let processedRecords = 0;
           let updatedRecords = 0;
@@ -307,9 +306,9 @@ async function refreshRecordAndFavorites(db: DbManager) {
         if (totalFavorites === 0) {
           logInfo('⏭️ 无需处理收藏');
         } else {
-          const favoriteEntries = (Object.entries(favorites) as [string, Favorite][]).map(
-            ([key, fav]) => ({ key, data: fav })
-          );
+          const favoriteEntries = (
+            Object.entries(favorites) as [string, Favorite][]
+          ).map(([key, fav]) => ({ key, data: fav }));
 
           let processedFavorites = 0;
           let updatedFavorites = 0;

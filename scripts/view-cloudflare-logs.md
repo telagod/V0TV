@@ -24,28 +24,37 @@ npx wrangler tail --search "/api/playrecords"
 ## 常见错误模式
 
 ### 1. `__name is not defined`
+
 ```
 ReferenceError: __name is not defined
 ```
+
 **解决方案**：已通过 `keep_names: false` 修复
 
 ### 2. FinalizationRegistry 错误
+
 ```
 ReferenceError: FinalizationRegistry is not defined
 ```
+
 **解决方案**：已通过 `compatibility_date: 2025-05-05` 修复
 
 ### 3. I/O Request 错误
+
 ```
 Error: Cannot perform I/O on behalf of a different request
 ```
+
 **解决方案**：需要修改数据库客户端代码，为每个请求创建新实例
 
 ### 4. Module Resolution 错误
+
 ```
 Error: Could not resolve "module-name"
 ```
+
 **解决方案**：设置环境变量：
+
 ```bash
 export WRANGLER_BUILD_CONDITIONS=""
 export WRANGLER_BUILD_PLATFORM="node"
@@ -54,14 +63,17 @@ export WRANGLER_BUILD_PLATFORM="node"
 ## 调试步骤
 
 1. **清除浏览器缓存**
+
    - Windows/Linux: `Ctrl + Shift + R`
    - Mac: `Cmd + Shift + R`
 
 2. **检查 Worker 版本**
+
    - Dashboard → Deployments
    - 确认最新 commit 已部署
 
 3. **查看实时日志**
+
    - 根据错误类型应用对应修复
 
 4. **检查 Wrangler 配置**
@@ -70,6 +82,7 @@ export WRANGLER_BUILD_PLATFORM="node"
 ## 需要帮助？
 
 如果看到日志中的错误，请复制完整的错误信息，包括：
+
 - 错误类型
 - 错误消息
 - 堆栈跟踪（如果有）

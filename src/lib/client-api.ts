@@ -96,7 +96,9 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
   if (DEFAULT_CONFIG.cacheCorsCheck && corsCache.has(domain)) {
     const cached = corsCache.get(domain);
     if (typeof cached === 'boolean') {
-      logDebug(`[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`);
+      logDebug(
+        `[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`
+      );
       return cached;
     }
   }
@@ -189,7 +191,9 @@ async function fetchDirectly<T = unknown>(
       err?.name === 'TypeError';
 
     logWarn(
-      `[客户端直连] ❌ 失败: ${isCorsError ? 'CORS限制' : err?.message || '未知错误'}`
+      `[客户端直连] ❌ 失败: ${
+        isCorsError ? 'CORS限制' : err?.message || '未知错误'
+      }`
     );
     throw error;
   }
@@ -286,7 +290,9 @@ async function smartFetch<T = unknown>(
       logDebug('[智能请求] CORS失败，自动降级到服务端代理');
     } else {
       logDebug(
-        `[智能请求] 客户端请求失败(${err?.message || '未知错误'})，降级到服务端代理`
+        `[智能请求] 客户端请求失败(${
+          err?.message || '未知错误'
+        })，降级到服务端代理`
       );
     }
 

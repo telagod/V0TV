@@ -6,7 +6,6 @@ import { getStorage } from '@/lib/db';
 import { searchFromApi } from '@/lib/downstream';
 import { logError } from '@/lib/logger';
 
-
 // 处理OPTIONS预检请求（OrionTV客户端需要）
 export async function OPTIONS() {
   return handleOptionsRequest();

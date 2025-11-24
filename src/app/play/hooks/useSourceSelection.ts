@@ -3,10 +3,10 @@
  * 管理播放源选择、搜索和换源
  */
 
-import { useCallback, useRef,useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import { getConfig } from '@/lib/config';
-import { getDetailFromApi,searchFromApi } from '@/lib/downstream';
+import { getDetailFromApi, searchFromApi } from '@/lib/downstream';
 import { logError, logInfo } from '@/lib/logger';
 import type { SearchResult } from '@/lib/types';
 
@@ -53,12 +53,14 @@ export function useSourceSelection(
 
     try {
       const config = await getConfig();
-      const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
-        key: s.key,
-        name: s.name,
-        api: s.api,
-        detail: s.detail,
-      }));
+      const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
+        (s) => ({
+          key: s.key,
+          name: s.name,
+          api: s.api,
+          detail: s.detail,
+        })
+      );
 
       // 并行搜索所有源
       const searchPromises = apiSites.map((site) =>
@@ -115,12 +117,14 @@ export function useSourceSelection(
         // 如果在已搜索的源中找不到，重新获取详情
         if (!newDetail) {
           const config = await getConfig();
-          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
-            key: s.key,
-            name: s.name,
-            api: s.api,
-            detail: s.detail,
-          }));
+          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
+            (s) => ({
+              key: s.key,
+              name: s.name,
+              api: s.api,
+              detail: s.detail,
+            })
+          );
           const apiSite = apiSites.find((s) => s.key === newSource);
 
           if (!apiSite) {

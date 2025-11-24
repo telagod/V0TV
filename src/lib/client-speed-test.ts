@@ -202,7 +202,9 @@ export async function smartSpeedTest<T extends SourceWithKey>(
           return { sourceKey, result };
         } catch (error: unknown) {
           const err = error instanceof Error ? error : null;
-          logWarn(`[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`);
+          logWarn(
+            `[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`
+          );
 
           return {
             sourceKey,

@@ -192,10 +192,7 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
       // 监听片段加载完成，只需首个分片即可计算速度
       hls.on(
         Hls.Events.FRAG_LOADED,
-        (
-          _event: string,
-          data: { payload?: ArrayBuffer; frag?: unknown }
-        ) => {
+        (_event: string, data: { payload?: ArrayBuffer; frag?: unknown }) => {
           if (
             fragmentStartTime > 0 &&
             data &&

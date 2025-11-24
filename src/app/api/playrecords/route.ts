@@ -5,7 +5,6 @@ import { getDb } from '@/lib/get-db';
 import { logError } from '@/lib/logger';
 import { PlayRecord } from '@/lib/types';
 
-
 export async function GET(request: NextRequest) {
   try {
     const db = await getDb();

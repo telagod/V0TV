@@ -68,8 +68,7 @@ export default async function RootLayout({
     resolvedConfig?.SiteConfig.Announcement || defaultAnnouncement;
   const enableRegister =
     resolvedConfig?.UserConfig.AllowRegister ?? defaultEnableRegister;
-  const imageProxy =
-    resolvedConfig?.SiteConfig.ImageProxy || defaultImageProxy;
+  const imageProxy = resolvedConfig?.SiteConfig.ImageProxy || defaultImageProxy;
   const doubanProxy =
     resolvedConfig?.SiteConfig.DoubanProxy || defaultDoubanProxy;
 
@@ -92,9 +91,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body
-        className='min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-200 font-sans'
-      >
+      <body className='min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-200 font-sans'>
         {/* 浮动几何形状装饰 */}
         <FloatingShapes />
 

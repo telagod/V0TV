@@ -1,13 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { logError } from '@/lib/logger';
 
@@ -335,11 +329,7 @@ export default function PlayPageClient() {
       );
       updateEpisodeIndex(validEpisode);
     }
-  }, [
-    urlParams.initialEpisode,
-    videoData.totalEpisodes,
-    updateEpisodeIndex,
-  ]);
+  }, [urlParams.initialEpisode, videoData.totalEpisodes, updateEpisodeIndex]);
 
   // ============================================================================
   // 同步URL参数
@@ -379,7 +369,10 @@ export default function PlayPageClient() {
   // 预计算视频信息（用于换源时显示）
   // ============================================================================
   const precomputedVideoInfo = useMemo(() => {
-    const infoMap = new Map<string, { title: string; year: string; episodes: number; quality: string }>();
+    const infoMap = new Map<
+      string,
+      { title: string; year: string; episodes: number; quality: string }
+    >();
     availableSources.forEach((source) => {
       const key = `${source.source}-${source.id}`;
       infoMap.set(key, {

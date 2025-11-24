@@ -3,11 +3,11 @@
  * 管理视频数据获取和状态
  */
 
-import { useCallback,useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { smartSpeedTest } from '@/lib/client-speed-test';
 import { getConfig } from '@/lib/config';
-import { getDetailFromApi,searchFromApi } from '@/lib/downstream';
+import { getDetailFromApi, searchFromApi } from '@/lib/downstream';
 import { logError } from '@/lib/logger';
 import { getVideoResolutionFromM3u8 } from '@/lib/utils';
 
@@ -54,8 +54,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
   });
 
   const [loading, setLoading] = useState(true);
-  const [_loadingStage, setLoadingStage] =
-    useState<LoadingStage>('searching');
+  const [_loadingStage, setLoadingStage] = useState<LoadingStage>('searching');
   const [error, setError] = useState<string | null>(null);
 
   // 加载视频数据
@@ -85,12 +84,14 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
           // 搜索所有可用源
           const config = await getConfig();
-          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
-            key: s.key,
-            name: s.name,
-            api: s.api,
-            detail: s.detail,
-          }));
+          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
+            (s) => ({
+              key: s.key,
+              name: s.name,
+              api: s.api,
+              detail: s.detail,
+            })
+          );
 
           const searchPromises = apiSites.map((site) =>
             searchFromApi(site, searchTitle).catch((err) => {
@@ -165,9 +166,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
             // 继续获取详情
             setLoadingStage('fetching');
-            const bestSite = apiSites.find(
-              (s) => s.key === bestSource.source
-            );
+            const bestSite = apiSites.find((s) => s.key === bestSource.source);
             if (!bestSite) {
               throw new Error('未找到最佳播放源配置');
             }
@@ -187,12 +186,14 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
           setLoadingStage('fetching');
 
           const config = await getConfig();
-          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map((s) => ({
-            key: s.key,
-            name: s.name,
-            api: s.api,
-            detail: s.detail,
-          }));
+          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
+            (s) => ({
+              key: s.key,
+              name: s.name,
+              api: s.api,
+              detail: s.detail,
+            })
+          );
           const apiSite = apiSites.find((s) => s.key === initialSource);
 
           if (!apiSite) {

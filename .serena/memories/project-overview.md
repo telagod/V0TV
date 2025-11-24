@@ -1,9 +1,11 @@
 # V0TV 项目概览
 
 ## 项目简介
+
 V0TV 是一个现代化的自托管影视聚合平台，基于 Next.js 14 构建，支持多源内容聚合、智能播放控制、跨设备数据同步等功能。
 
 ## 技术栈
+
 - **框架**: Next.js 14 (App Router)
 - **语言**: TypeScript 4.9.5
 - **样式**: Tailwind CSS
@@ -13,6 +15,7 @@ V0TV 是一个现代化的自托管影视聚合平台，基于 Next.js 14 构建
 - **包管理器**: pnpm 10.12.4
 
 ## 项目结构
+
 ```
 V0TV/
 ├── src/
@@ -39,6 +42,7 @@ V0TV/
 ```
 
 ## 核心功能
+
 - 智能聚合搜索 - 多源影视内容聚合
 - 高清播放 - 基于 ArtPlayer 和 HLS.js
 - 智能跳过 - 自定义跳过片头片尾
@@ -51,6 +55,7 @@ V0TV/
 - 多种存储 - 支持多种存储方式
 
 ## 部署方式
+
 - Docker 单容器
 - Docker + Redis
 - Cloudflare Pages/Workers
@@ -59,6 +64,7 @@ V0TV/
 - VPS 服务器
 
 ## 开发命令
+
 - `pnpm dev` - 启动开发服务器
 - `pnpm build` - 构建生产版本
 - `pnpm lint` - 代码检查
@@ -67,11 +73,13 @@ V0TV/
 - `pnpm pages:build` - 构建 Cloudflare Pages 版本
 
 ## TypeScript 配置
+
 - 严格模式启用
 - 模块系统: Node16
-- 路径别名: @/* -> ./src/*, ~/* -> ./public/*
+- 路径别名: @/_ -> ./src/_, ~/_ -> ./public/_
 - 目标: ES5
 - JSX: preserve
 
 ## 最新版本
+
 v0.8.0 - 播放页面完全重构，代码减少 67%，性能大幅提升

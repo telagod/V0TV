@@ -3,7 +3,7 @@
  * 管理收藏功能
  */
 
-import { useCallback,useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
   deleteFavorite,
