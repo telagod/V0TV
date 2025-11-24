@@ -9,6 +9,15 @@ import {
   UserSettings,
 } from './types';
 
+let getCloudflareContext: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const cf = require('@opennextjs/cloudflare');
+  getCloudflareContext = cf.getCloudflareContext;
+} catch (e) {
+  // @opennextjs/cloudflare 不可用
+}
+
 // 搜索历史最大条数
 const SEARCH_HISTORY_LIMIT = 20;
 
@@ -89,15 +98,15 @@ function getD1Database(dbInstance?: D1Database): D1Database {
     return dbInstance;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  try {
-    const { getCloudflareContext } = require('@opennextjs/cloudflare');
-    const ctx = getCloudflareContext();
-    if (ctx?.env?.DB) {
-      return ctx.env.DB;
+  if (getCloudflareContext) {
+    try {
+      const ctx = getCloudflareContext();
+      if (ctx?.env?.DB) {
+        return ctx.env.DB;
+      }
+    } catch (e) {
+      // getCloudflareContext 调用失败
     }
-  } catch (e) {
-    // getCloudflareContext 不可用
   }
 
   const envWithDb = process.env as NodeJS.ProcessEnv & { DB?: D1Database };
