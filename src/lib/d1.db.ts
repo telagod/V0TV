@@ -89,6 +89,7 @@ function getD1Database(dbInstance?: D1Database): D1Database {
     return dbInstance;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   try {
     const { getCloudflareContext } = require('@opennextjs/cloudflare');
     const ctx = getCloudflareContext();
@@ -96,7 +97,7 @@ function getD1Database(dbInstance?: D1Database): D1Database {
       return ctx.env.DB;
     }
   } catch (e) {
-    // getCloudflareContext 不可用，继续尝试其他方式
+    // getCloudflareContext 不可用
   }
 
   const envWithDb = process.env as NodeJS.ProcessEnv & { DB?: D1Database };
