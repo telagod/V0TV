@@ -516,7 +516,9 @@ function getRedisClient(): RedisClientType {
 
     (global as any)[globalKey] = client;
     // 同步旧键，保持兼容
-    (global as any)[legacyKey] = client;
+    for (const key of legacySymbols) {
+      (global as any)[key] = client;
+    }
   }
 
   return client;

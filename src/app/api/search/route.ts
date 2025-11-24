@@ -101,7 +101,6 @@ export async function GET(request: Request) {
 
     // 所有结果都作为常规结果返回，因为成人内容源已经在源头被过滤掉了
     const cacheTime = await getCacheTime();
-    logError('[search] 搜索失败', error);
     const response = NextResponse.json(
       {
         regular_results: searchResults,
