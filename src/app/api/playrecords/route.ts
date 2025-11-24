@@ -9,20 +9,16 @@ export async function GET(request: NextRequest) {
   try {
     const db = await getDb();
 
-    // 从 cookie 获取用户信息
     const authInfo = getAuthInfoFromCookie(request);
     if (!authInfo || !authInfo.username) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const records = await db.getAllPlayRecords(authInfo.username);
-    return NextResponse.json(records, { status: 200 });
+    return NextResponse.json(records || {}, { status: 200 });
   } catch (err) {
     logError('获取播放记录失败', err);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return NextResponse.json({}, { status: 200 });
   }
 }
 
