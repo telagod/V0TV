@@ -139,7 +139,11 @@ export function createAdFilterLoader() {
       }
     }
 
-    load(context: unknown, config: unknown, callbacks: Record<string, unknown>) {
+    load(
+      context: unknown,
+      config: unknown,
+      callbacks: Record<string, unknown>
+    ) {
       const ctx = context as { type?: string };
       const isInterceptTarget = ctx.type === 'manifest' || ctx.type === 'level';
 
