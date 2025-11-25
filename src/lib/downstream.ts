@@ -159,15 +159,17 @@ function isValidM3u8Url(url: string): boolean {
       return false;
     }
 
-    // 2. 检查扩展名
-    if (!urlObj.pathname.toLowerCase().endsWith('.m3u8')) {
-      Logger.warn('URL验证', `非M3U8文件: ${url}`);
+    // 2. 检查扩展名或特殊链接
+    const isDyttShare = urlObj.hostname.includes('dytt-cine.com') && urlObj.pathname.includes('/share/');
+    const isM3u8 = urlObj.pathname.toLowerCase().endsWith('.m3u8');
+
+    if (!isM3u8 && !isDyttShare) {
+      Logger.warn('URL验证', `非M3U8文件且非电影天堂分享链接: ${url}`);
       return false;
     }
 
-    // 3. 排除已知的中转页面路径
+    // 3. 排除已知的中转页面路径（电影天堂分享链接除外）
     const excludePaths = [
-      '/share/', // 分享页面（如 dytt 的 /share/xxx）
       '/redirect/', // 重定向页面
       '/jump/', // 跳转页面
       '/play.html', // HTML播放器页面
@@ -229,11 +231,11 @@ function extractAllPlaySources(
       const parts = ep.split('$');
       if (parts.length > 1) {
         const url = parts[1];
-        // 只提取以 http 开头且以 .m3u8 结尾的URL
+        // 提取 http/https 链接（m3u8 或电影天堂分享链接）
         if (
           url &&
           (url.startsWith('http://') || url.startsWith('https://')) &&
-          url.endsWith('.m3u8')
+          (url.endsWith('.m3u8') || url.includes('dytt-cine.com/share/'))
         ) {
           episodes.push(url);
         }
