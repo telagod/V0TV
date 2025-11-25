@@ -23,7 +23,7 @@
     "prepare": "husky install",
     "pages:build": "pnpm gen:runtime && pnpm gen:manifest && npx opennextjs-cloudflare build --openNextConfigPath=open-next.config.mts",
     "preview": "pnpm pages:build && npx opennextjs-cloudflare preview",
-    "deploy": "pnpm pages:build && wrangler deploy",
+    "deploy": "bash scripts/deploy.sh",
     "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy"
   },
