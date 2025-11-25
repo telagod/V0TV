@@ -217,107 +217,39 @@ function extractAllPlaySources(
 
   const playSources = vodPlayUrl.split('$$$');
   const sourceNames = vodPlayFrom?.split('$$$') || [];
-
   const results: PlaySource[] = [];
 
   playSources.forEach((source, index) => {
     const sourceName = sourceNames[index] || `播放源${index + 1}`;
 
-    // 方法1：从标准格式提取（第01集$url#第02集$url）
-    const episodeList = source.split('#');
-    let episodes: string[] = [];
+    // 使用正则提取 m3u8 链接
+    const m3u8Regex = /\$(https?:\/\/[^"'\s]+?\.m3u8)/g;
+    const matches = source.match(m3u8Regex) || [];
 
-    episodeList.forEach((ep: string) => {
-      const parts = ep.split('$');
-      if (parts.length > 1) {
-        const url = parts[1];
-        // 提取 http/https 链接（m3u8 或电影天堂分享链接）
-        if (
-          url &&
-          (url.startsWith('http://') || url.startsWith('https://')) &&
-          (url.endsWith('.m3u8') || url.includes('dytt-cine.com/share/'))
-        ) {
-          episodes.push(url);
-        }
-      }
+    // 清理链接
+    const episodes = Array.from(new Set(matches)).map((link: string) => {
+      link = link.substring(1); // 去掉 $
+      const parenIndex = link.indexOf('(');
+      return parenIndex > 0 ? link.substring(0, parenIndex) : link;
     });
 
-    // 方法2：如果方法1没提取到，使用正则提取
-    if (episodes.length === 0) {
-      // 优先：严格的正则（包含日期路径的标准格式）
-      const strictRegex = /\$(https?:\/\/[^"'\s]+?\/\d{8,}[^"'\s]*?\.m3u8)/g;
-      let matches = source.match(strictRegex) || [];
-
-      // 降级：宽松的正则（所有.m3u8链接）
-      if (matches.length === 0) {
-        const looseRegex = /\$(https?:\/\/[^"'\s]+?\.m3u8)/g;
-        matches = source.match(looseRegex) || [];
-      }
-
-      // 清理链接（去掉开头的$和括号内容）
-      episodes = matches.map((link: string) => {
-        link = link.substring(1); // 去掉开头的 $
-        const parenIndex = link.indexOf('(');
-        return parenIndex > 0 ? link.substring(0, parenIndex) : link;
-      });
-    }
-
-    // 过滤无效链接
-    const validEpisodes = episodes.filter((url) => isValidM3u8Url(url));
-
-    // 去重
-    const uniqueEpisodes = Array.from(new Set(validEpisodes));
-
-    if (uniqueEpisodes.length > 0) {
+    if (episodes.length > 0) {
       // 计算优先级
       let priority = 99;
       const lowerName = sourceName.toLowerCase();
 
-      // m3u8 关键词的源优先级最高
-      if (lowerName.includes('m3u8')) {
-        priority = 1;
-      }
-      // 包含"高清"的源次之
-      else if (
-        lowerName.includes('高清') ||
-        lowerName.includes('hd') ||
-        lowerName.includes('1080')
-      ) {
-        priority = 2;
-      }
-      // 包含"标清"的源再次之
-      else if (
-        lowerName.includes('标清') ||
-        lowerName.includes('sd') ||
-        lowerName.includes('720')
-      ) {
-        priority = 3;
-      }
-      // 量子、非凡等知名源
-      else if (
-        lowerName.includes('量子') ||
-        lowerName.includes('非凡') ||
-        lowerName.includes('ffzy')
-      ) {
-        priority = 4;
-      }
+      if (lowerName.includes('m3u8')) priority = 1;
+      else if (lowerName.includes('高清') || lowerName.includes('hd') || lowerName.includes('1080')) priority = 2;
+      else if (lowerName.includes('标清') || lowerName.includes('sd') || lowerName.includes('720')) priority = 3;
+      else if (lowerName.includes('量子') || lowerName.includes('非凡') || lowerName.includes('ffzy')) priority = 4;
 
-      results.push({
-        name: sourceName,
-        episodes: uniqueEpisodes,
-        priority,
-      });
-
-      Logger.success(
-        '源解析',
-        `${sourceName}: 提取到 ${uniqueEpisodes.length} 个有效链接，优先级 ${priority}`
-      );
+      results.push({ name: sourceName, episodes, priority });
+      Logger.success('源解析', `${sourceName}: ${episodes.length} 个链接，优先级 ${priority}`);
     } else {
-      Logger.warn('源解析', `${sourceName}: 没有提取到有效的M3U8链接`);
+      Logger.warn('源解析', `${sourceName}: 没有提取到M3U8链接`);
     }
   });
 
-  // 按优先级排序
   return results.sort((a, b) => a.priority - b.priority);
 }
 
