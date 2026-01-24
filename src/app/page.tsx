@@ -8,7 +8,6 @@ import FavoritesContent from '@/components/features/FavoritesContent';
 import HomeContent from '@/components/features/HomeContent';
 import PageLayout from '@/components/PageLayout';
 import { useSite } from '@/components/SiteProvider';
-import { MainLogo } from '@/components/ui/Logo';
 
 function HomeClient() {
   const [activeTab, setActiveTab] = useState<'home' | 'favorites'>('home');
@@ -33,12 +32,9 @@ function HomeClient() {
 
   return (
     <PageLayout>
-      <div className='px-4 sm:px-8 lg:px-12 py-4 sm:py-8 overflow-visible'>
-        {/* 主内容区大型 V0TV Logo - 仅在首页显示 */}
-        {activeTab === 'home' && <MainLogo />}
-
+      <div className='px-4 sm:px-6 py-4 sm:py-6 overflow-visible'>
         {/* 顶部 Tab 切换 */}
-        <div className='mb-8 flex justify-center'>
+        <div className='mb-6 flex justify-center'>
           <CapsuleSwitch
             options={[
               { label: '首页', value: 'home' },

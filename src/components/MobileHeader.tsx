@@ -20,17 +20,17 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      <div className='h-12 mobile-landscape:h-10 grid grid-cols-[auto,1fr,auto] items-center px-4 gap-2'>
+      <div className='h-12 mobile-landscape:h-10 flex items-center justify-between px-4'>
         <div className='flex items-center gap-2'>
           {showBackButton && <BackButton />}
+          <Link
+            href='/'
+            className='text-lg mobile-landscape:text-base font-bold v0tv-logo tracking-tight hover:opacity-80 transition-opacity'
+          >
+            {siteName}
+          </Link>
         </div>
-        <Link
-          href='/'
-          className='justify-self-center text-lg mobile-landscape:text-base font-bold v0tv-logo tracking-tight hover:opacity-80 transition-opacity truncate'
-        >
-          {siteName}
-        </Link>
-        <div className='flex items-center gap-2 justify-end'>
+        <div className='flex items-center gap-2'>
           <ThemeToggle />
           <UserMenu />
         </div>

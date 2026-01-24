@@ -79,7 +79,7 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
               href='/'
               className='flex items-center select-none hover:opacity-80 transition-opacity duration-200'
             >
-              <span className='text-2xl font-bold v0tv-logo tracking-tight'>
+              <span className='text-xl font-bold v0tv-logo tracking-tight'>
                 {siteName}
               </span>
             </Link>
@@ -194,11 +194,11 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
             }}
           >
             <div
-              className={`w-full mx-auto rounded-container ${
+              className={`w-full mx-auto ${
                 isPlayPage ? 'max-w-[1200px]' : 'max-w-6xl'
               }`}
             >
-              <div className='p-3 xs:p-4 sm:p-6 md:p-8 lg:p-10'>{children}</div>
+              {children}
             </div>
           </div>
         </main>
