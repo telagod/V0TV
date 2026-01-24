@@ -31,7 +31,7 @@ interface UsePlaybackHistoryOptions {
  * 播放记录Hook
  */
 export function usePlaybackHistory(
-  options: UsePlaybackHistoryOptions
+  options: UsePlaybackHistoryOptions,
 ): UsePlaybackHistoryReturn {
   const {
     source,
@@ -126,7 +126,7 @@ export function usePlaybackHistory(
       totalEpisodes,
       sourceName,
       enabled,
-    ]
+    ],
   );
 
   // 删除播放记录

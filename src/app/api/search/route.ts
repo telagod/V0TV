@@ -1,43 +1,56 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { getAvailableApiSites, getCacheTime } from '@/lib/config';
+import { getAvailableApiSites } from '@/lib/config';
 import { addCorsHeaders, handleOptionsRequest } from '@/lib/cors';
 import { getStorage } from '@/lib/db';
-import { searchFromApi } from '@/lib/downstream';
 import { logError } from '@/lib/logger';
+import { sourceManager } from '@/lib/source';
+import { getVerifiedUserName } from '@/lib/user-context';
+
+function isUsableResult(item: unknown): boolean {
+  const r = item as {
+    id?: unknown;
+    title?: unknown;
+    source?: unknown;
+    poster?: unknown;
+    episodes?: unknown;
+  };
+
+  if (typeof r?.id !== 'string' || !r.id) return false;
+  if (typeof r?.title !== 'string' || !r.title.trim()) return false;
+  if (typeof r?.source !== 'string' || !r.source) return false;
+  if (typeof r?.poster !== 'string' || !r.poster) return false;
+  if (!Array.isArray(r?.episodes) || r.episodes.length === 0) return false;
+  if (typeof r.episodes[0] !== 'string' || !r.episodes[0]) return false;
+  return true;
+}
 
 // 处理OPTIONS预检请求（OrionTV客户端需要）
 export async function OPTIONS() {
   return handleOptionsRequest();
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
-
-  // 从 Authorization header 或 query parameter 获取用户名
-  let userName: string | undefined = searchParams.get('user') || undefined;
-  if (!userName) {
-    const authHeader = request.headers.get('Authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      userName = authHeader.substring(7);
-    }
-  }
+  const maxSitesParam = searchParams.get('maxSites');
+  const maxSites =
+    maxSitesParam && /^\d+$/.test(maxSitesParam)
+      ? Number(maxSitesParam)
+      : null;
 
   if (!query) {
-    const cacheTime = await getCacheTime();
     const response = NextResponse.json(
       {
         regular_results: [],
         adult_results: [],
+        meta: { partial: false, sites_searched: 0, sites_total: 0 },
       },
       {
         headers: {
-          'Cache-Control': `public, max-age=${cacheTime}, s-maxage=${cacheTime}`,
-          'CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
-          'Vercel-CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
+          'Cache-Control': 'no-store',
         },
-      }
+      },
     );
     return addCorsHeaders(response);
   }
@@ -57,8 +70,11 @@ export async function GET(request: Request) {
       }
     }
 
-    // 获取用户的成人内容过滤设置（完全依赖服务端，移除客户端参数）
-    let shouldFilterAdult = true; // 默认过滤
+    // 获取用户身份（仅信任已验证的 cookie）
+    const userName = await getVerifiedUserName(request);
+
+    // 获取用户的成人内容过滤设置：默认过滤；用户可在设置里关闭过滤
+    let shouldFilterAdult = true;
     if (userName) {
       try {
         const storage = getStorage(dbInstance);
@@ -72,57 +88,78 @@ export async function GET(request: Request) {
       }
     }
 
-    // 使用动态过滤方法，完全基于用户设置（不受客户端参数影响）
-    const availableSites = await getAvailableApiSites(shouldFilterAdult);
+    // 获取全部站点（用于分组），并按用户设置决定是否允许搜索成人源
+    const allSites = await getAvailableApiSites(false);
+    const siteByKey = new Map(allSites.map((s) => [s.key, s]));
+    let sitesToSearch = shouldFilterAdult
+      ? allSites.filter((s) => !s.is_adult)
+      : allSites;
 
-    if (!availableSites || availableSites.length === 0) {
-      const cacheTime = await getCacheTime();
+    const sitesTotal = sitesToSearch.length;
+    if (maxSites && maxSites > 0) {
+      sitesToSearch = sitesToSearch.slice(0, maxSites);
+    }
+    const sitesSearched = sitesToSearch.length;
+
+    if (!sitesToSearch || sitesToSearch.length === 0) {
       const response = NextResponse.json(
         {
           regular_results: [],
           adult_results: [],
+          meta: { partial: false, sites_searched: 0, sites_total: sitesTotal },
         },
         {
           headers: {
-            'Cache-Control': `public, max-age=${cacheTime}, s-maxage=${cacheTime}`,
-            'CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
-            'Vercel-CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
+            'Cache-Control': 'no-store',
           },
-        }
+        },
       );
       return addCorsHeaders(response);
     }
 
-    // 搜索所有可用的资源站（已根据用户设置动态过滤）
-    const searchPromises = availableSites.map((site) =>
-      searchFromApi(site, query)
-    );
-    const searchResults = (await Promise.all(searchPromises)).flat();
+    // 使用 sourceManager 进行批量搜索 (优化: 并发控制已内置)
+    const searchResults = await sourceManager.searchMultiple(sitesToSearch, query);
 
-    // 所有结果都作为常规结果返回，因为成人内容源已经在源头被过滤掉了
-    const cacheTime = await getCacheTime();
+    const usable = searchResults.filter(isUsableResult);
+
+    // 按源站的 is_adult 分组（仅在用户关闭过滤时返回 adult_results）
+    const regularResults = [];
+    const adultResults = [];
+    for (const item of usable) {
+      const site = siteByKey.get(item.source);
+      if (site?.is_adult) adultResults.push(item);
+      else regularResults.push(item);
+    }
+
     const response = NextResponse.json(
       {
-        regular_results: searchResults,
-        adult_results: [], // 始终为空，因为成人内容在源头就被过滤了
+        regular_results: regularResults,
+        adult_results: shouldFilterAdult ? [] : adultResults,
+        meta: {
+          partial: Boolean(maxSites && sitesSearched < sitesTotal),
+          sites_searched: sitesSearched,
+          sites_total: sitesTotal,
+        },
       },
       {
         headers: {
-          'Cache-Control': `public, max-age=${cacheTime}, s-maxage=${cacheTime}`,
-          'CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
-          'Vercel-CDN-Cache-Control': `public, s-maxage=${cacheTime}`,
+          // 用户偏好相关：禁止共享缓存，避免不同用户结果混淆
+          'Cache-Control': 'no-store',
+          Vary: 'Cookie',
         },
-      }
+      },
     );
     return addCorsHeaders(response);
   } catch (error) {
+    logError('[search] 搜索失败', error);
+    const errorMessage = error instanceof Error ? error.message : '搜索失败';
     const response = NextResponse.json(
       {
         regular_results: [],
         adult_results: [],
-        error: '搜索失败',
+        error: errorMessage,
       },
-      { status: 500 }
+      { status: 500 },
     );
     return addCorsHeaders(response);
   }

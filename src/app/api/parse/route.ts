@@ -49,7 +49,7 @@ function detectPlatform(url: string): string {
 // 获取适用的解析接口
 function getCompatibleParsers(platform: string) {
   return PARSE_APIS.filter(
-    (api) => api.support.includes(platform) || platform === 'unknown'
+    (api) => api.support.includes(platform) || platform === 'unknown',
   );
 }
 
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
           platform,
           url,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     let selectedParser = compatibleParsers[0];
     if (parser) {
       const customParser = PARSE_APIS.find((api) =>
-        api.name.toLowerCase().includes(parser.toLowerCase())
+        api.name.toLowerCase().includes(parser.toLowerCase()),
       );
       if (customParser && compatibleParsers.includes(customParser)) {
         selectedParser = customParser;
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
             'Access-Control-Allow-Headers': 'Content-Type',
             'Cache-Control': 'public, max-age=300', // 5分钟缓存
           },
-        }
+        },
       );
     }
   } catch (error) {
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
         error: '视频解析失败',
         details: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -63,17 +63,14 @@ export WRANGLER_BUILD_PLATFORM="node"
 ## 调试步骤
 
 1. **清除浏览器缓存**
-
    - Windows/Linux: `Ctrl + Shift + R`
    - Mac: `Cmd + Shift + R`
 
 2. **检查 Worker 版本**
-
    - Dashboard → Deployments
    - 确认最新 commit 已部署
 
 3. **查看实时日志**
-
    - 根据错误类型应用对应修复
 
 4. **检查 Wrangler 配置**

@@ -11,7 +11,7 @@ import {
 
 const ADMIN_CONFIG_KEY = `${BRAND_SLUG}_admin_config`;
 const LEGACY_ADMIN_CONFIG_KEYS = LEGACY_BRAND_SLUGS.map(
-  (slug) => `${slug}_admin_config`
+  (slug) => `${slug}_admin_config`,
 );
 
 /**
@@ -58,7 +58,7 @@ export class LocalStorage implements IStorage {
     brand: string,
     prefix: string,
     userName: string,
-    key?: string
+    key?: string,
   ): string {
     return key
       ? `${brand}_${prefix}_${userName}_${key}`
@@ -68,7 +68,7 @@ export class LocalStorage implements IStorage {
   private getStorageKey(
     prefix: string,
     userName: string,
-    key?: string
+    key?: string,
   ): string {
     return this.formatKey(BRAND_SLUG, prefix, userName, key);
   }
@@ -76,17 +76,17 @@ export class LocalStorage implements IStorage {
   private getLegacyStorageKeys(
     prefix: string,
     userName: string,
-    key?: string
+    key?: string,
   ): string[] {
     return LEGACY_BRAND_SLUGS.map((legacy) =>
-      this.formatKey(legacy, prefix, userName, key)
+      this.formatKey(legacy, prefix, userName, key),
     );
   }
 
   private removeLegacyStorageKeys(
     prefix: string,
     userName: string,
-    key?: string
+    key?: string,
   ): void {
     this.getLegacyStorageKeys(prefix, userName, key).forEach((storageKey) => {
       localStorage.removeItem(storageKey);
@@ -96,7 +96,7 @@ export class LocalStorage implements IStorage {
   private getStorageValue(
     prefix: string,
     userName: string,
-    key?: string
+    key?: string,
   ): string | null {
     const storageKey = this.getStorageKey(prefix, userName, key);
     const primary = localStorage.getItem(storageKey);
@@ -115,7 +115,7 @@ export class LocalStorage implements IStorage {
   // ---------- 播放记录 ----------
   async getPlayRecord(
     userName: string,
-    key: string
+    key: string,
   ): Promise<PlayRecord | null> {
     if (typeof window === 'undefined') return null;
 
@@ -131,7 +131,7 @@ export class LocalStorage implements IStorage {
   async setPlayRecord(
     userName: string,
     key: string,
-    record: PlayRecord
+    record: PlayRecord,
   ): Promise<void> {
     if (typeof window === 'undefined') return;
 
@@ -145,7 +145,7 @@ export class LocalStorage implements IStorage {
   }
 
   async getAllPlayRecords(
-    userName: string
+    userName: string,
   ): Promise<{ [key: string]: PlayRecord }> {
     if (typeof window === 'undefined') return {};
 
@@ -188,6 +188,31 @@ export class LocalStorage implements IStorage {
     }
   }
 
+  async deleteAllPlayRecords(userName: string): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const prefixes = [
+        ...this.getLegacyStorageKeys('playrecord', userName),
+        this.getStorageKey('playrecord', userName),
+      ];
+      const keysToRemove: string[] = [];
+
+      for (const prefix of prefixes) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i);
+          if (storageKey && storageKey.startsWith(prefix + '_')) {
+            keysToRemove.push(storageKey);
+          }
+        }
+      }
+
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+    } catch (error) {
+      console.error('Error deleting all play records:', error);
+    }
+  }
+
   // ---------- 收藏 ----------
   async getFavorite(userName: string, key: string): Promise<Favorite | null> {
     if (typeof window === 'undefined') return null;
@@ -204,7 +229,7 @@ export class LocalStorage implements IStorage {
   async setFavorite(
     userName: string,
     key: string,
-    favorite: Favorite
+    favorite: Favorite,
   ): Promise<void> {
     if (typeof window === 'undefined') return;
 
@@ -218,7 +243,7 @@ export class LocalStorage implements IStorage {
   }
 
   async getAllFavorites(
-    userName: string
+    userName: string,
   ): Promise<{ [key: string]: Favorite }> {
     if (typeof window === 'undefined') return {};
 
@@ -258,6 +283,31 @@ export class LocalStorage implements IStorage {
       this.removeLegacyStorageKeys('favorite', userName, key);
     } catch (error) {
       console.error('Error deleting favorite:', error);
+    }
+  }
+
+  async deleteAllFavorites(userName: string): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const prefixes = [
+        ...this.getLegacyStorageKeys('favorite', userName),
+        this.getStorageKey('favorite', userName),
+      ];
+      const keysToRemove: string[] = [];
+
+      for (const prefix of prefixes) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i);
+          if (storageKey && storageKey.startsWith(prefix + '_')) {
+            keysToRemove.push(storageKey);
+          }
+        }
+      }
+
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+    } catch (error) {
+      console.error('Error deleting all favorites:', error);
     }
   }
 
@@ -362,7 +412,7 @@ export class LocalStorage implements IStorage {
   // ---------- 跳过配置 ----------
   async getSkipConfig(
     userName: string,
-    key: string
+    key: string,
   ): Promise<EpisodeSkipConfig | null> {
     if (typeof window === 'undefined') return null;
 
@@ -378,7 +428,7 @@ export class LocalStorage implements IStorage {
   async setSkipConfig(
     userName: string,
     key: string,
-    config: EpisodeSkipConfig
+    config: EpisodeSkipConfig,
   ): Promise<void> {
     if (typeof window === 'undefined') return;
 
@@ -392,7 +442,7 @@ export class LocalStorage implements IStorage {
   }
 
   async getAllSkipConfigs(
-    userName: string
+    userName: string,
   ): Promise<{ [key: string]: EpisodeSkipConfig }> {
     if (typeof window === 'undefined') return {};
 
@@ -463,7 +513,7 @@ export class LocalStorage implements IStorage {
 
   async setUserSettings(
     userName: string,
-    settings: UserSettings
+    settings: UserSettings,
   ): Promise<void> {
     if (typeof window === 'undefined') return;
 
@@ -478,7 +528,7 @@ export class LocalStorage implements IStorage {
 
   async updateUserSettings(
     userName: string,
-    settings: Partial<UserSettings>
+    settings: Partial<UserSettings>,
   ): Promise<void> {
     if (typeof window === 'undefined') return;
 
@@ -500,7 +550,7 @@ export class LocalStorage implements IStorage {
       const prefixes = [
         this.formatKey(BRAND_SLUG, 'user', ''),
         ...LEGACY_BRAND_SLUGS.map((legacy) =>
-          this.formatKey(legacy, 'user', '')
+          this.formatKey(legacy, 'user', ''),
         ),
       ];
 
@@ -553,7 +603,7 @@ export class LocalStorage implements IStorage {
     try {
       localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(config));
       LEGACY_ADMIN_CONFIG_KEYS.forEach((legacyKey) =>
-        localStorage.removeItem(legacyKey)
+        localStorage.removeItem(legacyKey),
       );
     } catch (error) {
       console.error('Error setting admin config:', error);

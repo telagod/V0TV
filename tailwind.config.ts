@@ -10,6 +10,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      zIndex: {
+        'dropdown': '10',
+        'sticky': '20',
+        'fixed': '30',
+        'modal-backdrop': '40',
+        'modal': '50',
+        'tooltip': '60',
+        'toast': '70',
+      },
       screens: {
         xs: '475px',
         'mobile-landscape': {

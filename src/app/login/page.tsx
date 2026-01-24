@@ -20,7 +20,7 @@ function VersionDisplay() {
       try {
         const status = await checkForUpdates();
         setUpdateStatus(status);
-      } catch (_) {
+      } catch {
         // do nothing
       } finally {
         setIsChecking(false);
@@ -35,7 +35,7 @@ function VersionDisplay() {
       onClick={() =>
         window.open(
           process.env.NEXT_PUBLIC_REPO_URL || 'https://github.com/telagod/V0TV',
-          '_blank'
+          '_blank',
         )
       }
       className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 transition-colors cursor-pointer'
@@ -47,8 +47,8 @@ function VersionDisplay() {
             updateStatus === UpdateStatus.HAS_UPDATE
               ? 'text-yellow-600 dark:text-yellow-400'
               : updateStatus === UpdateStatus.NO_UPDATE
-              ? 'text-purple-600 dark:text-purple-400'
-              : ''
+                ? 'text-purple-600 dark:text-purple-400'
+                : ''
           }`}
         >
           {updateStatus === UpdateStatus.HAS_UPDATE && (
@@ -85,7 +85,7 @@ function LoginPageClient() {
     if (typeof window !== 'undefined') {
       const storageType = window.RUNTIME_CONFIG?.STORAGE_TYPE;
       setShouldAskUsername(
-        Boolean(storageType && storageType !== 'localstorage')
+        Boolean(storageType && storageType !== 'localstorage'),
       );
       setEnableRegister(Boolean(window.RUNTIME_CONFIG?.ENABLE_REGISTER));
     }
@@ -117,7 +117,7 @@ function LoginPageClient() {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? '服务器错误');
       }
-    } catch (error) {
+    } catch {
       setError('网络错误，请稍后重试');
     } finally {
       setLoading(false);
@@ -144,7 +144,7 @@ function LoginPageClient() {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? '服务器错误');
       }
-    } catch (error) {
+    } catch {
       setError('网络错误，请稍后重试');
     } finally {
       setLoading(false);

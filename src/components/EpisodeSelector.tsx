@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import { AlertTriangle, Tv } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -66,10 +67,10 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
   // 存储每个源的视频信息
   const [videoInfoMap, setVideoInfoMap] = useState<Map<string, VideoInfo>>(
-    new Map()
+    new Map(),
   );
   const [attemptedSources, setAttemptedSources] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // 使用 ref 来避免闭包问题
@@ -88,7 +89,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   // 主要的 tab 状态：'episodes' 或 'sources'
   // 当只有一集时默认展示 "换源"，并隐藏 "选集" 标签
   const [activeTab, setActiveTab] = useState<'episodes' | 'sources'>(
-    totalEpisodes > 1 ? 'episodes' : 'sources'
+    totalEpisodes > 1 ? 'episodes' : 'sources',
   );
 
   // 当前分页索引（0 开始）
@@ -98,13 +99,57 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   // 是否倒序显示
   const [descending, setDescending] = useState<boolean>(false);
 
-  // 获取视频信息的函数
-  const getVideoInfo = useCallback(async (source: SearchResult) => {
-    const sourceKey = `${source.source}-${source.id}`;
+  const DEFAULT_SOURCE_TEST_LIMIT = 3;
+  const SOURCE_TEST_BATCH = 3;
+  const SOURCE_TEST_CONCURRENCY = 1;
+  const [sourceTestLimit, setSourceTestLimit] = useState<number>(
+    DEFAULT_SOURCE_TEST_LIMIT,
+  );
 
-    // 使用 ref 获取最新的状态，避免闭包问题
-    if (attemptedSourcesRef.current.has(sourceKey)) {
-      return;
+  useEffect(() => {
+    if (activeTab === 'sources') {
+      setSourceTestLimit(
+        Math.min(DEFAULT_SOURCE_TEST_LIMIT, availableSources.length),
+      );
+    }
+  }, [activeTab, availableSources.length]);
+
+  const sortedSources = React.useMemo(() => {
+    const list = [...availableSources];
+    list.sort((a, b) => {
+      const aIsCurrent =
+        a.source?.toString() === currentSource?.toString() &&
+        a.id?.toString() === currentId?.toString();
+      const bIsCurrent =
+        b.source?.toString() === currentSource?.toString() &&
+        b.id?.toString() === currentId?.toString();
+      if (aIsCurrent && !bIsCurrent) return -1;
+      if (!aIsCurrent && bIsCurrent) return 1;
+      return 0;
+    });
+    return list;
+  }, [availableSources, currentSource, currentId]);
+
+  const testedInAutoLimit = React.useMemo(() => {
+    const autoTargets = sortedSources.slice(0, sourceTestLimit);
+    let count = 0;
+    for (const source of autoTargets) {
+      const key = `${source.source}-${source.id}`;
+      if (videoInfoMap.has(key)) count++;
+    }
+    return count;
+  }, [sortedSources, sourceTestLimit, videoInfoMap]);
+
+  // 获取视频信息的函数
+  const getVideoInfo = useCallback(
+    async (source: SearchResult, signal?: AbortSignal) => {
+      if (signal?.aborted) return;
+
+      const sourceKey = `${source.source}-${source.id}`;
+
+      // 使用 ref 获取最新的状态，避免闭包问题
+      if (attemptedSourcesRef.current.has(sourceKey)) {
+        return;
     }
 
     // 获取第一集的URL
@@ -115,12 +160,24 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
       source.episodes.length > 1 ? source.episodes[1] : source.episodes[0];
 
     // 标记为已尝试
+    attemptedSourcesRef.current.add(sourceKey);
     setAttemptedSources((prev) => new Set(prev).add(sourceKey));
 
     try {
-      const info = await getVideoResolutionFromM3u8(episodeUrl);
+      const info = await getVideoResolutionFromM3u8(episodeUrl, { signal });
       setVideoInfoMap((prev) => new Map(prev).set(sourceKey, info));
     } catch (error) {
+      const err = error instanceof Error ? error : null;
+      if (err?.name === 'AbortError') {
+        attemptedSourcesRef.current.delete(sourceKey);
+        setAttemptedSources((prev) => {
+          const next = new Set(prev);
+          next.delete(sourceKey);
+          return next;
+        });
+        return;
+      }
+
       // 失败时保存错误状态
       setVideoInfoMap((prev) =>
         new Map(prev).set(sourceKey, {
@@ -128,10 +185,12 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           loadSpeed: '未知',
           pingTime: 0,
           hasError: true,
-        })
+        }),
       );
     }
-  }, []);
+  },
+    [],
+  );
 
   // 当有预计算结果时，先合并到videoInfoMap中
   useEffect(() => {
@@ -156,15 +215,47 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
   // 当换源Tab激活且没有测速过时，开始测速
   useEffect(() => {
-    if (activeTab === 'sources') {
-      availableSources.forEach((source) => {
-        const sourceKey = `${source.source}-${source.id}`;
-        if (!attemptedSourcesRef.current.has(sourceKey)) {
-          getVideoInfo(source);
-        }
-      });
+    if (
+      activeTab !== 'sources' ||
+      sourceSearchLoading ||
+      sourceSearchError ||
+      sortedSources.length === 0 ||
+      sourceTestLimit <= 0
+    ) {
+      return;
     }
-  }, [activeTab, availableSources, getVideoInfo]);
+
+    const controller = new AbortController();
+    const autoTargets = sortedSources.slice(0, sourceTestLimit);
+    const pending = autoTargets.filter(
+      (source) => !attemptedSourcesRef.current.has(`${source.source}-${source.id}`),
+    );
+
+    if (pending.length === 0) {
+      return () => controller.abort();
+    }
+
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < pending.length && !controller.signal.aborted) {
+        const source = pending[cursor++];
+        await getVideoInfo(source, controller.signal);
+      }
+    };
+
+    void Promise.all(
+      Array.from({ length: SOURCE_TEST_CONCURRENCY }, () => worker()),
+    );
+
+    return () => controller.abort();
+  }, [
+    activeTab,
+    sourceSearchLoading,
+    sourceSearchError,
+    sortedSources,
+    sourceTestLimit,
+    getVideoInfo,
+  ]);
 
   // 分类标签容器和按钮的引用
   const categoryContainerRef = useRef<HTMLDivElement>(null);
@@ -216,20 +307,20 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
     (episodeNumber: number) => {
       onChange?.(episodeNumber);
     },
-    [onChange]
+    [onChange],
   );
 
   const handleSourceClick = useCallback(
     (source: SearchResult) => {
       onSourceChange?.(source.source, source.id, source.title);
     },
-    [onSourceChange]
+    [onSourceChange],
   );
 
   const currentStart = currentPage * episodesPerPage + 1;
   const currentEnd = Math.min(
     currentStart + episodesPerPage - 1,
-    totalEpisodes
+    totalEpisodes,
   );
 
   return (
@@ -326,7 +417,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             {(() => {
               const len = currentEnd - currentStart + 1;
               const episodes = Array.from({ length: len }, (_, i) =>
-                descending ? currentEnd - i : currentStart + i
+                descending ? currentEnd - i : currentStart + i,
               );
               return episodes;
             })().map((episodeNumber) => {
@@ -370,7 +461,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           {sourceSearchError && (
             <div className='flex items-center justify-center py-8'>
               <div className='text-center'>
-                <div className='text-red-500 text-2xl mb-2'>⚠️</div>
+                <AlertTriangle className='w-8 h-8 text-red-500 mx-auto mb-2' />
                 <p className='text-sm text-red-600 dark:text-red-400'>
                   {sourceSearchError}
                 </p>
@@ -383,7 +474,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             availableSources.length === 0 && (
               <div className='flex items-center justify-center py-8'>
                 <div className='text-center'>
-                  <div className='text-gray-400 text-2xl mb-2'>📺</div>
+                  <Tv className='w-8 h-8 text-gray-400 mx-auto mb-2' />
                   <p className='text-sm text-gray-600 dark:text-gray-300'>
                     暂无可用的换源
                   </p>
@@ -394,20 +485,30 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           {!sourceSearchLoading &&
             !sourceSearchError &&
             availableSources.length > 0 && (
-              <div className='flex-1 overflow-y-auto space-y-2 pb-20'>
-                {availableSources
-                  .sort((a, b) => {
-                    const aIsCurrent =
-                      a.source?.toString() === currentSource?.toString() &&
-                      a.id?.toString() === currentId?.toString();
-                    const bIsCurrent =
-                      b.source?.toString() === currentSource?.toString() &&
-                      b.id?.toString() === currentId?.toString();
-                    if (aIsCurrent && !bIsCurrent) return -1;
-                    if (!aIsCurrent && bIsCurrent) return 1;
-                    return 0;
-                  })
-                  .map((source, index) => {
+              <div className='flex-1 flex flex-col min-h-0'>
+                <div className='flex items-center justify-between px-1'>
+                  <div className='text-xs text-gray-600 dark:text-gray-400'>
+                    自动测速前 {Math.min(sourceTestLimit, sortedSources.length)}{' '}
+                    个源（已完成 {testedInAutoLimit}/
+                    {Math.min(sourceTestLimit, sortedSources.length)}）
+                  </div>
+                  {sortedSources.length > sourceTestLimit && (
+                    <button
+                      type='button'
+                      onClick={() =>
+                        setSourceTestLimit((prev) =>
+                          Math.min(prev + SOURCE_TEST_BATCH, sortedSources.length),
+                        )
+                      }
+                      className='text-xs text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors'
+                    >
+                      测速更多
+                    </button>
+                  )}
+                </div>
+
+                <div className='flex-1 overflow-y-auto space-y-2 pb-20 mt-2'>
+                  {sortedSources.map((source, index) => {
                     const isCurrentSource =
                       source.source?.toString() === currentSource?.toString() &&
                       source.id?.toString() === currentId?.toString();
@@ -431,8 +532,33 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                               src={processImageUrl(source.poster)}
                               alt={source.title}
                               className='w-full h-full object-cover'
+                              referrerPolicy='no-referrer'
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
+                                if (!source.poster) {
+                                  target.style.display = 'none';
+                                  return;
+                                }
+
+                                // Douban 热链失败时：自动回退到站内代理（仅重试一次，避免循环）
+                                if (!target.dataset['fallbackApplied']) {
+                                  try {
+                                    const parsed = new URL(source.poster);
+                                    const isDouban =
+                                      parsed.hostname.endsWith('doubanio.com') ||
+                                      parsed.hostname.endsWith('douban.com');
+                                    if (isDouban) {
+                                      target.dataset['fallbackApplied'] = '1';
+                                      target.src = `/api/image-proxy?url=${encodeURIComponent(
+                                        source.poster,
+                                      )}`;
+                                      return;
+                                    }
+                                  } catch {
+                                    // ignore
+                                  }
+                                }
+
                                 target.style.display = 'none';
                               }}
                             />
@@ -449,7 +575,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                               </h3>
                               {/* 标题级别的 tooltip - 第一个元素不显示 */}
                               {index !== 0 && (
-                                <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-md shadow-lg opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 ease-out delay-100 whitespace-nowrap z-[500] pointer-events-none'>
+                                <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-md shadow-lg opacity-0 invisible group-hover/title:opacity-100 group-hover/title:visible transition-all duration-200 ease-out delay-100 whitespace-nowrap z-tooltip pointer-events-none'>
                                   {source.title}
                                   <div className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800'></div>
                                 </div>
@@ -468,16 +594,16 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                                 } else {
                                   // 根据分辨率设置不同颜色：2K、4K为紫色，1080p、720p为绿色，其他为黄色
                                   const isUltraHigh = ['4K', '2K'].includes(
-                                    videoInfo.quality
+                                    videoInfo.quality,
                                   );
                                   const isHigh = ['1080p', '720p'].includes(
-                                    videoInfo.quality
+                                    videoInfo.quality,
                                   );
                                   const textColorClasses = isUltraHigh
                                     ? 'text-purple-600 dark:text-purple-400'
                                     : isHigh
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-yellow-600 dark:text-yellow-400';
+                                      ? 'text-green-600 dark:text-green-400'
+                                      : 'text-yellow-600 dark:text-yellow-400';
 
                                   return (
                                     <div
@@ -487,6 +613,14 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                                     </div>
                                   );
                                 }
+                              }
+
+                              if (attemptedSources.has(sourceKey)) {
+                                return (
+                                  <div className='bg-gray-500/10 dark:bg-gray-400/20 text-gray-600 dark:text-gray-300 px-1.5 py-0 rounded text-xs flex-shrink-0 min-w-[50px] text-center'>
+                                    测速中
+                                  </div>
+                                );
                               }
 
                               return null;
@@ -536,19 +670,20 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                       </div>
                     );
                   })}
-                <div className='flex-shrink-0 mt-auto pt-2 border-t border-gray-400 dark:border-gray-700'>
-                  <button
-                    onClick={() => {
-                      if (videoTitle) {
-                        router.push(
-                          `/search?q=${encodeURIComponent(videoTitle)}`
-                        );
-                      }
-                    }}
-                    className='w-full text-center text-xs text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors py-2'
-                  >
-                    影片匹配有误？点击去搜索
-                  </button>
+                  <div className='flex-shrink-0 mt-auto pt-2 border-t border-gray-400 dark:border-gray-700'>
+                    <button
+                      onClick={() => {
+                        if (videoTitle) {
+                          router.push(
+                            `/search?q=${encodeURIComponent(videoTitle)}`,
+                          );
+                        }
+                      }}
+                      className='w-full text-center text-xs text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors py-2'
+                    >
+                      影片匹配有误？点击去搜索
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

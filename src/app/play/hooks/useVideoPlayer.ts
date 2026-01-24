@@ -8,15 +8,18 @@ import Hls from 'hls.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { logError, logInfo } from '@/lib/logger';
+import { recordUrlHealth } from '@/lib/source-health';
 
 import { CustomHlsJsLoader } from '../components/VideoPlayer/AdFilterLoader';
 import type {
   ArtPlayerInstance,
   UseVideoPlayerReturn,
 } from '../types/player.types';
-import { ensureVideoSource, isSafariBrowser } from '../utils/player.utils';
+import { ensureVideoSource } from '../utils/player.utils';
 
 interface UseVideoPlayerOptions {
+  /** 是否启用播放器（用于切换原生播放器/占位等场景） */
+  enabled?: boolean;
   /** 视频URL */
   url: string;
   /** 海报图片 */
@@ -24,7 +27,7 @@ interface UseVideoPlayerOptions {
   /** 视频标题 */
   title: string;
   /** 容器ref */
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   /** 是否启用广告过滤 */
   blockAdEnabled: boolean;
   /** 是否加载中 */
@@ -49,9 +52,10 @@ interface UseVideoPlayerOptions {
  * 播放器核心Hook
  */
 export function useVideoPlayer(
-  options: UseVideoPlayerOptions
+  options: UseVideoPlayerOptions,
 ): UseVideoPlayerReturn {
   const {
+    enabled = true,
     url,
     poster,
     title,
@@ -68,52 +72,78 @@ export function useVideoPlayer(
   } = options;
 
   const playerRef = useRef<ArtPlayerInstance | null>(null);
+  const [player, setPlayer] = useState<ArtPlayerInstance | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [reinitKey, setReinitKey] = useState(0);
   const blockAdRef = useRef(blockAdEnabled);
+  const lastUrlRef = useRef<string>('');
+  const callbacksRef = useRef({
+    onReady,
+    onTimeUpdate,
+    onEnded,
+    onPause,
+    onError,
+    onVolumeChange,
+    onNextEpisode,
+  });
 
   // 同步blockAdEnabled到ref（避免作为依赖项）
   useEffect(() => {
     blockAdRef.current = blockAdEnabled;
   }, [blockAdEnabled]);
 
-  // 创建/更新播放器
+  // 同步回调到ref（避免因回调变更触发播放器重建）
   useEffect(() => {
-    if (!Artplayer || !Hls || !url || loading || !containerRef.current) {
-      return;
-    }
+    callbacksRef.current = {
+      onReady,
+      onTimeUpdate,
+      onEnded,
+      onPause,
+      onError,
+      onVolumeChange,
+      onNextEpisode,
+    };
+  }, [onReady, onTimeUpdate, onEnded, onPause, onError, onVolumeChange, onNextEpisode]);
 
-    // Safari浏览器检测
-    const isSafari = isSafariBrowser();
-
-    // 非Safari且播放器已存在，使用switch方法切换URL
-    if (!isSafari && playerRef.current) {
-      playerRef.current.switch = url;
-      playerRef.current.title = title;
-      playerRef.current.poster = poster;
-      if (playerRef.current?.video) {
-        ensureVideoSource(playerRef.current.video as HTMLVideoElement, url);
-      }
-      return;
-    }
-
-    // Safari或首次创建：销毁之前的播放器并创建新的
+  const destroy = useCallback(() => {
     if (playerRef.current) {
       if (playerRef.current.video?.hls) {
         playerRef.current.video.hls.destroy();
       }
       playerRef.current.destroy();
       playerRef.current = null;
+      setPlayer(null);
+      setIsReady(false);
     }
+  }, []);
+
+  // 卸载时销毁播放器
+  useEffect(() => {
+    return () => destroy();
+  }, [destroy]);
+
+  // 禁用时销毁播放器
+  useEffect(() => {
+    if (!enabled) destroy();
+  }, [enabled, destroy]);
+
+  // 初始化播放器：仅当不存在实例且满足条件时创建（不返回清理函数，避免依赖变化导致闪屏）
+  useEffect(() => {
+    if (!enabled || loading || !url || !containerRef.current) return;
+    if (playerRef.current) return;
 
     try {
       // 配置播放速率
       Artplayer.PLAYBACK_RATE = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
       Artplayer.USE_RAF = true;
 
+      const isM3u8 = /\.m3u8(\?|$)/i.test(url);
+
       // 创建播放器实例
       const art = new Artplayer({
         container: containerRef.current,
         url,
+        type: isM3u8 ? 'm3u8' : '',
         poster,
         volume: 0.7,
         isLive: false,
@@ -142,9 +172,8 @@ export function useVideoPlayer(
         fastForward: true,
         autoOrientation: true,
         lock: true,
-        moreVideoAttr: {
-          crossOrigin: 'anonymous',
-        },
+        // 注意：不要设置 crossOrigin=anonymous
+        // 许多盗链图床/播放站不会返回 CORS 头，强制 CORS 会直接导致 poster/视频加载失败
         // HLS 支持配置
         customType: {
           m3u8: function (video: HTMLVideoElement, url: string) {
@@ -159,14 +188,14 @@ export function useVideoPlayer(
 
             const hls = new Hls({
               debug: false,
-              enableWorker: true,
+              enableWorker: false,
               lowLatencyMode: true,
               maxBufferLength: 30,
               backBufferLength: 30,
               maxBufferSize: 60 * 1000 * 1000,
               loader: (blockAdRef.current
                 ? CustomHlsJsLoader
-                : Hls.DefaultConfig.loader) as any,
+                : Hls.DefaultConfig.loader) as unknown as typeof Hls.DefaultConfig.loader,
             });
 
             hls.loadSource(url);
@@ -175,14 +204,25 @@ export function useVideoPlayer(
 
             ensureVideoSource(video, url);
 
+            let reportedSuccess = false;
+            const reportSuccessOnce = () => {
+              if (reportedSuccess) return;
+              reportedSuccess = true;
+              recordUrlHealth(url, true, { weight: 0.6 });
+            };
+
+            hls.on(Hls.Events.FRAG_LOADED, reportSuccessOnce);
+
             hls.on(
               Hls.Events.ERROR,
               function (
                 _event: string,
-                data: { fatal?: boolean; type?: string; details?: string }
+                data: { fatal?: boolean; type?: string; details?: string },
               ) {
                 logError('HLS Error', _event, data);
                 if (data.fatal) {
+                  // 致命错误基本可视为“该 host 当前不可用”
+                  recordUrlHealth(url, false, { weight: 1 });
                   switch (data.type) {
                     case Hls.ErrorTypes.NETWORK_ERROR:
                       logInfo('网络错误，尝试恢复...');
@@ -198,7 +238,7 @@ export function useVideoPlayer(
                       break;
                   }
                 }
-              }
+              },
             );
           },
         },
@@ -217,7 +257,7 @@ export function useVideoPlayer(
             },
           },
         ],
-        controls: onNextEpisode
+        controls: callbacksRef.current.onNextEpisode
           ? [
               {
                 position: 'left',
@@ -225,7 +265,7 @@ export function useVideoPlayer(
                 html: '<i class="art-icon flex"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg></i>',
                 tooltip: '播放下一集',
                 click: function () {
-                  onNextEpisode?.();
+                  callbacksRef.current.onNextEpisode?.();
                 },
               },
             ]
@@ -233,39 +273,43 @@ export function useVideoPlayer(
       });
 
       playerRef.current = art;
+      setPlayer(art);
       setIsReady(false);
+      lastUrlRef.current = url;
 
       // 定义事件处理器
       const handleReady = () => {
         setIsReady(true);
-        onReady?.();
+        callbacksRef.current.onReady?.();
       };
 
       const handleVolumeChange = () => {
-        onVolumeChange?.(art.volume);
+        callbacksRef.current.onVolumeChange?.(art.volume);
       };
 
       const handleTimeUpdate = () => {
         const currentTime = art.currentTime || 0;
         const duration = art.duration || 0;
-        onTimeUpdate?.(currentTime, duration);
+        callbacksRef.current.onTimeUpdate?.(currentTime, duration);
       };
 
       const handleCanPlay = () => {
-        // 视频可播放时触发
+        // 视频可播放时触发：对 mp4 / 非 m3u8 也能记录成功
+        recordUrlHealth(url, true, { weight: 0.4 });
       };
 
       const handleError = (err: Error | string) => {
         logError('播放器错误', err);
-        onError?.(err);
+        recordUrlHealth(url, false, { weight: 1 });
+        callbacksRef.current.onError?.(err);
       };
 
       const handleEnded = () => {
-        onEnded?.();
+        callbacksRef.current.onEnded?.();
       };
 
       const handlePause = () => {
-        onPause?.();
+        callbacksRef.current.onPause?.();
       };
 
       // 注册事件监听器
@@ -281,46 +325,65 @@ export function useVideoPlayer(
         ensureVideoSource(art.video as HTMLVideoElement, url);
       }
 
-      // 清理函数
-      return () => {
-        if (art && !art.isDestroy) {
-          // 移除所有事件监听器
-          art.off('ready', handleReady);
-          art.off('video:volumechange', handleVolumeChange);
-          art.off('video:timeupdate', handleTimeUpdate);
-          art.off('video:canplay', handleCanPlay);
-          art.off('error', handleError);
-          art.off('video:ended', handleEnded);
-          art.off('pause', handlePause);
-
-          // 清理 HLS 实例
-          if (art.video?.hls) {
-            art.video.hls.destroy();
-          }
-
-          // 销毁播放器
-          art.destroy();
-        }
-      };
     } catch (err) {
       logError('创建播放器失败', err);
-      onError?.(err instanceof Error ? err : String(err));
+      callbacksRef.current.onError?.(err instanceof Error ? err : String(err));
+      playerRef.current = null;
+      setPlayer(null);
+      setIsReady(false);
     }
   }, [
+    enabled,
+    reinitKey,
     url,
     poster,
-    title,
     containerRef,
     blockAdEnabled,
     loading,
-    onReady,
-    onTimeUpdate,
-    onEnded,
-    onPause,
-    onError,
-    onVolumeChange,
-    onNextEpisode,
   ]);
+
+  // 更新元信息（不切源）
+  useEffect(() => {
+    if (!enabled || !playerRef.current) return;
+    try {
+      playerRef.current.title = title;
+      playerRef.current.poster = poster;
+    } catch {
+      // ignore
+    }
+  }, [enabled, title, poster]);
+
+  // 切源：仅当 URL 变化时触发，避免标题/封面更新导致闪屏
+  useEffect(() => {
+    if (!enabled || loading || !url) return;
+    const art = playerRef.current;
+    if (!art) return;
+    if (url === lastUrlRef.current) return;
+
+    const isM3u8 = /\.m3u8(\?|$)/i.test(url);
+    try {
+      art.type = isM3u8 ? 'm3u8' : '';
+    } catch {
+      // ignore
+    }
+
+    void art
+      .switchUrl(url)
+      .then(() => {
+        lastUrlRef.current = url;
+        if (art.video) {
+          ensureVideoSource(art.video as HTMLVideoElement, url);
+        }
+      })
+      .catch((err) => {
+        logError('切换播放地址失败', err);
+        callbacksRef.current.onError?.(
+          err instanceof Error ? err : new Error(String(err)),
+        );
+        destroy();
+        setReinitKey((k) => k + 1);
+      });
+  }, [enabled, loading, url, destroy]);
 
   // 播放控制方法
   const play = useCallback(() => {
@@ -337,19 +400,8 @@ export function useVideoPlayer(
     }
   }, []);
 
-  const destroy = useCallback(() => {
-    if (playerRef.current) {
-      if (playerRef.current.video?.hls) {
-        playerRef.current.video.hls.destroy();
-      }
-      playerRef.current.destroy();
-      playerRef.current = null;
-      setIsReady(false);
-    }
-  }, []);
-
   return {
-    player: playerRef.current,
+    player,
     isReady,
     play,
     pause,

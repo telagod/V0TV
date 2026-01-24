@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { logError, logInfo } from '@/lib/logger';
+import { getVerifiedUserName } from '@/lib/user-context';
 
 /**
  * 刷新用户设置缓存API
@@ -15,21 +16,14 @@ import { logError, logInfo } from '@/lib/logger';
  */
 export async function POST(request: NextRequest) {
   try {
-    // 从 Authorization header 获取用户名
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Missing or invalid Authorization header' },
-        { status: 401 }
-      );
-    }
+    const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
+    const userName =
+      storageType === 'localstorage'
+        ? getUserNameFromAuthorization(request)
+        : await getVerifiedUserName(request);
 
-    const userName = authHeader.substring(7).trim();
     if (!userName) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Empty username' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
     }
 
     // 这里可以添加实际的缓存刷新逻辑
@@ -53,7 +47,14 @@ export async function POST(request: NextRequest) {
         error: '缓存刷新失败',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
+}
+
+function getUserNameFromAuthorization(request: NextRequest): string | null {
+  const authorization = request.headers.get('Authorization');
+  if (!authorization) return null;
+  const userName = authorization.split(' ')[1];
+  return userName?.trim() ? userName.trim() : null;
 }

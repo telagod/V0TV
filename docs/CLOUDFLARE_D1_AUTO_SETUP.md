@@ -44,13 +44,11 @@ pnpm run pages:build && npx wrangler deploy
 ### 第一次部署时会发生什么？
 
 1. **Wrangler 自动创建数据库**
-
    - 检测到 `wrangler.jsonc` 中的 D1 binding
    - 自动创建名为 `v0tv-db` 的 D1 数据库
    - 自动更新 `wrangler.jsonc`，填入 `database_id`
 
 2. **Worker 自动初始化表结构**
-
    - 首次请求时，自动创建所有表（users, play_records, favorites 等）
    - 使用 `CREATE TABLE IF NOT EXISTS` 确保幂等性
    - 自动创建索引优化查询性能
@@ -208,19 +206,19 @@ pnpm run pages:build && npx wrangler deploy
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "v0tv-production"
-        }
-      ]
+          "database_name": "v0tv-production",
+        },
+      ],
     },
     "staging": {
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "v0tv-staging"
-        }
-      ]
-    }
-  }
+          "database_name": "v0tv-staging",
+        },
+      ],
+    },
+  },
 }
 ```
 

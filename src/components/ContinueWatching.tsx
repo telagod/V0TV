@@ -33,7 +33,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
 
     // 按 save_time 降序排序（最新的在前面）
     const sortedRecords = recordsArray.sort(
-      (a, b) => b.save_time - a.save_time
+      (a, b) => b.save_time - a.save_time,
     );
 
     setPlayRecords(sortedRecords);
@@ -62,7 +62,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
       'playRecordsUpdated',
       (newRecords: Record<string, PlayRecord>) => {
         updatePlayRecords(newRecords);
-      }
+      },
     );
 
     return unsubscribe;
@@ -135,12 +135,12 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
                     source_name={record.source_name}
                     progress={getProgress(record)}
                     episodes={record.total_episodes}
-                    currentEpisode={record.index}
+                    currentEpisode={record.index + 1}
                     query={record.search_title}
                     from='playrecord'
                     onDelete={() =>
                       setPlayRecords((prev) =>
-                        prev.filter((r) => r.key !== record.key)
+                        prev.filter((r) => r.key !== record.key),
                       )
                     }
                     type={record.total_episodes > 1 ? 'tv' : ''}

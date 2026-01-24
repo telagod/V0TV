@@ -15,7 +15,7 @@ export function syncUrlParams(
   >,
   episodeIndex: number,
   searchTitle?: string,
-  searchType?: string
+  searchType?: string,
 ): void {
   if (typeof window === 'undefined') return;
 

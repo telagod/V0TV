@@ -49,16 +49,18 @@ export interface IStorage {
   setPlayRecord(
     userName: string,
     key: string,
-    record: PlayRecord
+    record: PlayRecord,
   ): Promise<void>;
   getAllPlayRecords(userName: string): Promise<{ [key: string]: PlayRecord }>;
   deletePlayRecord(userName: string, key: string): Promise<void>;
+  deleteAllPlayRecords(userName: string): Promise<void>;
 
   // 收藏相关
   getFavorite(userName: string, key: string): Promise<Favorite | null>;
   setFavorite(userName: string, key: string, favorite: Favorite): Promise<void>;
   getAllFavorites(userName: string): Promise<{ [key: string]: Favorite }>;
   deleteFavorite(userName: string, key: string): Promise<void>;
+  deleteAllFavorites(userName: string): Promise<void>;
 
   // 用户相关
   registerUser(userName: string, password: string): Promise<void>;
@@ -75,7 +77,7 @@ export interface IStorage {
   setUserSettings(userName: string, settings: UserSettings): Promise<void>;
   updateUserSettings(
     userName: string,
-    settings: Partial<UserSettings>
+    settings: Partial<UserSettings>,
   ): Promise<void>;
 
   // 搜索历史相关
@@ -86,15 +88,15 @@ export interface IStorage {
   // 片头片尾跳过配置相关
   getSkipConfig(
     userName: string,
-    key: string
+    key: string,
   ): Promise<EpisodeSkipConfig | null>;
   setSkipConfig(
     userName: string,
     key: string,
-    config: EpisodeSkipConfig
+    config: EpisodeSkipConfig,
   ): Promise<void>;
   getAllSkipConfigs(
-    userName: string
+    userName: string,
   ): Promise<{ [key: string]: EpisodeSkipConfig }>;
   deleteSkipConfig(userName: string, key: string): Promise<void>;
 

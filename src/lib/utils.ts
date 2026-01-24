@@ -34,10 +34,29 @@ export function getImageProxyUrl(): string | null {
 export function processImageUrl(originalUrl: string): string {
   if (!originalUrl) return originalUrl;
 
-  const proxyUrl = getImageProxyUrl();
-  if (!proxyUrl) return originalUrl;
+  // 避免 HTTPS 页面出现 Mixed Content（浏览器也会自动升级，但会刷控制台警告）
+  if (originalUrl.startsWith('http://')) {
+    originalUrl = `https://${originalUrl.slice('http://'.length)}`;
+  }
 
-  return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+  // 本地显式关闭图片代理时，尊重用户选择
+  if (typeof window !== 'undefined') {
+    const enableImageProxy = localStorage.getItem('enableImageProxy');
+    if (enableImageProxy !== null) {
+      try {
+        if (!JSON.parse(enableImageProxy) as boolean) {
+          return originalUrl;
+        }
+      } catch {
+        // ignore malformed localStorage
+      }
+    }
+  }
+
+  const proxyUrl = getImageProxyUrl();
+  if (proxyUrl) return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+
+  return originalUrl;
 }
 
 /**
@@ -94,7 +113,10 @@ export function cleanHtmlTags(text: string): string {
  * @param m3u8Url m3u8播放列表的URL
  * @returns Promise<{quality: string, loadSpeed: string, pingTime: number}> 视频质量等级和网络信息
  */
-export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
+export async function getVideoResolutionFromM3u8(
+  m3u8Url: string,
+  options?: { signal?: AbortSignal },
+): Promise<{
   quality: string; // 如720p、1080p等
   loadSpeed: string; // 自动转换为KB/s或MB/s
   pingTime: number; // 网络延迟（毫秒）
@@ -102,16 +124,45 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
   try {
     // 直接使用m3u8 URL作为视频源，避免CORS问题
     return new Promise((resolve, reject) => {
+      if (typeof window === 'undefined') {
+        reject(new Error('getVideoResolutionFromM3u8 must run in browser'));
+        return;
+      }
+
       const video = document.createElement('video');
       video.muted = true;
       video.preload = 'metadata';
+
+      let isSettled = false;
+      let hls: Hls | null = null;
+      const signal = options?.signal;
+      const cleanup = () => {
+        try {
+          hls?.destroy();
+        } catch {
+          // ignore
+        }
+        try {
+          video.remove();
+        } catch {
+          // ignore
+        }
+      };
+
+      const abortError = () => {
+        try {
+          return new DOMException('Aborted', 'AbortError');
+        } catch {
+          return new Error('Aborted');
+        }
+      };
 
       // 测量网络延迟（ping时间） - 使用m3u8 URL而不是ts文件
       const pingStart = performance.now();
       let pingTime = 0;
 
       // 测量ping时间（使用m3u8 URL）
-      fetch(m3u8Url, { method: 'HEAD', mode: 'no-cors' })
+      fetch(m3u8Url, { method: 'HEAD', mode: 'no-cors', signal })
         .then(() => {
           pingTime = performance.now() - pingStart;
         })
@@ -119,20 +170,54 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
           pingTime = performance.now() - pingStart; // 记录到失败为止的时间
         });
 
-      // 固定使用hls.js加载
-      const hls = new Hls();
+      // 固定使用hls.js加载（测速场景尽量避免 worker 开销）
+      const hlsInstance = new Hls({
+        enableWorker: false,
+        lowLatencyMode: false,
+        maxBufferLength: 1,
+        backBufferLength: 0,
+        maxBufferSize: 2 * 1024 * 1024,
+        fragLoadingMaxRetry: 1,
+      });
+      hls = hlsInstance;
 
       // 设置超时处理
       const timeout = setTimeout(() => {
-        hls.destroy();
-        video.remove();
+        if (isSettled) return;
+        isSettled = true;
+        cleanup();
         reject(new Error('Timeout loading video metadata'));
       }, 4000);
 
+      if (signal) {
+        if (signal.aborted) {
+          clearTimeout(timeout);
+          if (!isSettled) {
+            isSettled = true;
+            cleanup();
+            reject(signal.reason ?? abortError());
+          }
+          return;
+        }
+
+        signal.addEventListener(
+          'abort',
+          () => {
+            clearTimeout(timeout);
+            if (isSettled) return;
+            isSettled = true;
+            cleanup();
+            reject(signal.reason ?? abortError());
+          },
+          { once: true },
+        );
+      }
+
       video.onerror = () => {
         clearTimeout(timeout);
-        hls.destroy();
-        video.remove();
+        if (isSettled) return;
+        isSettled = true;
+        cleanup();
         reject(new Error('Failed to load video metadata'));
       };
 
@@ -151,22 +236,23 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
           clearTimeout(timeout);
           const width = video.videoWidth;
           if (width && width > 0) {
-            hls.destroy();
-            video.remove();
+            if (isSettled) return;
+            isSettled = true;
+            cleanup();
 
             // 根据视频宽度判断视频质量等级，使用经典分辨率的宽度作为分割点
             const quality =
               width >= 3840
                 ? '4K' // 4K: 3840x2160
                 : width >= 2560
-                ? '2K' // 2K: 2560x1440
-                : width >= 1920
-                ? '1080p' // 1080p: 1920x1080
-                : width >= 1280
-                ? '720p' // 720p: 1280x720
-                : width >= 854
-                ? '480p'
-                : 'SD'; // 480p: 854x480
+                  ? '2K' // 2K: 2560x1440
+                  : width >= 1920
+                    ? '1080p' // 1080p: 1920x1080
+                    : width >= 1280
+                      ? '720p' // 720p: 1280x720
+                      : width >= 854
+                        ? '480p'
+                        : 'SD'; // 480p: 854x480
 
             resolve({
               quality,
@@ -175,6 +261,9 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
             });
           } else {
             // webkit 无法获取尺寸，直接返回
+            if (isSettled) return;
+            isSettled = true;
+            cleanup();
             resolve({
               quality: '未知',
               loadSpeed: actualLoadSpeed,
@@ -185,12 +274,12 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
       };
 
       // 监听片段加载开始
-      hls.on(Hls.Events.FRAG_LOADING, () => {
+      hlsInstance.on(Hls.Events.FRAG_LOADING, () => {
         fragmentStartTime = performance.now();
       });
 
       // 监听片段加载完成，只需首个分片即可计算速度
-      hls.on(
+      hlsInstance.on(
         Hls.Events.FRAG_LOADED,
         (_event: string, data: { payload?: ArrayBuffer; frag?: unknown }) => {
           if (
@@ -217,27 +306,28 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
               checkAndResolve(); // 尝试返回结果
             }
           }
-        }
+        },
       );
 
-      hls.loadSource(m3u8Url);
-      hls.attachMedia(video);
+      hlsInstance.loadSource(m3u8Url);
+      hlsInstance.attachMedia(video);
 
       // 监听hls.js错误
-      hls.on(
+      hlsInstance.on(
         Hls.Events.ERROR,
         (
           _event: string,
-          data: { fatal?: boolean; type?: string; details?: string }
+          data: { fatal?: boolean; type?: string; details?: string },
         ) => {
           console.error('HLS错误:', data);
           if (data.fatal) {
             clearTimeout(timeout);
-            hls.destroy();
-            video.remove();
+            if (isSettled) return;
+            isSettled = true;
+            cleanup();
             reject(new Error(`HLS播放失败: ${data.type}`));
           }
-        }
+        },
       );
 
       // 监听视频元数据加载完成
@@ -250,7 +340,7 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
     throw new Error(
       `Error getting video resolution: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 }

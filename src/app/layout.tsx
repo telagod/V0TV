@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from 'next';
+import { Toaster } from 'sonner';
 
 // import { Inter } from 'next/font/google';
 import './globals.css';
-import 'sweetalert2/dist/sweetalert2.min.css';
 
 import { BRAND_CONTACT, BRAND_NAME } from '@/lib/brand';
 import { getConfig } from '@/lib/config';
+
+import { ConfirmDialogProvider } from '@/components/ui/ConfirmDialog';
 
 import { SiteProvider } from '../components/SiteProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
@@ -33,10 +35,19 @@ export const viewport: Viewport = {
   themeColor: '#000000',
 };
 
+const SW_DISABLE_SNIPPET = `
+(() => {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.getRegistrations?.().then((regs) => {
+    regs.forEach((reg) => reg.unregister().catch(() => {}));
+  });
+})();
+`.trim();
+
 // 浮动几何形状组件
 const FloatingShapes = () => {
   return (
-    <div className='floating-shapes'>
+    <div className='floating-shapes hidden md:block' aria-hidden='true'>
       <div className='shape'></div>
       <div className='shape'></div>
       <div className='shape'></div>
@@ -84,12 +95,14 @@ export default async function RootLayout({
     <html lang='zh-CN' suppressHydrationWarning>
       <head>
         {/* 将配置序列化后直接写入脚本，浏览器端可通过 window.RUNTIME_CONFIG 获取 */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        {}
         <script
           dangerouslySetInnerHTML={{
             __html: `window.RUNTIME_CONFIG = ${JSON.stringify(runtimeConfig)};`,
           }}
         />
+        {/* 禁用/清理已安装的 Service Worker（最小化 worker 开销） */}
+        <script dangerouslySetInnerHTML={{ __html: SW_DISABLE_SNIPPET }} />
       </head>
       <body className='min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-200 font-sans'>
         {/* 浮动几何形状装饰 */}
@@ -101,9 +114,12 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SiteProvider siteName={siteName} announcement={announcement}>
-            {children}
-          </SiteProvider>
+          <ConfirmDialogProvider>
+            <SiteProvider siteName={siteName} announcement={announcement}>
+              {children}
+            </SiteProvider>
+          </ConfirmDialogProvider>
+          <Toaster richColors position='top-center' />
         </ThemeProvider>
       </body>
     </html>

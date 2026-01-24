@@ -81,8 +81,8 @@ wrangler deploy
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
-  }
+    "binding": "ASSETS",
+  },
 }
 ```
 
@@ -128,9 +128,9 @@ wrangler d1 execute v0tv-db --file=scripts/d1-init.sql
     {
       "binding": "DB",
       "database_name": "v0tv-db",
-      "database_id": "your-database-id-here"
-    }
-  ]
+      "database_id": "your-database-id-here",
+    },
+  ],
 }
 ```
 

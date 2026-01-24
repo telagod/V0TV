@@ -58,14 +58,12 @@ export default function ScrollableRow({
     if (containerRef.current) {
       // 监听 DOM 变化
       const observer = new MutationObserver(() => {
-        setTimeout(checkScroll, 100);
+        requestAnimationFrame(checkScroll);
       });
 
       observer.observe(containerRef.current, {
         childList: true,
         subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class'],
       });
 
       return () => observer.disconnect();

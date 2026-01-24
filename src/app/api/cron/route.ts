@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -71,7 +71,7 @@ function delay(ms: number): Promise<void> {
  */
 function filterRecentRecords<T extends { save_time: number }>(
   records: Record<string, T>,
-  recentDays: number
+  recentDays: number,
 ): Record<string, T> {
   if (recentDays <= 0) return records;
 
@@ -101,7 +101,7 @@ function filterRecentRecords<T extends { save_time: number }>(
  */
 async function processBatch<T>(
   items: Array<{ key: string; data: T }>,
-  processFn: (key: string, data: T) => Promise<void>
+  processFn: (key: string, data: T) => Promise<void>,
 ): Promise<{ success: number; failed: number }> {
   let success = 0;
   let failed = 0;
@@ -115,7 +115,7 @@ async function processBatch<T>(
         logWarn(`❌ 处理失败 (${key})`, err);
         failed++;
       }
-    })
+    }),
   );
 
   return { success, failed };
@@ -147,7 +147,7 @@ async function refreshRecordAndFavorites(db: DbManager) {
     const getDetail = async (
       source: string,
       id: string,
-      fallbackTitle: string
+      fallbackTitle: string,
     ): Promise<SearchResult | null> => {
       const key = `${source}+${id}`;
       let promise = detailCache.get(key);
@@ -192,7 +192,7 @@ async function refreshRecordAndFavorites(db: DbManager) {
             totalRecordsBeforeFilter !== totalRecords
               ? ` (过滤前 ${totalRecordsBeforeFilter} 条)`
               : ''
-          }`
+          }`,
         );
 
         if (totalRecords === 0) {
@@ -215,11 +215,11 @@ async function refreshRecordAndFavorites(db: DbManager) {
             const batch = recordEntries.slice(i, i + CRON_CONFIG.batchSize);
             const batchIndex = Math.floor(i / CRON_CONFIG.batchSize) + 1;
             const totalBatches = Math.ceil(
-              recordEntries.length / CRON_CONFIG.batchSize
+              recordEntries.length / CRON_CONFIG.batchSize,
             );
 
             logInfo(
-              `📦 处理播放记录批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`
+              `📦 处理播放记录批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`,
             );
 
             const { success, failed } = await processBatch<PlayRecord>(
@@ -255,11 +255,11 @@ async function refreshRecordAndFavorites(db: DbManager) {
                     search_title: record.search_title,
                   });
                   logInfo(
-                    `✅ 更新播放记录: ${record.title} (${record.total_episodes} -> ${episodeCount})`
+                    `✅ 更新播放记录: ${record.title} (${record.total_episodes} -> ${episodeCount})`,
                   );
                   updatedRecords++;
                 }
-              }
+              },
             );
 
             processedRecords += success;
@@ -275,7 +275,7 @@ async function refreshRecordAndFavorites(db: DbManager) {
           }
 
           logInfo(
-            `✅ 播放记录处理完成: ${processedRecords}/${totalRecords} (更新 ${updatedRecords} 条, 失败 ${failedRecords} 条)`
+            `✅ 播放记录处理完成: ${processedRecords}/${totalRecords} (更新 ${updatedRecords} 条, 失败 ${failedRecords} 条)`,
           );
         }
       } catch (err) {
@@ -300,7 +300,7 @@ async function refreshRecordAndFavorites(db: DbManager) {
             totalFavoritesBeforeFilter !== totalFavorites
               ? ` (过滤前 ${totalFavoritesBeforeFilter} 条)`
               : ''
-          }`
+          }`,
         );
 
         if (totalFavorites === 0) {
@@ -323,11 +323,11 @@ async function refreshRecordAndFavorites(db: DbManager) {
             const batch = favoriteEntries.slice(i, i + CRON_CONFIG.batchSize);
             const batchIndex = Math.floor(i / CRON_CONFIG.batchSize) + 1;
             const totalBatches = Math.ceil(
-              favoriteEntries.length / CRON_CONFIG.batchSize
+              favoriteEntries.length / CRON_CONFIG.batchSize,
             );
 
             logInfo(
-              `📦 处理收藏批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`
+              `📦 处理收藏批次 ${batchIndex}/${totalBatches} (${batch.length} 条)`,
             );
 
             const { success, failed } = await processBatch<Favorite>(
@@ -360,11 +360,11 @@ async function refreshRecordAndFavorites(db: DbManager) {
                     search_title: fav.search_title,
                   });
                   logInfo(
-                    `✅ 更新收藏: ${fav.title} (${fav.total_episodes} -> ${favEpisodeCount})`
+                    `✅ 更新收藏: ${fav.title} (${fav.total_episodes} -> ${favEpisodeCount})`,
                   );
                   updatedFavorites++;
                 }
-              }
+              },
             );
 
             processedFavorites += success;
@@ -380,7 +380,7 @@ async function refreshRecordAndFavorites(db: DbManager) {
           }
 
           logInfo(
-            `✅ 收藏处理完成: ${processedFavorites}/${totalFavorites} (更新 ${updatedFavorites} 条, 失败 ${failedFavorites} 条)`
+            `✅ 收藏处理完成: ${processedFavorites}/${totalFavorites} (更新 ${updatedFavorites} 条, 失败 ${failedFavorites} 条)`,
           );
         }
       } catch (err) {

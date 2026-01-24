@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     if (!keyword) {
       return NextResponse.json(
         { error: 'Keyword is required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     console.error('添加搜索历史失败', err);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -90,7 +90,7 @@ export async function DELETE(request: NextRequest) {
     console.error('删除搜索历史失败', err);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

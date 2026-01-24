@@ -436,6 +436,34 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  .rounded-container {
+    @apply rounded-2xl border border-purple-200/50 bg-white/70 shadow-xl dark:border-purple-700/40 dark:bg-gray-900/40;
+  }
+}
+
+/* Player sizing safety-net (Artplayer may not inject CSS in some environments) */
+.art-video-player,
+.art-video-player .art-video,
+.art-video-player video {
+  width: 100%;
+  height: 100%;
+}
+
+.art-video-player video {
+  object-fit: contain;
+}
+
 /* 自定义滚动条 */
 ::-webkit-scrollbar {
   width: 8px;
@@ -464,6 +492,17 @@
   background: rgba(75, 85, 99, 0.7);
 }
 
+/* Z-index 层级规范 */
+:root {
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
+  --z-tooltip: 60;
+  --z-toast: 70;
+}
+
 /* 基础样式重置 */
 * {
   box-sizing: border-box;
@@ -474,9 +513,9 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;

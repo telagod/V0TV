@@ -12,12 +12,12 @@ const TEST_QUERY = '斗破';
 async function testApiResponse() {
   console.log('📋 测试1: 验证API返回的数据格式');
   console.log(
-    `请求: ${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}\n`
+    `请求: ${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}\n`,
   );
 
   try {
     const response = await fetch(
-      `${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}`
+      `${TEST_API}?ac=videolist&wd=${encodeURIComponent(TEST_QUERY)}`,
     );
     const data = await response.json();
 
@@ -54,7 +54,7 @@ function analyzePlaySources(item) {
   console.log(item.vod_play_from);
   const sourceNames = item.vod_play_from?.split('$$$') || [];
   console.log(
-    `✅ 检测到 ${sourceNames.length} 个播放源: ${sourceNames.join(', ')}\n`
+    `✅ 检测到 ${sourceNames.length} 个播放源: ${sourceNames.join(', ')}\n`,
   );
 
   // 分析 vod_play_url
@@ -152,18 +152,18 @@ function testUrlFiltering(item) {
 
   console.log(`总链接数: ${totalUrls}`);
   console.log(
-    `✅ 有效链接: ${validUrls} (${((validUrls / totalUrls) * 100).toFixed(1)}%)`
+    `✅ 有效链接: ${validUrls} (${((validUrls / totalUrls) * 100).toFixed(1)}%)`,
   );
   console.log(
     `⚠️  中转链接: ${redirectUrls} (${(
       (redirectUrls / totalUrls) *
       100
-    ).toFixed(1)}%)`
+    ).toFixed(1)}%)`,
   );
   console.log(
     `🌟 标准格式: ${standardUrls} (${((standardUrls / totalUrls) * 100).toFixed(
-      1
-    )}%)\n`
+      1,
+    )}%)\n`,
   );
 
   console.log('【预期效果】');

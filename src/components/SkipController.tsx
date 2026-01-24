@@ -79,7 +79,7 @@ export default function SkipController({
     const decimal = seconds % 1;
     if (decimal > 0) {
       return `${mins}:${secs.toString().padStart(2, '0')}.${Math.floor(
-        decimal * 10
+        decimal * 10,
       )}`;
     }
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -112,7 +112,7 @@ export default function SkipController({
 
       setCurrentSkipSegment(null);
     },
-    [artPlayerRef]
+    [artPlayerRef],
   );
 
   // 开始片尾倒计时
@@ -142,7 +142,7 @@ export default function SkipController({
         });
       }, 1000);
     },
-    [onNextEpisode]
+    [onNextEpisode],
   );
 
   // 检查片尾倒计时
@@ -151,7 +151,7 @@ export default function SkipController({
       if (!skipConfig?.segments?.length || !duration || !onNextEpisode) return;
 
       const endingSegments = skipConfig.segments.filter(
-        (s) => s.type === 'ending' && s.autoNextEpisode !== false
+        (s) => s.type === 'ending' && s.autoNextEpisode !== false,
       );
       if (!endingSegments.length) return;
 
@@ -170,7 +170,7 @@ export default function SkipController({
         }
       }
     },
-    [skipConfig, duration, onNextEpisode, showCountdown, startEndingCountdown]
+    [skipConfig, duration, onNextEpisode, showCountdown, startEndingCountdown],
   );
 
   // 检查当前播放时间是否在跳过区间内
@@ -179,7 +179,7 @@ export default function SkipController({
       if (!skipConfig?.segments?.length) return;
 
       const currentSegment = skipConfig.segments.find(
-        (segment) => time >= segment.start && time <= segment.end
+        (segment) => time >= segment.start && time <= segment.end,
       );
 
       if (currentSegment && currentSegment !== currentSkipSegment) {
@@ -187,7 +187,7 @@ export default function SkipController({
 
         // 检查是否开启自动跳过
         const hasAutoSkipSetting = skipConfig.segments.some(
-          (s) => s.autoSkip !== false
+          (s) => s.autoSkip !== false,
         );
 
         if (hasAutoSkipSetting) {
@@ -227,7 +227,7 @@ export default function SkipController({
       // 检查片尾倒计时
       checkEndingCountdown(time);
     },
-    [skipConfig, currentSkipSegment, handleAutoSkip, checkEndingCountdown]
+    [skipConfig, currentSkipSegment, handleAutoSkip, checkEndingCountdown],
   );
 
   // 执行跳过
@@ -438,7 +438,7 @@ export default function SkipController({
 
       try {
         const updatedSegments = skipConfig.segments.filter(
-          (_, i) => i !== index
+          (_, i) => i !== index,
         );
 
         if (updatedSegments.length === 0) {
@@ -462,7 +462,7 @@ export default function SkipController({
         alert('删除失败，请重试');
       }
     },
-    [skipConfig, source, id]
+    [skipConfig, source, id],
   );
 
   // 格式化时间显示
@@ -601,7 +601,7 @@ export default function SkipController({
                   </span>
                 </label>
               </div>
-              <p className='text-xs text-gray-500 dark:text-gray-400 mt-2'>
+              <p className='text-xs text-gray-600 dark:text-gray-400 mt-2'>
                 开启后将自动跳过设定的片头片尾，无需手动点击
               </p>
             </div>
@@ -629,7 +629,7 @@ export default function SkipController({
                     className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                     placeholder='0:00'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>
+                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
                     格式: 分:秒 (如 0:00)
                   </p>
                 </div>
@@ -650,7 +650,7 @@ export default function SkipController({
                     className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                     placeholder='1:30'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>
+                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
                     格式: 分:秒 (如 1:30)
                   </p>
                 </div>
@@ -701,7 +701,7 @@ export default function SkipController({
                       绝对时间
                     </label>
                   </div>
-                  <p className='text-xs text-gray-500 mt-1'>
+                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
                     {batchSettings.endingMode === 'remaining'
                       ? '基于剩余时间倒计时（如：还剩2分钟时开始）'
                       : '基于播放时间（如：播放到第20分钟时开始）'}
@@ -730,7 +730,7 @@ export default function SkipController({
                         : '20:00'
                     }
                   />
-                  <p className='text-xs text-gray-500 mt-1'>
+                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
                     {batchSettings.endingMode === 'remaining'
                       ? '当剩余时间达到此值时开始倒计时'
                       : '从视频开始播放此时间后开始检测片尾'}
@@ -753,7 +753,7 @@ export default function SkipController({
                     className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                     placeholder='留空直接跳下一集'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>
+                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
                     空白=直接跳下一集
                   </p>
                 </div>
@@ -770,7 +770,7 @@ export default function SkipController({
                     <strong>视频总长度:</strong> {secondsToTime(duration)}
                   </p>
                 )}
-                <div className='text-xs mt-2 text-gray-500 space-y-1'>
+                <div className='text-xs mt-2 text-gray-600 dark:text-gray-400 space-y-1'>
                   <p>
                     💡 <strong>片头示例:</strong> 从 0:00 自动跳到 1:30
                   </p>

@@ -151,7 +151,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       <div className='hidden md:flex'>
         <aside
           data-sidebar
-          className={`fixed top-0 left-0 h-screen bg-white/40 backdrop-blur-xl transition-all duration-300 border-r border-purple-200/50 z-10 shadow-lg dark:bg-gray-900/70 dark:border-purple-700/50 ${
+          className={`fixed top-0 left-0 h-screen bg-white/40 backdrop-blur-xl transition-all duration-300 border-r border-purple-200/50 z-dropdown shadow-lg dark:bg-gray-900/70 dark:border-purple-700/50 ${
             isCollapsed ? 'w-16' : 'w-64'
           }`}
           style={{

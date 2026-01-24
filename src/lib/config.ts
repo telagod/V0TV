@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, no-console, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any, no-console */
 
 import { AdminConfig } from './admin.types';
 import { BRAND_CONTACT, BRAND_NAME } from './brand';
@@ -10,6 +10,7 @@ export interface ApiSite {
   api: string;
   name: string;
   detail?: string;
+  is_adult?: boolean;
 }
 
 interface ConfigFileStruct {
@@ -42,6 +43,13 @@ export const API_CONFIG = {
 // 在模块加载时根据环境决定配置来源
 let fileConfig: ConfigFileStruct;
 let cachedConfig: AdminConfig;
+let configCacheTime = 0; // 配置缓存时间戳
+const CONFIG_CACHE_TTL = 60 * 1000; // 配置缓存 TTL: 60 秒
+
+// 检查配置缓存是否有效
+function isConfigCacheValid(): boolean {
+  return cachedConfig && Date.now() - configCacheTime < CONFIG_CACHE_TTL;
+}
 
 async function initConfig() {
   if (cachedConfig) {
@@ -49,7 +57,6 @@ async function initConfig() {
   }
 
   if (process.env.DOCKER_ENV === 'true') {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const _require = eval('require') as NodeRequire;
     const fs = _require('fs') as typeof import('fs');
     const path = _require('path') as typeof import('path');
@@ -90,7 +97,7 @@ async function initConfig() {
       if (adminConfig) {
         // 补全 SourceConfig
         const existed = new Set(
-          (adminConfig.SourceConfig || []).map((s) => s.key)
+          (adminConfig.SourceConfig || []).map((s) => s.key),
         );
         apiSiteEntries.forEach(([key, site]) => {
           if (!existed.has(key)) {
@@ -121,7 +128,7 @@ async function initConfig() {
         });
 
         const existedUsers = new Set(
-          (adminConfig.UserConfig.Users || []).map((u) => u.username)
+          (adminConfig.UserConfig.Users || []).map((u) => u.username),
         );
         userNames.forEach((uname) => {
           if (!existedUsers.has(uname)) {
@@ -135,7 +142,7 @@ async function initConfig() {
         const ownerUser = process.env.USERNAME;
         if (ownerUser) {
           adminConfig!.UserConfig.Users = adminConfig!.UserConfig.Users.filter(
-            (u) => u.username !== ownerUser
+            (u) => u.username !== ownerUser,
           );
           adminConfig!.UserConfig.Users.unshift({
             username: ownerUser,
@@ -191,6 +198,7 @@ async function initConfig() {
 
       // 更新缓存
       cachedConfig = adminConfig;
+      configCacheTime = Date.now(); // 更新缓存时间戳
     } catch (err) {
       console.error('加载管理员配置失败:', err);
     }
@@ -230,8 +238,24 @@ export async function getConfig(): Promise<AdminConfig> {
     await initConfig();
     return cachedConfig;
   }
-  // 非 docker 环境且 DB 存储，直接读 db 配置
-  const storage = getStorage();
+
+  // 非 docker 环境且 DB 存储，检查缓存是否有效
+  if (isConfigCacheValid()) {
+    return cachedConfig;
+  }
+
+  // D1 存储需要从 Cloudflare Context 获取数据库实例
+  let dbInstance: any = undefined;
+  if (storageType === 'd1') {
+    try {
+      const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+      const context = getCloudflareContext();
+      dbInstance = (context.env as any)?.DB;
+    } catch {
+      // Cloudflare Context 不可用，降级处理
+    }
+  }
+  const storage = getStorage(dbInstance);
   let adminConfig: AdminConfig | null = null;
   if (storage && typeof (storage as any).getAdminConfig === 'function') {
     adminConfig = await (storage as any).getAdminConfig();
@@ -253,8 +277,14 @@ export async function getConfig(): Promise<AdminConfig> {
     fileConfig = runtimeConfig as unknown as ConfigFileStruct;
     if (fileConfig && fileConfig.api_site) {
       const apiSiteEntries = Object.entries(fileConfig.api_site);
-      const existed = new Set((adminConfig.SourceConfig || []).map((s) => s.key));
+      const existed = new Set(
+        (adminConfig.SourceConfig || []).map((s) => s.key),
+      );
       apiSiteEntries.forEach(([key, site]) => {
+        // 跳过没有有效 API URL 的占位符配置
+        if (!site.api || site.api.trim() === '') {
+          return;
+        }
         if (!existed.has(key)) {
           adminConfig!.SourceConfig.push({
             key,
@@ -303,6 +333,7 @@ export async function getConfig(): Promise<AdminConfig> {
       });
     }
     cachedConfig = adminConfig;
+    configCacheTime = Date.now(); // 更新缓存时间戳
   } else {
     // DB 无配置，执行一次初始化
     await initConfig();
@@ -323,7 +354,6 @@ export async function resetConfig() {
   }
 
   if (process.env.DOCKER_ENV === 'true') {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const _require = eval('require') as NodeRequire;
     const fs = _require('fs') as typeof import('fs');
     const path = _require('path') as typeof import('path');
@@ -387,6 +417,7 @@ export async function resetConfig() {
   cachedConfig.SiteConfig = adminConfig.SiteConfig;
   cachedConfig.UserConfig = adminConfig.UserConfig;
   cachedConfig.SourceConfig = adminConfig.SourceConfig;
+  configCacheTime = Date.now(); // 更新缓存时间戳
 }
 
 export async function getCacheTime(): Promise<number> {
@@ -395,14 +426,14 @@ export async function getCacheTime(): Promise<number> {
 }
 
 export async function getAvailableApiSites(
-  filterAdult = false
+  filterAdult = false,
 ): Promise<ApiSite[]> {
   const config = await getConfig();
 
   // 防御性检查：确保 SourceConfig 存在且为数组
   if (!config.SourceConfig || !Array.isArray(config.SourceConfig)) {
     console.warn(
-      'SourceConfig is missing or not an array, returning empty array'
+      'SourceConfig is missing or not an array, returning empty array',
     );
     return [];
   }
@@ -423,19 +454,20 @@ export async function getAvailableApiSites(
     name: s.name,
     api: s.api,
     detail: s.detail,
+    is_adult: s.is_adult === true,
   }));
 }
 
 // 根据用户设置动态获取可用资源站（你的想法实现）
 export async function getFilteredApiSites(
-  userName?: string
+  userName?: string,
 ): Promise<ApiSite[]> {
   const config = await getConfig();
 
   // 防御性检查：确保 SourceConfig 存在且为数组
   if (!config.SourceConfig || !Array.isArray(config.SourceConfig)) {
     console.warn(
-      'SourceConfig is missing or not an array, returning empty array'
+      'SourceConfig is missing or not an array, returning empty array',
     );
     return [];
   }
@@ -471,6 +503,7 @@ export async function getFilteredApiSites(
     name: s.name,
     api: s.api,
     detail: s.detail,
+    is_adult: s.is_adult === true,
   }));
 }
 
@@ -481,14 +514,14 @@ export async function getAdultApiSites(): Promise<ApiSite[]> {
   // 防御性检查：确保 SourceConfig 存在且为数组
   if (!config.SourceConfig || !Array.isArray(config.SourceConfig)) {
     console.warn(
-      'SourceConfig is missing or not an array, returning empty array'
+      'SourceConfig is missing or not an array, returning empty array',
     );
     return [];
   }
 
   // 防御性处理：严格检查成人内容标记
   const adultSites = config.SourceConfig.filter(
-    (s) => !s.disabled && s.is_adult === true
+    (s) => !s.disabled && s.is_adult === true,
   ); // 只有明确为 true 的才被认为是成人内容
 
   return adultSites.map((s) => ({
@@ -496,5 +529,6 @@ export async function getAdultApiSites(): Promise<ApiSite[]> {
     name: s.name,
     api: s.api,
     detail: s.detail,
+    is_adult: true,
   }));
 }

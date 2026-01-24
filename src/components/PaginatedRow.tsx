@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 
 interface PaginatedRowProps {
   children: React.ReactNode[];
@@ -22,7 +22,17 @@ export default function PaginatedRow({
 }: PaginatedRowProps) {
   const [startIndex, setStartIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [canHover, setCanHover] = useState(true);
   const uniqueId = useId(); // 为每个实例生成唯一ID
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const media = window.matchMedia('(hover: hover)');
+    const update = () => setCanHover(media.matches);
+    update();
+    media.addEventListener?.('change', update);
+    return () => media.removeEventListener?.('change', update);
+  }, []);
 
   // 获取当前显示的项目 - 支持无限向前浏览
   const currentItems = useMemo(() => {
@@ -61,7 +71,7 @@ export default function PaginatedRow({
         await onLoadMore(); // 加载更多数据
         // 加载完成后，直接设置到下一页
         setStartIndex(newIndex);
-      } catch (error) {
+      } catch {
         // 静默处理加载错误，保持用户体验
       }
     } else if (newIndex < children.length) {
@@ -84,6 +94,7 @@ export default function PaginatedRow({
 
   // 如果没有足够的内容需要分页，就不显示按钮
   const needsPagination = children.length > itemsPerPage;
+  const showControls = needsPagination && (!canHover || isHovered);
 
   return (
     <div
@@ -103,8 +114,8 @@ export default function PaginatedRow({
             {canGoPrev && (
               <button
                 onClick={handlePrevPage}
-                className={`absolute -left-12 z-20 w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
-                  isHovered ? 'opacity-100' : 'opacity-0'
+                className={`absolute left-2 md:-left-12 z-20 w-9 h-9 md:w-10 md:h-10 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
+                  showControls ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
                   // 确保按钮在两行中间
@@ -121,8 +132,8 @@ export default function PaginatedRow({
               <button
                 onClick={handleNextPage}
                 disabled={isLoading}
-                className={`absolute -right-12 z-20 w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isHovered ? 'opacity-100' : 'opacity-0'
+                className={`absolute right-2 md:-right-12 z-20 w-9 h-9 md:w-10 md:h-10 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  showControls ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
                   // 确保按钮在两行中间

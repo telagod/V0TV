@@ -1,0 +1,1 @@
+export { useHomeData } from './useHomeData';

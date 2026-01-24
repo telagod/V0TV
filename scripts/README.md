@@ -21,32 +21,26 @@ bash scripts/auto-deploy.sh
 ## 📋 脚本执行流程
 
 1. **生成随机密码**
-
    - 使用 OpenSSL 生成 32 字符的安全随机密码
    - 默认管理员用户名：`admin`
 
 2. **保存凭据**
-
    - 凭据保存到 `.credentials.txt`
    - 此文件已加入 `.gitignore`，不会被提交到 Git
 
 3. **检查登录状态**
-
    - 自动检测 Wrangler 登录状态
    - 未登录时自动启动浏览器登录
 
 4. **构建项目**
-
    - 执行 `pnpm run pages:build`
    - 编译 Next.js 应用为 Cloudflare Workers 格式
 
 5. **设置密码 Secret**
-
    - 使用 `wrangler secret put` 设置 PASSWORD
    - 非交互式自动设置
 
 6. **验证 Secret 设置**
-
    - 使用 `wrangler secret list` 验证 PASSWORD 是否已设置
    - 失败时会提示手动设置方法
 
@@ -79,13 +73,11 @@ bash scripts/verify-secret.sh
 3. 你会看到两个部分：
 
    **Environment Variables（环境变量）**
-
    - `USERNAME`: admin（明文显示）
    - `NEXT_PUBLIC_STORAGE_TYPE`: d1（明文显示）
    - `NEXT_PUBLIC_ENABLE_REGISTER`: true（明文显示）
 
    **Secrets（加密变量）**
-
    - `PASSWORD`（只显示名称，不显示值）
 
 **💡 这是正常的！** Secrets 不会显示明文值，这是 Cloudflare 的安全设计。
@@ -211,7 +203,6 @@ npx wrangler secret list
 在 Cloudflare Dashboard 中：
 
 - **Environment Variables 部分** 显示 3 个公开变量的明文：
-
   - USERNAME
   - NEXT_PUBLIC_STORAGE_TYPE
   - NEXT_PUBLIC_ENABLE_REGISTER

@@ -55,7 +55,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 
     // 2. 检测广告URL特征关键词
     const hasAdKeyword = adKeywords.some((keyword) =>
-      lineLower.includes(keyword)
+      lineLower.includes(keyword),
     );
     if (hasAdKeyword && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       if (process.env.NODE_ENV === 'development') {
@@ -67,7 +67,7 @@ function filterAdsFromM3U8(m3u8Content: string): string {
 
     // 3. 检测广告URL正则模式
     const matchesAdPattern = adPatterns.some((pattern) =>
-      pattern.test(lineLower)
+      pattern.test(lineLower),
     );
     if (matchesAdPattern && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
       if (process.env.NODE_ENV === 'development') {
@@ -119,13 +119,15 @@ function filterAdsFromM3U8(m3u8Content: string): string {
  */
 export function createAdFilterLoader() {
   const DefaultLoader = Hls.DefaultConfig.loader;
+  type DefaultLoaderInstance = InstanceType<typeof DefaultLoader>;
+  type DefaultLoadArgs = Parameters<DefaultLoaderInstance['load']>;
 
   return class AdFilterLoader {
     private loader: InstanceType<typeof DefaultLoader>;
 
     constructor(config: unknown) {
       this.loader = new DefaultLoader(
-        config as ConstructorParameters<typeof DefaultLoader>[0]
+        config as ConstructorParameters<typeof DefaultLoader>[0],
       );
     }
 
@@ -144,7 +146,7 @@ export function createAdFilterLoader() {
     load(
       context: unknown,
       config: unknown,
-      callbacks: Record<string, unknown>
+      callbacks: Record<string, unknown>,
     ) {
       const ctx = context as { type?: string };
       const isInterceptTarget = ctx.type === 'manifest' || ctx.type === 'level';
@@ -154,14 +156,14 @@ export function createAdFilterLoader() {
           response: { data?: string },
           stats: unknown,
           context: unknown,
-          networkDetails?: unknown
+          networkDetails?: unknown,
         ) => void;
 
         callbacks.onSuccess = (
           response: { data?: string },
           stats: unknown,
           callbackContext: unknown,
-          networkDetails?: unknown
+          networkDetails?: unknown,
         ) => {
           if (response.data && typeof response.data === 'string') {
             response.data = filterAdsFromM3U8(response.data);
@@ -170,12 +172,16 @@ export function createAdFilterLoader() {
             response,
             stats,
             callbackContext,
-            networkDetails
+            networkDetails,
           );
         };
       }
 
-      this.loader.load(context as any, config as any, callbacks as any);
+      this.loader.load(
+        context as DefaultLoadArgs[0],
+        config as DefaultLoadArgs[1],
+        callbacks as unknown as DefaultLoadArgs[2],
+      );
     }
 
     get context() {

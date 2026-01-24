@@ -53,7 +53,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   return (
     <nav
-      className='md:hidden fixed left-0 right-0 z-[600] bg-white/90 backdrop-blur-xl border-t border-purple-200/50 overflow-hidden dark:bg-gray-900/80 dark:border-purple-700/50 shadow-lg'
+      className='md:hidden fixed left-0 right-0 z-fixed bg-white/90 backdrop-blur-xl border-t border-purple-200/50 overflow-hidden dark:bg-gray-900/80 dark:border-purple-700/50 shadow-lg'
       style={{
         /* 紧贴视口底部，同时在内部留出安全区高度 */
         bottom: 0,
@@ -70,9 +70,9 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
             <li key={item.href} className='flex-shrink-0 w-1/5'>
               <Link
                 href={item.href}
-                className={`flex flex-col items-center justify-center w-full h-14 gap-1 text-xs transition-all duration-200 relative ${
+                className={`flex flex-col items-center justify-center w-full h-14 mobile-landscape:h-11 gap-1 mobile-landscape:gap-0.5 text-xs transition-all duration-200 relative ${
                   active
-                    ? 'transform -translate-y-1'
+                    ? 'transform -translate-y-1 mobile-landscape:-translate-y-0.5'
                     : 'hover:transform hover:-translate-y-0.5'
                 }`}
               >
@@ -82,14 +82,14 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
                 )}
 
                 <item.icon
-                  className={`h-6 w-6 transition-all duration-200 ${
+                  className={`h-6 w-6 mobile-landscape:h-5 mobile-landscape:w-5 transition-all duration-200 ${
                     active
-                      ? 'text-purple-600 dark:text-purple-400 scale-110'
+                      ? 'text-purple-600 dark:text-purple-400 scale-110 mobile-landscape:scale-105'
                       : 'text-gray-500 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-300'
                   }`}
                 />
                 <span
-                  className={`transition-all duration-200 font-medium ${
+                  className={`transition-all duration-200 font-medium mobile-landscape:text-[10px] ${
                     active
                       ? 'text-purple-600 dark:text-purple-400'
                       : 'text-gray-600 dark:text-gray-300 hover:text-purple-500 dark:hover:text-purple-300'

@@ -82,14 +82,14 @@ npx wrangler deploy
   "main": ".open-next/worker.js", // Workers 入口文件
   "compatibility_flags": [
     "nodejs_compat",
-    "global_fetch_strictly_public" // OpenNext 要求
+    "global_fetch_strictly_public", // OpenNext 要求
   ],
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "v0tv"
-    }
-  ]
+      "service": "v0tv",
+    },
+  ],
 }
 ```
 

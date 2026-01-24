@@ -106,7 +106,7 @@ function DoubanPageClient() {
         pageStart,
       };
     },
-    [type, primarySelection, secondarySelection]
+    [type, primarySelection, secondarySelection],
   );
 
   // 防抖的数据加载函数
@@ -172,7 +172,7 @@ function DoubanPageClient() {
           setIsLoadingMore(true);
 
           const data = await getDoubanCategories(
-            getRequestParams(currentPage * 25)
+            getRequestParams(currentPage * 25),
           );
 
           if (data.code === 200) {
@@ -210,7 +210,7 @@ function DoubanPageClient() {
           setCurrentPage((prev) => prev + 1);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     observer.observe(loadingRef.current);
@@ -232,7 +232,7 @@ function DoubanPageClient() {
         setPrimarySelection(value);
       }
     },
-    [primarySelection]
+    [primarySelection],
   );
 
   const handleSecondaryChange = useCallback(
@@ -243,7 +243,7 @@ function DoubanPageClient() {
         setSecondarySelection(value);
       }
     },
-    [secondarySelection]
+    [secondarySelection],
   );
 
   const getPageTitle = () => {

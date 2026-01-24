@@ -45,7 +45,7 @@ export default function PlayPageClient() {
       needPrefer: searchParams.get('prefer') === 'true',
       initialEpisode: Math.max(0, parseInt(searchParams.get('ep') || '1') - 1),
     }),
-    [searchParams]
+    [searchParams],
   );
 
   // ============================================================================
@@ -66,6 +66,8 @@ export default function PlayPageClient() {
   const [videoDuration, setVideoDuration] = useState(0);
   const [playerReady, setPlayerReady] = useState(false);
   const playerRef = useRef<ArtPlayerInstance | null>(null);
+  const lastUiTimeUpdateRef = useRef(0);
+  const lastDurationRef = useRef(0);
 
   // ============================================================================
   // 视频数据管理（加载视频详情）
@@ -111,7 +113,7 @@ export default function PlayPageClient() {
         },
         videoData.currentEpisodeIndex,
         urlParams.searchTitle,
-        urlParams.searchType
+        urlParams.searchType,
       );
     },
     onError: (error) => {
@@ -184,7 +186,7 @@ export default function PlayPageClient() {
         ctrlKey: true,
       },
     ],
-    playerReady && !isSkipSettingMode
+    playerReady && !isSkipSettingMode,
   );
 
   // ============================================================================
@@ -196,7 +198,7 @@ export default function PlayPageClient() {
 
     const episodeIndex = Math.min(
       videoData.currentEpisodeIndex,
-      episodes.length - 1
+      episodes.length - 1,
     );
 
     return episodes[episodeIndex] || '';
@@ -222,7 +224,7 @@ export default function PlayPageClient() {
         videoData,
         newIndex,
         urlParams.searchTitle,
-        urlParams.searchType
+        urlParams.searchType,
       );
     },
     [
@@ -234,7 +236,7 @@ export default function PlayPageClient() {
       saveProgress,
       urlParams.searchTitle,
       urlParams.searchType,
-    ]
+    ],
   );
 
   // ============================================================================
@@ -268,7 +270,7 @@ export default function PlayPageClient() {
         preserveProgress: true,
       });
     },
-    [playerReady, currentPlayTime, videoDuration, saveProgress, switchSource]
+    [playerReady, currentPlayTime, videoDuration, saveProgress, switchSource],
   );
 
   // ============================================================================
@@ -283,8 +285,23 @@ export default function PlayPageClient() {
   }, []);
 
   const handleTimeUpdate = useCallback((time: number, duration: number) => {
-    setCurrentPlayTime(time);
-    setVideoDuration(duration);
+    // 避免 timeupdate 高频触发导致整页频繁 rerender（影响交互与性能）
+    const now =
+      typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const shouldUpdateTime = now - lastUiTimeUpdateRef.current >= 250;
+    const shouldUpdateDuration = Math.abs(duration - lastDurationRef.current) >= 0.5;
+
+    if (!shouldUpdateTime && !shouldUpdateDuration) return;
+
+    if (shouldUpdateTime) {
+      lastUiTimeUpdateRef.current = now;
+      setCurrentPlayTime(time);
+    }
+
+    if (shouldUpdateDuration) {
+      lastDurationRef.current = duration;
+      setVideoDuration(duration);
+    }
   }, []);
 
   const handlePlayerPause = useCallback(() => {
@@ -325,7 +342,7 @@ export default function PlayPageClient() {
     if (urlParams.initialEpisode > 0 && videoData.totalEpisodes > 0) {
       const validEpisode = Math.min(
         urlParams.initialEpisode,
-        videoData.totalEpisodes - 1
+        videoData.totalEpisodes - 1,
       );
       updateEpisodeIndex(validEpisode);
     }
@@ -346,7 +363,7 @@ export default function PlayPageClient() {
       videoData.currentId,
       videoData.videoTitle,
       videoData.videoYear,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -355,7 +372,7 @@ export default function PlayPageClient() {
         currentVideoState,
         videoData.currentEpisodeIndex,
         urlParams.searchTitle,
-        urlParams.searchType
+        urlParams.searchType,
       );
     }
   }, [
@@ -504,7 +521,7 @@ export default function PlayPageClient() {
                 isEpisodeSelectorCollapsed ? 'col-span-1' : 'md:col-span-3'
               }`}
             >
-              <div className='relative w-full h-[300px] lg:h-full'>
+              <div className='relative w-full lg:h-full'>
                 {/* 视频播放器 */}
                 <VideoPlayer
                   url={currentVideoUrl}

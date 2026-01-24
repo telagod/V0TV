@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
@@ -12,7 +10,7 @@ export async function GET(request: NextRequest) {
       {
         error: '不支持本地存储进行管理员配置',
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -35,7 +33,7 @@ export async function GET(request: NextRequest) {
         headers: {
           'Cache-Control': 'no-store', // 管理员配置不缓存
         },
-      }
+      },
     );
   } catch (error) {
     return NextResponse.json(
@@ -43,7 +41,7 @@ export async function GET(request: NextRequest) {
         error: '重置管理员配置失败',
         details: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

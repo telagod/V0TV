@@ -1,12 +1,12 @@
 'use client';
 
 import { Shield, ShieldOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { logError, logInfo, logWarn } from '@/lib/logger';
 
 interface AdultContentFilterProps {
-  userName: string;
+  userName?: string;
   onUpdate?: (enabled: boolean) => void;
 }
 
@@ -18,16 +18,28 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const storageType =
+    typeof window !== 'undefined'
+      ? ((window as unknown as { RUNTIME_CONFIG?: { STORAGE_TYPE?: string } })
+          .RUNTIME_CONFIG?.STORAGE_TYPE ?? 'localstorage')
+      : 'localstorage';
+
+  const authHeaders = useMemo<HeadersInit>(() => {
+    // 生产环境（D1/Upstash/Redis…）以 cookie 为准；仅 localstorage 兼容旧 Authorization
+    if (storageType === 'localstorage' && userName) {
+      return { Authorization: `Bearer ${userName}` } as HeadersInit;
+    }
+    return {} as HeadersInit;
+  }, [storageType, userName]);
+
   // 获取用户设置
   useEffect(() => {
     const fetchUserSettings = async () => {
-      if (!userName) return;
+      if (storageType === 'localstorage' && !userName) return;
 
       try {
         const response = await fetch('/api/user/settings', {
-          headers: {
-            Authorization: `Bearer ${userName}`,
-          },
+          headers: authHeaders,
         });
 
         if (response.ok) {
@@ -43,11 +55,11 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
     };
 
     fetchUserSettings();
-  }, [userName]);
+  }, [userName, storageType, authHeaders]);
 
   // 更新用户设置
   const handleToggle = async () => {
-    if (!userName || isLoading) return;
+    if ((storageType === 'localstorage' && !userName) || isLoading) return;
 
     setIsLoading(true);
     setError(null);
@@ -57,7 +69,7 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${userName}`,
+          ...authHeaders,
         },
         body: JSON.stringify({
           settings: {
@@ -74,9 +86,7 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
         try {
           await fetch('/api/user/refresh-cache', {
             method: 'POST',
-            headers: {
-              Authorization: `Bearer ${userName}`,
-            },
+            headers: authHeaders,
           });
           logInfo('[成人内容过滤] 缓存刷新成功');
         } catch (refreshError) {
@@ -123,7 +133,7 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
         <div className='flex items-center space-x-3'>
           <button
             onClick={handleToggle}
-            disabled={isLoading || !userName}
+            disabled={isLoading || (storageType === 'localstorage' && !userName)}
             className={`
               relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
               ${isEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}

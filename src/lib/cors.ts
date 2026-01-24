@@ -6,11 +6,11 @@ export function createCorsHeaders(): Headers {
   headers.set('Access-Control-Allow-Origin', '*');
   headers.set(
     'Access-Control-Allow-Methods',
-    'GET, POST, PUT, DELETE, OPTIONS'
+    'GET, POST, PUT, DELETE, OPTIONS',
   );
   headers.set(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, X-Requested-With'
+    'Content-Type, Authorization, X-Requested-With',
   );
   headers.set('Access-Control-Max-Age', '86400'); // 24小时
 

@@ -6,6 +6,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { SearchResult } from '@/lib/types';
 import { processImageUrl } from '@/lib/utils';
@@ -45,6 +46,29 @@ export function VideoInfo(props: VideoInfoProps) {
     onToggleFavorite,
     className = '',
   } = props;
+
+  const initialCoverSrc = useMemo(
+    () => (cover ? processImageUrl(cover) : ''),
+    [cover],
+  );
+  const [coverSrc, setCoverSrc] = useState(initialCoverSrc);
+
+  useEffect(() => {
+    setCoverSrc(initialCoverSrc);
+  }, [initialCoverSrc]);
+
+  const getDoubanProxyFallback = (url: string): string | null => {
+    try {
+      const parsed = new URL(url);
+      const isDouban =
+        parsed.hostname.endsWith('doubanio.com') ||
+        parsed.hostname.endsWith('douban.com');
+      if (!isDouban) return null;
+      return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 ${className}`}>
@@ -98,12 +122,19 @@ export function VideoInfo(props: VideoInfoProps) {
           <div className='relative bg-gray-300 dark:bg-gray-700 aspect-[2/3] flex items-center justify-center rounded-xl overflow-hidden'>
             {cover ? (
               <Image
-                src={processImageUrl(cover)}
+                src={coverSrc}
                 alt={title}
                 fill
                 sizes='(min-width: 768px) 20vw, 50vw'
                 className='object-cover'
                 priority
+                referrerPolicy='no-referrer'
+                onError={() => {
+                  const fallback = getDoubanProxyFallback(cover);
+                  if (!fallback) return;
+                  if (coverSrc === fallback) return;
+                  setCoverSrc(fallback);
+                }}
               />
             ) : (
               <span className='text-gray-600 dark:text-gray-400'>封面图片</span>

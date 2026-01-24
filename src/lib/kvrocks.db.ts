@@ -1,4 +1,4 @@
-/* eslint-disable no-console, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable no-console */
 
 import { createClient, RedisClientType } from 'redis';
 
@@ -41,7 +41,7 @@ function ensureStringArray(value: unknown[]): string[] {
 // 添加Kvrocks操作重试包装器
 async function withRetry<T>(
   operation: () => Promise<T>,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<T> {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -58,7 +58,7 @@ async function withRetry<T>(
 
       if (isConnectionError && !isLastAttempt) {
         console.log(
-          `Kvrocks operation failed, retrying... (${i + 1}/${maxRetries})`
+          `Kvrocks operation failed, retrying... (${i + 1}/${maxRetries})`,
         );
         console.error('Error:', error?.message || String(err));
 
@@ -99,10 +99,10 @@ export class KvrocksStorage implements IStorage {
 
   async getPlayRecord(
     userName: string,
-    key: string
+    key: string,
   ): Promise<PlayRecord | null> {
     const val = await withRetry(() =>
-      this.client.get(this.prKey(userName, key))
+      this.client.get(this.prKey(userName, key)),
     );
     return val ? (JSON.parse(val) as PlayRecord) : null;
   }
@@ -110,15 +110,15 @@ export class KvrocksStorage implements IStorage {
   async setPlayRecord(
     userName: string,
     key: string,
-    record: PlayRecord
+    record: PlayRecord,
   ): Promise<void> {
     await withRetry(() =>
-      this.client.set(this.prKey(userName, key), JSON.stringify(record))
+      this.client.set(this.prKey(userName, key), JSON.stringify(record)),
     );
   }
 
   async getAllPlayRecords(
-    userName: string
+    userName: string,
   ): Promise<Record<string, PlayRecord>> {
     const pattern = `u:${userName}:pr:*`;
     const keys = await withRetry(() => this.client.keys(pattern));
@@ -143,6 +143,14 @@ export class KvrocksStorage implements IStorage {
     await withRetry(() => this.client.del(this.prKey(userName, key)));
   }
 
+  async deleteAllPlayRecords(userName: string): Promise<void> {
+    const pattern = `u:${userName}:pr:*`;
+    const keys = await withRetry(() => this.client.keys(pattern));
+    if (keys.length > 0) {
+      await withRetry(() => this.client.del(...keys));
+    }
+  }
+
   // ---------- 收藏 ----------
   private favKey(user: string, key: string) {
     return `u:${user}:fav:${key}`; // u:username:fav:source+id
@@ -150,7 +158,7 @@ export class KvrocksStorage implements IStorage {
 
   async getFavorite(userName: string, key: string): Promise<Favorite | null> {
     const val = await withRetry(() =>
-      this.client.get(this.favKey(userName, key))
+      this.client.get(this.favKey(userName, key)),
     );
     return val ? (JSON.parse(val) as Favorite) : null;
   }
@@ -158,10 +166,10 @@ export class KvrocksStorage implements IStorage {
   async setFavorite(
     userName: string,
     key: string,
-    favorite: Favorite
+    favorite: Favorite,
   ): Promise<void> {
     await withRetry(() =>
-      this.client.set(this.favKey(userName, key), JSON.stringify(favorite))
+      this.client.set(this.favKey(userName, key), JSON.stringify(favorite)),
     );
   }
 
@@ -189,6 +197,14 @@ export class KvrocksStorage implements IStorage {
     await withRetry(() => this.client.del(this.favKey(userName, key)));
   }
 
+  async deleteAllFavorites(userName: string): Promise<void> {
+    const pattern = `u:${userName}:fav:*`;
+    const keys = await withRetry(() => this.client.keys(pattern));
+    if (keys.length > 0) {
+      await withRetry(() => this.client.del(...keys));
+    }
+  }
+
   // ---------- 搜索历史 ----------
   private searchHistoryKey(user: string) {
     return `u:${user}:search_history`;
@@ -196,7 +212,7 @@ export class KvrocksStorage implements IStorage {
 
   async getSearchHistory(userName: string): Promise<string[]> {
     const items = await withRetry(() =>
-      this.client.lRange(this.searchHistoryKey(userName), 0, -1)
+      this.client.lRange(this.searchHistoryKey(userName), 0, -1),
     );
     return ensureStringArray(items);
   }
@@ -231,10 +247,10 @@ export class KvrocksStorage implements IStorage {
 
   async getSkipConfig(
     userName: string,
-    key: string
+    key: string,
   ): Promise<EpisodeSkipConfig | null> {
     const val = await withRetry(() =>
-      this.client.get(this.skipConfigKey(userName, key))
+      this.client.get(this.skipConfigKey(userName, key)),
     );
     return val ? (JSON.parse(val) as EpisodeSkipConfig) : null;
   }
@@ -242,10 +258,13 @@ export class KvrocksStorage implements IStorage {
   async setSkipConfig(
     userName: string,
     key: string,
-    config: EpisodeSkipConfig
+    config: EpisodeSkipConfig,
   ): Promise<void> {
     await withRetry(() =>
-      this.client.set(this.skipConfigKey(userName, key), JSON.stringify(config))
+      this.client.set(
+        this.skipConfigKey(userName, key),
+        JSON.stringify(config),
+      ),
     );
   }
 
@@ -254,7 +273,7 @@ export class KvrocksStorage implements IStorage {
   }
 
   async getAllSkipConfigs(
-    userName: string
+    userName: string,
   ): Promise<Record<string, EpisodeSkipConfig>> {
     const pattern = `u:${userName}:skip_config:*`;
     const keys = await withRetry(() => this.client.keys(pattern));
@@ -299,7 +318,7 @@ export class KvrocksStorage implements IStorage {
 
   async getAllUsers(): Promise<string[]> {
     const users = await withRetry(() =>
-      this.client.sMembers(this.userListKey())
+      this.client.sMembers(this.userListKey()),
     );
     return ensureStringArray(users);
   }
@@ -367,7 +386,7 @@ export class KvrocksStorage implements IStorage {
 
   async setAdminConfig(config: AdminConfig): Promise<void> {
     await withRetry(() =>
-      this.client.set(this.adminConfigKey(), JSON.stringify(config))
+      this.client.set(this.adminConfigKey(), JSON.stringify(config)),
     );
   }
 
@@ -378,38 +397,43 @@ export class KvrocksStorage implements IStorage {
 
   async getUserSettings(userName: string): Promise<UserSettings | null> {
     const val = await withRetry(() =>
-      this.client.get(this.userSettingsKey(userName))
+      this.client.get(this.userSettingsKey(userName)),
     );
     return val ? (JSON.parse(val) as UserSettings) : null;
   }
 
   async setUserSettings(
     userName: string,
-    settings: UserSettings
+    settings: UserSettings,
   ): Promise<void> {
     await withRetry(() =>
-      this.client.set(this.userSettingsKey(userName), JSON.stringify(settings))
+      this.client.set(this.userSettingsKey(userName), JSON.stringify(settings)),
     );
   }
 
   async updateUserSettings(
     userName: string,
-    settings: Partial<UserSettings>
+    settings: Partial<UserSettings>,
   ): Promise<void> {
     const current = await this.getUserSettings(userName);
-    const defaultSettings: UserSettings = {
-      filter_adult_content: true,
+    const defaultSettings: Omit<UserSettings, 'filter_adult_content'> = {
       theme: 'auto',
       language: 'zh-CN',
       auto_play: false,
       video_quality: 'auto',
     };
-    const updated: UserSettings = {
+    const merged = {
       ...defaultSettings,
-      ...current,
+      ...(current ?? {}),
       ...settings,
+    } as Partial<UserSettings>;
+    const updated: UserSettings = {
       filter_adult_content:
         settings.filter_adult_content ?? current?.filter_adult_content ?? true,
+      theme: merged.theme ?? 'auto',
+      language: merged.language ?? 'zh-CN',
+      auto_play: merged.auto_play ?? false,
+      video_quality: merged.video_quality ?? 'auto',
     };
     await this.setUserSettings(userName, updated);
   }
@@ -438,7 +462,7 @@ export function getKvrocksClient(): RedisClientType {
         reconnectStrategy: (retries: number) => {
           const delay = Math.min(retries * 50, 2000);
           console.log(
-            `🔄 Kvrocks reconnecting in ${delay}ms (attempt ${retries})`
+            `🔄 Kvrocks reconnecting in ${delay}ms (attempt ${retries})`,
           );
           return delay;
         },
@@ -451,7 +475,7 @@ export function getKvrocksClient(): RedisClientType {
       console.log('🔐 Using password authentication');
     } else {
       console.log(
-        '🔓 No password authentication (connecting without password)'
+        '🔓 No password authentication (connecting without password)',
       );
     }
 

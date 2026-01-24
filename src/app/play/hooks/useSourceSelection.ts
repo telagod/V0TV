@@ -5,8 +5,6 @@
 
 import { useCallback, useRef, useState } from 'react';
 
-import { getConfig } from '@/lib/config';
-import { getDetailFromApi, searchFromApi } from '@/lib/downstream';
 import { logError, logInfo } from '@/lib/logger';
 import type { SearchResult } from '@/lib/types';
 
@@ -26,7 +24,7 @@ interface UseSourceSelectionOptions {
  * 源选择Hook
  */
 export function useSourceSelection(
-  options: UseSourceSelectionOptions
+  options: UseSourceSelectionOptions,
 ): UseSourceSelectionReturn {
   const { searchTitle, searchType: _searchType, onSuccess, onError } = options;
 
@@ -52,32 +50,26 @@ export function useSourceSelection(
     setError(null);
 
     try {
-      const config = await getConfig();
-      const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
-        (s) => ({
-          key: s.key,
-          name: s.name,
-          api: s.api,
-          detail: s.detail,
-        })
-      );
-
-      // 并行搜索所有源
-      const searchPromises = apiSites.map((site) =>
-        searchFromApi(site, searchTitle).catch((err) => {
-          logError(`${site.name} 搜索失败`, err);
-          return [];
-        })
-      );
-
-      const searchResults = await Promise.all(searchPromises);
-      const allResults = searchResults.flat();
+      // 通过服务端聚合搜索（避免浏览器直连源站/CORS导致播放页无源）
+      const res = await fetch(`/api/search?q=${encodeURIComponent(searchTitle)}`, {
+        cache: 'no-store',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          typeof data?.error === 'string' ? data.error : `搜索失败: ${res.status}`,
+        );
+      }
+      const allResults: SearchResult[] = [
+        ...(data?.regular_results ?? data?.results ?? []),
+        ...(data?.adult_results ?? []),
+      ];
 
       // 按源名称去重
       const uniqueResults = Array.from(
         new Map(
-          allResults.map((item) => [`${item.source}-${item.id}`, item])
-        ).values()
+          allResults.map((item) => [`${item.source}-${item.id}`, item]),
+        ).values(),
       );
 
       setSources(uniqueResults);
@@ -111,27 +103,22 @@ export function useSourceSelection(
       try {
         // 从可用源中查找目标源
         let newDetail = sources.find(
-          (s) => s.source === newSource && s.id === newId
+          (s) => s.source === newSource && s.id === newId,
         );
 
         // 如果在已搜索的源中找不到，重新获取详情
         if (!newDetail) {
-          const config = await getConfig();
-          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
-            (s) => ({
-              key: s.key,
-              name: s.name,
-              api: s.api,
-              detail: s.detail,
-            })
+          const res = await fetch(
+            `/api/detail?source=${encodeURIComponent(newSource)}&id=${encodeURIComponent(newId)}`,
+            { cache: 'no-store' },
           );
-          const apiSite = apiSites.find((s) => s.key === newSource);
-
-          if (!apiSite) {
-            throw new Error('未找到对应的播放源配置');
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(
+              typeof data?.error === 'string' ? data.error : `获取详情失败: ${res.status}`,
+            );
           }
-
-          newDetail = await getDetailFromApi(apiSite, newId);
+          newDetail = data as SearchResult;
         }
 
         if (!newDetail) {
@@ -158,7 +145,7 @@ export function useSourceSelection(
         setLoading(false);
       }
     },
-    [sources, onSuccess, onError]
+    [sources, onSuccess, onError],
   );
 
   return {

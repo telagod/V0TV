@@ -1,14 +1,21 @@
-import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getStorage } from '@/lib/db';
 import { logError } from '@/lib/logger';
 import { UserSettings } from '@/lib/types';
+import { getVerifiedUserName } from '@/lib/user-context';
 
 // 设置运行时为 Edge Runtime，确保部署兼容性
 
+function getUserNameFromAuthorization(request: NextRequest): string | null {
+  const authorization = request.headers.get('Authorization');
+  if (!authorization) return null;
+  const userName = authorization.split(' ')[1];
+  return userName?.trim() ? userName.trim() : null;
+}
+
 // 获取用户设置
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // 获取 D1 数据库实例
     let dbInstance;
@@ -24,17 +31,13 @@ export async function GET(_request: NextRequest) {
       }
     }
 
-    const headersList = headers();
-    const authorization = headersList.get('Authorization');
-
-    if (!authorization) {
-      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
-    }
-
-    const userName = authorization.split(' ')[1]; // 假设格式为 "Bearer username"
+    const userName =
+      storageType === 'localstorage'
+        ? getUserNameFromAuthorization(request)
+        : await getVerifiedUserName(request);
 
     if (!userName) {
-      return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
     }
 
     const storage = getStorage(dbInstance);
@@ -56,7 +59,7 @@ export async function GET(_request: NextRequest) {
           Pragma: 'no-cache',
           Expires: '0',
         },
-      }
+      },
     );
   } catch (error) {
     logError('Error getting user settings', error);
@@ -81,17 +84,13 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const headersList = headers();
-    const authorization = headersList.get('Authorization');
-
-    if (!authorization) {
-      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
-    }
-
-    const userName = authorization.split(' ')[1];
+    const userName =
+      storageType === 'localstorage'
+        ? getUserNameFromAuthorization(request)
+        : await getVerifiedUserName(request);
 
     if (!userName) {
-      return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -102,12 +101,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     const storage = getStorage(dbInstance);
-
-    // 验证用户存在
-    const userExists = await storage.checkUserExist(userName);
-    if (!userExists) {
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
-    }
 
     await storage.updateUserSettings(userName, settings);
 
@@ -122,7 +115,7 @@ export async function PATCH(request: NextRequest) {
           Pragma: 'no-cache',
           Expires: '0',
         },
-      }
+      },
     );
   } catch (error) {
     logError('Error updating user settings', error);
@@ -147,17 +140,13 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const headersList = headers();
-    const authorization = headersList.get('Authorization');
-
-    if (!authorization) {
-      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
-    }
-
-    const userName = authorization.split(' ')[1];
+    const userName =
+      storageType === 'localstorage'
+        ? getUserNameFromAuthorization(request)
+        : await getVerifiedUserName(request);
 
     if (!userName) {
-      return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
+      return NextResponse.json({ error: '未授权访问' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -168,12 +157,6 @@ export async function PUT(request: NextRequest) {
     }
 
     const storage = getStorage(dbInstance);
-
-    // 验证用户存在
-    const userExists = await storage.checkUserExist(userName);
-    if (!userExists) {
-      return NextResponse.json({ error: '用户不存在' }, { status: 404 });
-    }
 
     await storage.setUserSettings(userName, settings);
 

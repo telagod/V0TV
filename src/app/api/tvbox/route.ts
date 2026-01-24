@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getConfig } from '@/lib/config';
+import { getStorage } from '@/lib/db';
+import { logError } from '@/lib/logger';
+import { getVerifiedUserName } from '@/lib/user-context';
 
 // 强制使用 Edge Runtime 以支持 Cloudflare Pages
 
@@ -60,9 +63,41 @@ export async function GET(request: NextRequest) {
     if (sourceConfigs.length === 0) {
       return NextResponse.json(
         { error: '没有配置任何视频源' },
-        { status: 500 }
+        { status: 500 },
       );
     }
+
+    // 默认过滤成人源；仅信任已验证 cookie 的用户设置
+    let shouldFilterAdult = true;
+    try {
+      // 获取 D1 数据库实例
+      let dbInstance;
+      const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE;
+      if (storageType === 'd1') {
+        try {
+          const { getCloudflareContext } = await import('@opennextjs/cloudflare');
+          const context = getCloudflareContext();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          dbInstance = (context.env as any).DB;
+        } catch (error) {
+          logError('[tvbox] 无法获取 Cloudflare Context', error);
+        }
+      }
+
+      const userName = await getVerifiedUserName(request);
+      if (userName) {
+        const storage = getStorage(dbInstance);
+        const settings = await storage.getUserSettings(userName);
+        shouldFilterAdult = settings?.filter_adult_content !== false;
+      }
+    } catch (error) {
+      logError('[tvbox] 获取用户设置失败，默认过滤成人内容', error);
+      shouldFilterAdult = true;
+    }
+
+    const effectiveSourceConfigs = shouldFilterAdult
+      ? sourceConfigs.filter((s) => s.is_adult !== true)
+      : sourceConfigs;
 
     // 转换为TVBox格式
     const tvboxConfig: TVBoxConfig = {
@@ -71,7 +106,7 @@ export async function GET(request: NextRequest) {
       wallpaper: `${baseUrl}/icons/icon-512x512.png`, // 使用应用图标作为壁纸
 
       // 影视源配置
-      sites: sourceConfigs.map((source) => {
+      sites: effectiveSourceConfigs.map((source) => {
         // 更智能的type判断逻辑：
         // 1. 如果api地址包含 "/provide/vod" 且不包含 "at/xml"，则认为是JSON类型 (type=1)
         // 2. 如果api地址包含 "at/xml"，则认为是XML类型 (type=0)
@@ -247,7 +282,8 @@ export async function GET(request: NextRequest) {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET',
           'Access-Control-Allow-Headers': 'Content-Type',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'no-store',
+          Vary: 'Cookie',
         },
       });
     } else {
@@ -257,7 +293,8 @@ export async function GET(request: NextRequest) {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET',
           'Access-Control-Allow-Headers': 'Content-Type',
-          'Cache-Control': 'public, max-age=3600',
+          'Cache-Control': 'no-store',
+          Vary: 'Cookie',
         },
       });
     }
@@ -267,7 +304,7 @@ export async function GET(request: NextRequest) {
         error: 'TVBox配置生成失败',
         details: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

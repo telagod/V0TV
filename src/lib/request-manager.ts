@@ -10,32 +10,35 @@
 // ============================================================================
 
 const CONFIG = {
-  // 并发控制
-  MAX_CONCURRENT_REQUESTS: 5, // 全局最大并发数
-  MAX_CONCURRENT_PER_HOST: 2, // 每个域名最大并发数
+  // 并发控制 (优化: 提高并发限制)
+  MAX_CONCURRENT_REQUESTS: 10, // 全局最大并发数 (5→10)
+  MAX_CONCURRENT_PER_HOST: 3, // 每个域名最大并发数 (2→3)
 
   // 重试配置
-  MAX_RETRIES: 3, // 最大重试次数
-  INITIAL_RETRY_DELAY: 1000, // 初始重试延迟 (ms)
-  MAX_RETRY_DELAY: 10000, // 最大重试延迟 (ms)
-  RETRY_BACKOFF_MULTIPLIER: 2, // 指数退避倍数
+  MAX_RETRIES: 3,
+  INITIAL_RETRY_DELAY: 500, // 初始重试延迟 (1000→500ms)
+  MAX_RETRY_DELAY: 5000, // 最大重试延迟 (10000→5000ms)
+  RETRY_BACKOFF_MULTIPLIER: 1.5, // 指数退避倍数 (2→1.5)
 
   // 超时配置
-  DEFAULT_TIMEOUT: 8000, // 默认超时 (ms)
-  SPEED_TEST_TIMEOUT: 5000, // 测速超时 (ms)
+  DEFAULT_TIMEOUT: 8000,
+  SPEED_TEST_TIMEOUT: 3000, // 测速超时 (5000→3000ms)
 
-  // 熔断器配置
-  CIRCUIT_BREAKER_THRESHOLD: 5, // 连续失败次数阈值
-  CIRCUIT_BREAKER_TIMEOUT: 60000, // 熔断恢复时间 (ms)
-  CIRCUIT_BREAKER_SUCCESS_THRESHOLD: 2, // 半开状态成功次数阈值
+  // 熔断器配置 (优化: 更宽容的熔断策略)
+  CIRCUIT_BREAKER_THRESHOLD: 8, // 连续失败次数阈值 (5→8)
+  CIRCUIT_BREAKER_TIMEOUT: 30000, // 熔断恢复时间 (60000→30000ms)
+  CIRCUIT_BREAKER_SUCCESS_THRESHOLD: 1, // 半开状态成功次数阈值 (2→1)
 
-  // 缓存配置
-  CACHE_TTL: 300000, // 缓存生存时间 5分钟
-  CACHE_MAX_SIZE: 1000, // 最大缓存条目数
+  // 缓存配置 (优化: 增加 TTL 减少重复请求)
+  CACHE_TTL: 1800000, // 缓存 TTL: 30 分钟 (300000→1800000ms)
+  CACHE_MAX_SIZE: 1000, // 最大缓存条目数 (500→1000)
 
   // 测速配置
-  SPEED_TEST_SAMPLE_SIZE: 3, // 测速采样数（从N个源中随机选择）
-  SPEED_TEST_BATCH_SIZE: 3, // 测速批次大小
+  SPEED_TEST_SAMPLE_SIZE: 5, // 测速采样数 (3→5)
+  SPEED_TEST_BATCH_SIZE: 5, // 测速批次大小 (3→5)
+
+  // 新增: HTTP 状态码重试
+  RETRYABLE_HTTP_STATUS: [429, 500, 502, 503, 504],
 };
 
 // ============================================================================
@@ -157,7 +160,7 @@ class CircuitBreaker {
   async execute<T>(
     key: string,
     fn: () => Promise<T>,
-    fallback?: () => Promise<T>
+    fallback?: () => Promise<T>,
   ): Promise<T> {
     const state = this.getState(key);
     const now = Date.now();
@@ -208,7 +211,7 @@ class CircuitBreaker {
         state.state = 'OPEN';
         state.nextAttemptTime = now + CONFIG.CIRCUIT_BREAKER_TIMEOUT;
         console.warn(
-          `[熔断器] ${key} 连续失败 ${state.failureCount} 次，触发熔断`
+          `[熔断器] ${key} 连续失败 ${state.failureCount} 次，触发熔断`,
         );
       }
 
@@ -245,7 +248,12 @@ class RequestQueue {
 
   async add<T>(fn: () => Promise<T>, host: string): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.queue.push({ fn, resolve, reject, host } as RequestQueueItem<unknown>);
+      this.queue.push({
+        fn,
+        resolve,
+        reject,
+        host,
+      } as RequestQueueItem<unknown>);
       this.process();
     });
   }
@@ -300,7 +308,7 @@ class RequestQueue {
 
 async function fetchWithRetry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const {
     maxRetries = CONFIG.MAX_RETRIES,
@@ -311,10 +319,11 @@ async function fetchWithRetry<T>(
       'ECONNRESET',
       'ETIMEDOUT',
       'ENOTFOUND',
-      'EAI_AGAIN', // DNS临时失败
+      'EAI_AGAIN',
       'ECONNREFUSED',
       'NetworkError',
       'AbortError',
+      'HTTP_RETRYABLE', // 新增: 支持 HTTP 状态码重试
     ],
   } = options;
 
@@ -338,7 +347,7 @@ async function fetchWithRetry<T>(
           (err as NodeJS.ErrnoException)?.code === errCode ||
           err?.message?.includes(errCode) ||
           ((err as NodeJS.ErrnoException)?.cause as NodeJS.ErrnoException)
-            ?.code === errCode
+            ?.code === errCode,
       );
 
       if (!isRetryable) {
@@ -349,11 +358,11 @@ async function fetchWithRetry<T>(
       // 计算延迟（指数退避）
       const delay = Math.min(
         initialDelay * Math.pow(backoffMultiplier, attempt),
-        maxDelay
+        maxDelay,
       );
 
       console.log(
-        `[重试] 第 ${attempt + 1}/${maxRetries} 次重试，${delay}ms 后重试...`
+        `[重试] 第 ${attempt + 1}/${maxRetries} 次重试，${delay}ms 后重试...`,
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -386,15 +395,18 @@ class RequestManager {
     options: RequestInit & {
       retryOptions?: RetryOptions;
       timeout?: number;
-    } = {}
+      skipCache?: boolean; // 新增: 跳过缓存
+    } = {},
   ): Promise<T> {
-    const cacheKey = `fetch:${url}:${JSON.stringify(options)}`;
+    // 优化: 只用 URL 作为缓存键 (忽略 headers/timeout 等)
+    const cacheKey = `fetch:${url}`;
 
-    // 1. 尝试从缓存获取
-    const cached = this.cache.get(cacheKey) as T | null;
-    if (cached !== null) {
-      console.log(`[缓存] 命中: ${url}`);
-      return cached;
+    // 1. 尝试从缓存获取 (除非明确跳过)
+    if (!options.skipCache) {
+      const cached = this.cache.get(cacheKey) as T | null;
+      if (cached !== null) {
+        return cached;
+      }
     }
 
     // 2. 提取主机名（用于熔断和并发控制）
@@ -411,7 +423,7 @@ class RequestManager {
             const controller = new AbortController();
             const timeoutId = setTimeout(
               () => controller.abort(),
-              options.timeout || CONFIG.DEFAULT_TIMEOUT
+              options.timeout || CONFIG.DEFAULT_TIMEOUT,
             );
 
             try {
@@ -422,19 +434,40 @@ class RequestManager {
 
               clearTimeout(timeoutId);
 
+              // 优化: 支持 HTTP 状态码重试
               if (!response.ok) {
-                throw new Error(
-                  `HTTP ${response.status}: ${response.statusText}`
+                const isRetryable = CONFIG.RETRYABLE_HTTP_STATUS.includes(
+                  response.status,
                 );
+                const error = new Error(
+                  `HTTP ${response.status}: ${response.statusText}`,
+                );
+                if (isRetryable) {
+                  // 标记为可重试错误
+                  (error as NodeJS.ErrnoException).code = 'HTTP_RETRYABLE';
+                }
+                throw error;
               }
 
               const contentType = response.headers.get('content-type');
               let data: unknown;
 
-              if (contentType?.includes('application/json')) {
-                data = await response.json();
+              // 先获取文本内容
+              const text = await response.text();
+
+              // 尝试解析为 JSON (很多 API 返回 text/html 但实际是 JSON)
+              if (
+                contentType?.includes('application/json') ||
+                text.trim().startsWith('{') ||
+                text.trim().startsWith('[')
+              ) {
+                try {
+                  data = JSON.parse(text);
+                } catch {
+                  data = text;
+                }
               } else {
-                data = await response.text();
+                data = text;
               }
 
               return data as T;
@@ -445,7 +478,7 @@ class RequestManager {
           }, options.retryOptions);
         },
         // 熔断时的降级策略
-        undefined
+        undefined,
       );
     }, host);
 
@@ -505,7 +538,7 @@ class RequestManager {
       quality: string;
       loadSpeed: string;
       pingTime: number;
-    }>
+    }>,
   ): Promise<
     Map<
       string,
@@ -526,7 +559,7 @@ class RequestManager {
         : sources;
 
     console.log(
-      `[测速] 从 ${sources.length} 个源中采样 ${samplingSources.length} 个进行测速`
+      `[测速] 从 ${sources.length} 个源中采样 ${samplingSources.length} 个进行测速`,
     );
 
     // 分批测速
@@ -546,8 +579,8 @@ class RequestManager {
             const timeout = new Promise<never>((_, reject) =>
               setTimeout(
                 () => reject(new Error('测速超时')),
-                CONFIG.SPEED_TEST_TIMEOUT
-              )
+                CONFIG.SPEED_TEST_TIMEOUT,
+              ),
             );
 
             const result = await Promise.race([testFn(source), timeout]);
@@ -565,7 +598,7 @@ class RequestManager {
               },
             };
           }
-        })
+        }),
       );
 
       // 保存结果

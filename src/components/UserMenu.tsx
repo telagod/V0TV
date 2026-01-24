@@ -71,7 +71,7 @@ export const UserMenu: React.FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedAggregateSearch = localStorage.getItem(
-        'defaultAggregateSearch'
+        'defaultAggregateSearch',
       );
       if (savedAggregateSearch !== null) {
         setDefaultAggregateSearch(JSON.parse(savedAggregateSearch));
@@ -209,7 +209,7 @@ export const UserMenu: React.FC = () => {
       // 修改成功，关闭弹窗并登出
       setIsChangePasswordOpen(false);
       await handleLogout();
-    } catch (error) {
+    } catch {
       setPasswordError('网络错误，请稍后重试');
     } finally {
       setPasswordLoading(false);
@@ -293,11 +293,11 @@ export const UserMenu: React.FC = () => {
       localStorage.setItem('doubanProxyUrl', defaultDoubanProxy);
       localStorage.setItem(
         'enableDoubanProxy',
-        JSON.stringify(!!defaultDoubanProxy)
+        JSON.stringify(!!defaultDoubanProxy),
       );
       localStorage.setItem(
         'enableImageProxy',
-        JSON.stringify(!!defaultImageProxy)
+        JSON.stringify(!!defaultImageProxy),
       );
       localStorage.setItem('imageProxyUrl', defaultImageProxy);
     }
@@ -348,8 +348,8 @@ export const UserMenu: React.FC = () => {
                   (authInfo?.role || 'user') === 'owner'
                     ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
                     : (authInfo?.role || 'user') === 'admin'
-                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                    : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                      : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                 }`}
               >
                 {getRoleText(authInfo?.role || 'user')}
@@ -441,8 +441,8 @@ export const UserMenu: React.FC = () => {
                       updateStatus === UpdateStatus.HAS_UPDATE
                         ? 'bg-yellow-500'
                         : updateStatus === UpdateStatus.NO_UPDATE
-                        ? 'bg-green-400'
-                        : ''
+                          ? 'bg-green-400'
+                          : ''
                     }`}
                   ></div>
                 )}

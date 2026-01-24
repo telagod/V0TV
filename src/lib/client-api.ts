@@ -97,7 +97,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
     const cached = corsCache.get(domain);
     if (typeof cached === 'boolean') {
       logDebug(
-        `[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`
+        `[CORS检测] ${domain} - 使用缓存: ${cached ? '支持' : '不支持'}`,
       );
       return cached;
     }
@@ -119,7 +119,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
     }
 
     logDebug(
-      `[CORS检测] ${domain} - ${supported ? '✅ 支持CORS' : '❌ 不支持CORS'}`
+      `[CORS检测] ${domain} - ${supported ? '✅ 支持CORS' : '❌ 不支持CORS'}`,
     );
     return supported;
   } catch (error: unknown) {
@@ -137,7 +137,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
     logDebug(
       `[CORS检测] ${domain} - ❌ 不支持CORS (${
         isCorsError ? 'CORS错误' : '网络错误'
-      })`
+      })`,
     );
     return false;
   }
@@ -156,7 +156,7 @@ async function checkCorsSupport(apiUrl: string): Promise<boolean> {
  */
 async function fetchDirectly<T = unknown>(
   apiUrl: string,
-  timeout: number
+  timeout: number,
 ): Promise<T> {
   logDebug(`[客户端直连] 尝试直接请求: ${apiUrl}`);
 
@@ -193,7 +193,7 @@ async function fetchDirectly<T = unknown>(
     logWarn(
       `[客户端直连] ❌ 失败: ${
         isCorsError ? 'CORS限制' : err?.message || '未知错误'
-      }`
+      }`,
     );
     throw error;
   }
@@ -214,7 +214,7 @@ async function fetchDirectly<T = unknown>(
 async function fetchViaProxy<T = unknown>(
   endpoint: string,
   params: Record<string, string>,
-  timeout: number
+  timeout: number,
 ): Promise<T> {
   const queryString = new URLSearchParams(params).toString();
   const proxyUrl = `${endpoint}?${queryString}`;
@@ -262,7 +262,7 @@ async function fetchViaProxy<T = unknown>(
 async function smartFetch<T = unknown>(
   apiUrl: string,
   proxyEndpoint: string,
-  proxyParams: Record<string, string>
+  proxyParams: Record<string, string>,
 ): Promise<T> {
   // 检查是否启用客户端直连
   if (!DEFAULT_CONFIG.enableDirectConnection) {
@@ -270,7 +270,7 @@ async function smartFetch<T = unknown>(
     return await fetchViaProxy<T>(
       proxyEndpoint,
       proxyParams,
-      DEFAULT_CONFIG.serverTimeout
+      DEFAULT_CONFIG.serverTimeout,
     );
   }
 
@@ -292,7 +292,7 @@ async function smartFetch<T = unknown>(
       logDebug(
         `[智能请求] 客户端请求失败(${
           err?.message || '未知错误'
-        })，降级到服务端代理`
+        })，降级到服务端代理`,
       );
     }
 
@@ -300,7 +300,7 @@ async function smartFetch<T = unknown>(
     return await fetchViaProxy<T>(
       proxyEndpoint,
       proxyParams,
-      DEFAULT_CONFIG.serverTimeout
+      DEFAULT_CONFIG.serverTimeout,
     );
   }
 }
@@ -318,7 +318,7 @@ async function smartFetch<T = unknown>(
  */
 export async function clientSearch(
   apiSite: ApiSite,
-  query: string
+  query: string,
 ): Promise<unknown> {
   const encodedQuery = encodeURIComponent(query.trim());
 
@@ -347,7 +347,7 @@ export async function clientSearch(
  */
 export async function clientDetail(
   apiSite: ApiSite,
-  videoId: string
+  videoId: string,
 ): Promise<unknown> {
   // 构建直连API URL
   const apiUrl = `${apiSite.api}?ac=detail&ids=${videoId}`;

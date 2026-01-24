@@ -4,13 +4,18 @@ set -e
 
 echo "🚀 开始部署 V0TV Worker..."
 
+# 在受限环境（CI/沙盒）下，避免 Wrangler 写入 $HOME/.config 导致权限错误
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$PWD/.wrangler/tmp}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$PWD/.wrangler/tmp}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$PWD/.wrangler/tmp}"
+
 # 1. 生成密码（如果不存在）
 echo "📝 检查密码文件..."
-npm run gen:password
+pnpm run gen:password
 
 # 2. 构建项目
 echo "🔨 构建项目..."
-npm run build
+pnpm run pages:build
 
 # 3. 读取密码
 PASSWORD=$(grep "Password:" PASSWORD.txt | awk '{print $2}')
@@ -33,7 +38,7 @@ echo "$PASSWORD" | wrangler secret put PASSWORD || {
 
 # 5. 部署
 echo "📦 部署到 Cloudflare Workers..."
-npx @opennextjs/cloudflare deploy
+wrangler deploy
 
 echo ""
 echo "✅ 部署完成！"

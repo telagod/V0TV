@@ -77,12 +77,12 @@ function delay(ms: number): Promise<void> {
 function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  errorMessage = '操作超时'
+  errorMessage = '操作超时',
 ): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs),
     ),
   ]);
 }
@@ -140,7 +140,7 @@ class ConcurrencyLimiter {
 export async function smartSpeedTest<T extends SourceWithKey>(
   sources: T[],
   testFn: (source: T) => Promise<SpeedTestResult>,
-  config: Partial<typeof CLIENT_SPEED_TEST_CONFIG> = {}
+  config: Partial<typeof CLIENT_SPEED_TEST_CONFIG> = {},
 ): Promise<Map<string, SpeedTestResult>> {
   const finalConfig = { ...CLIENT_SPEED_TEST_CONFIG, ...config };
   const resultsMap = new Map<string, SpeedTestResult>();
@@ -150,7 +150,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
     logInfo(`[客户端测速] 源数量较少(${sources.length}个)，全部测速`);
   } else {
     logInfo(
-      `[客户端测速] 从 ${sources.length} 个源中采样 ${finalConfig.SAMPLE_SIZE} 个进行测速`
+      `[客户端测速] 从 ${sources.length} 个源中采样 ${finalConfig.SAMPLE_SIZE} 个进行测速`,
     );
   }
 
@@ -171,7 +171,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
   ) {
     const batch = samplingSources.slice(
       batchIndex,
-      batchIndex + finalConfig.BATCH_SIZE
+      batchIndex + finalConfig.BATCH_SIZE,
     );
 
     logInfo(
@@ -179,7 +179,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
         Math.floor(batchIndex / finalConfig.BATCH_SIZE) + 1
       }/${Math.ceil(samplingSources.length / finalConfig.BATCH_SIZE)}，测速 ${
         batch.length
-      } 个源`
+      } 个源`,
     );
 
     // 批内并发（受并发限制器控制）
@@ -192,18 +192,18 @@ export async function smartSpeedTest<T extends SourceWithKey>(
           const result = await withTimeout(
             testFn(source),
             finalConfig.TIMEOUT,
-            '测速超时'
+            '测速超时',
           );
 
           logInfo(
-            `[客户端测速] ✅ ${sourceKey}: ${result.quality}, ${result.loadSpeed}, ${result.pingTime}ms`
+            `[客户端测速] ✅ ${sourceKey}: ${result.quality}, ${result.loadSpeed}, ${result.pingTime}ms`,
           );
 
           return { sourceKey, result };
         } catch (error: unknown) {
           const err = error instanceof Error ? error : null;
           logWarn(
-            `[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`
+            `[客户端测速] ❌ ${sourceKey} 失败: ${err?.message || '未知错误'}`,
           );
 
           return {
@@ -216,7 +216,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
             },
           };
         }
-      })
+      }),
     );
 
     // 等待当前批次完成
@@ -239,7 +239,7 @@ export async function smartSpeedTest<T extends SourceWithKey>(
   logInfo(
     `[客户端测速] 完成，成功 ${
       Array.from(resultsMap.values()).filter((r) => !r.hasError).length
-    }/${samplingSources.length}`
+    }/${samplingSources.length}`,
   );
 
   return resultsMap;

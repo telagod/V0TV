@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   if (!imageUrl) {
     const response = NextResponse.json(
       { error: 'Missing image URL' },
-      { status: 400 }
+      { status: 400 },
     );
     return addCorsHeaders(response);
   }
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     if (!imageResponse.ok) {
       const response = NextResponse.json(
         { error: imageResponse.statusText },
-        { status: imageResponse.status }
+        { status: imageResponse.status },
       );
       return addCorsHeaders(response);
     }
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     if (!imageResponse.body) {
       const response = NextResponse.json(
         { error: 'Image response has no body' },
-        { status: 500 }
+        { status: 500 },
       );
       return addCorsHeaders(response);
     }
@@ -53,10 +53,10 @@ export async function GET(request: Request) {
       headers.set('Content-Type', contentType);
     }
 
-    // 设置缓存头（可选）
-    headers.set('Cache-Control', 'public, max-age=15720000, s-maxage=15720000'); // 缓存半年
-    headers.set('CDN-Cache-Control', 'public, s-maxage=15720000');
-    headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=15720000');
+    // 设置缓存头 - 7 天缓存（减少 CDN 存储占用）
+    headers.set('Cache-Control', 'public, max-age=604800, s-maxage=604800'); // 7 天
+    headers.set('CDN-Cache-Control', 'public, s-maxage=604800');
+    headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=604800');
 
     // 直接返回图片流
     const response = new Response(imageResponse.body, {
@@ -64,10 +64,10 @@ export async function GET(request: Request) {
       headers,
     });
     return addCorsHeaders(response);
-  } catch (error) {
+  } catch {
     const response = NextResponse.json(
       { error: 'Error fetching image' },
-      { status: 500 }
+      { status: 500 },
     );
     return addCorsHeaders(response);
   }

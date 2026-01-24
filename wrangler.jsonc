@@ -6,26 +6,36 @@
   "name": "v0tv",
   "main": ".open-next/worker.js",
   "keep_names": false, // 修复 __name is not defined 错误（官方文档：https://opennext.js.org/cloudflare/howtos/keep_names）
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "tv.o-i.chat",
+      "zone_name": "o-i.chat",
+      "custom_domain": true,
+    },
+  ],
 
   // 兼容性设置
   "compatibility_date": "2025-05-05", // 支持 FinalizationRegistry 等现代 JavaScript API
   "compatibility_flags": [
     "nodejs_compat", // 启用 Node.js 兼容模式
-    "global_fetch_strictly_public" // 允许 URL 获取（OpenNext 必需）
+    "global_fetch_strictly_public", // 允许 URL 获取（OpenNext 必需）
   ],
 
   // 静态资产配置
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
 
   // Worker 自引用服务绑定（OpenNext 必需）
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "v0tv"
-    }
+      "service": "v0tv",
+      "environment": "production",
+    },
   ],
 
   // KV 命名空间绑定（可选，用于缓存加速）
@@ -47,8 +57,8 @@
     {
       "binding": "DB",
       "database_name": "v0tv-db",
-      "database_id": "6c7fa8ae-74aa-49ad-b032-8bae2344c4de"
-    }
+      "database_id": "6c7fa8ae-74aa-49ad-b032-8bae2344c4de",
+    },
   ],
 
   // 环境变量（公开，非敏感）
@@ -63,7 +73,7 @@
   "vars": {
     "USERNAME": "admin",
     "NEXT_PUBLIC_STORAGE_TYPE": "d1",
-    "NEXT_PUBLIC_ENABLE_REGISTER": "true"
+    "NEXT_PUBLIC_ENABLE_REGISTER": "true",
   },
 
   // 环境变量说明
@@ -80,6 +90,6 @@
 
   // 观测性配置（可选）
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }

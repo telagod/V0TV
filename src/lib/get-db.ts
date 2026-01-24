@@ -29,7 +29,7 @@ export async function getDb(): Promise<DbManager> {
       const context = getCloudflareContext();
 
       // 传入 D1 数据库实例
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       return new DbManager((context.env as any).DB);
     } catch (error) {
       logError('[getDb] 无法获取 Cloudflare Context', error);

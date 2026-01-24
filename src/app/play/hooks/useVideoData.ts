@@ -6,8 +6,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { smartSpeedTest } from '@/lib/client-speed-test';
-import { getConfig } from '@/lib/config';
-import { getDetailFromApi, searchFromApi } from '@/lib/downstream';
 import { logError } from '@/lib/logger';
 import { getVideoResolutionFromM3u8 } from '@/lib/utils';
 
@@ -57,6 +55,19 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
   const [_loadingStage, setLoadingStage] = useState<LoadingStage>('searching');
   const [error, setError] = useState<string | null>(null);
 
+  const fetchJson = useCallback(async (url: string) => {
+    const res = await fetch(url, { cache: 'no-store' });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message =
+        typeof payload?.error === 'string'
+          ? payload.error
+          : `Request failed: ${res.status}`;
+      throw new Error(message);
+    }
+    return payload;
+  }, []);
+
   // 加载视频数据
   useEffect(() => {
     // 如果不是优选模式，必须有 source 和 id
@@ -82,26 +93,14 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
         if (needPrefer && searchTitle) {
           setLoadingStage('searching');
 
-          // 搜索所有可用源
-          const config = await getConfig();
-          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
-            (s) => ({
-              key: s.key,
-              name: s.name,
-              api: s.api,
-              detail: s.detail,
-            })
+          // 通过服务端聚合搜索（避免浏览器直连源站/CORS导致播放页无源）
+          const searchData = await fetchJson(
+            `/api/search?q=${encodeURIComponent(searchTitle)}`,
           );
-
-          const searchPromises = apiSites.map((site) =>
-            searchFromApi(site, searchTitle).catch((err) => {
-              logError(`${site.name} 搜索失败`, err);
-              return [];
-            })
-          );
-
-          const searchResults = await Promise.all(searchPromises);
-          const allResults = searchResults.flat();
+          const allResults = [
+            ...(searchData?.regular_results ?? searchData?.results ?? []),
+            ...(searchData?.adult_results ?? []),
+          ];
 
           if (allResults.length === 0) {
             throw new Error('未找到匹配的播放源');
@@ -140,14 +139,14 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
                   score: 0,
                 };
               }
-            }
+            },
           );
 
           // 按评分排序，选择最佳源
           const sortedResults = allResults
             .map((result) => {
               const testResult = speedTestResults.get(
-                `${result.source}-${result.id}`
+                `${result.source}-${result.id}`,
               );
               return {
                 ...result,
@@ -166,11 +165,9 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
             // 继续获取详情
             setLoadingStage('fetching');
-            const bestSite = apiSites.find((s) => s.key === bestSource.source);
-            if (!bestSite) {
-              throw new Error('未找到最佳播放源配置');
-            }
-            const detail = await getDetailFromApi(bestSite, bestSource.id);
+            const detail = await fetchJson(
+              `/api/detail?source=${encodeURIComponent(bestSource.source)}&id=${encodeURIComponent(bestSource.id)}`,
+            );
 
             setData((prev) => ({
               ...prev,
@@ -184,23 +181,9 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
         } else {
           // 直接获取详情
           setLoadingStage('fetching');
-
-          const config = await getConfig();
-          const apiSites = config.SourceConfig.filter((s) => !s.disabled).map(
-            (s) => ({
-              key: s.key,
-              name: s.name,
-              api: s.api,
-              detail: s.detail,
-            })
+          const detail = await fetchJson(
+            `/api/detail?source=${encodeURIComponent(initialSource)}&id=${encodeURIComponent(initialId)}`,
           );
-          const apiSite = apiSites.find((s) => s.key === initialSource);
-
-          if (!apiSite) {
-            throw new Error('未找到对应的播放源');
-          }
-
-          const detail = await getDetailFromApi(apiSite, initialId);
 
           setData((prev) => ({
             ...prev,
@@ -222,7 +205,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
     };
 
     loadVideoData();
-  }, [initialSource, initialId, needPrefer, searchTitle]);
+  }, [fetchJson, initialSource, initialId, needPrefer, searchTitle]);
 
   // 更新集数索引
   const updateEpisodeIndex = useCallback((index: number) => {

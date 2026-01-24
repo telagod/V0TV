@@ -94,13 +94,11 @@ npx wrangler secret list
 2. 你会看到两个部分：
 
    **Environment Variables（环境变量）** - 显示 3 个公开变量：
-
    - `USERNAME`: admin
    - `NEXT_PUBLIC_STORAGE_TYPE`: d1
    - `NEXT_PUBLIC_ENABLE_REGISTER`: true
 
    **Secrets（加密变量）** - 显示：
-
    - `PASSWORD`（只显示名称，不显示值）
 
 ### 测试登录
@@ -153,13 +151,11 @@ graph LR
    ```
 
 2. **等待自动部署完成**
-
    - 推送代码到 GitHub
    - Cloudflare 自动构建部署
    - 查看 **Workers & Pages** → 你的项目 → **Deployments**
 
 3. **访问应用并登录**
-
    - 使用 `.credentials.txt` 中的凭据
 
 4. **添加播放源**
@@ -180,7 +176,6 @@ graph LR
    ```
 
 2. **妥善保管凭据文件**
-
    - `.credentials.txt` 已添加到 `.gitignore`
    - 不要将密码提交到 Git
    - 建议使用密码管理器存储

@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         if (!key || !config) {
           return NextResponse.json(
             { error: '缺少配置键或配置数据' },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         ) {
           return NextResponse.json(
             { error: '配置数据格式错误' },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
           ) {
             return NextResponse.json(
               { error: '片段数据格式错误' },
-              { status: 400 }
+              { status: 400 },
             );
           }
         }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         await storage.setSkipConfig(
           finalUsername,
           key,
-          config as EpisodeSkipConfig
+          config as EpisodeSkipConfig,
         );
         return NextResponse.json({ success: true });
       }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       default:
         return NextResponse.json(
           { error: '不支持的操作类型' },
-          { status: 400 }
+          { status: 400 },
         );
     }
   } catch (error) {

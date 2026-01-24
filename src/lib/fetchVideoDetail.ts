@@ -1,7 +1,6 @@
 import { getAvailableApiSites } from '@/lib/config';
+import { sourceManager } from '@/lib/source';
 import { SearchResult } from '@/lib/types';
-
-import { getDetailFromApi, searchFromApi } from './downstream';
 
 interface FetchVideoDetailOptions {
   source: string;
@@ -27,22 +26,22 @@ export async function fetchVideoDetail({
   }
   if (fallbackTitle) {
     try {
-      const searchData = await searchFromApi(apiSite, fallbackTitle.trim());
+      const searchData = await sourceManager.search(apiSite, fallbackTitle.trim());
       const exactMatch = searchData.find(
         (item: SearchResult) =>
           item.source.toString() === source.toString() &&
-          item.id.toString() === id.toString()
+          item.id.toString() === id.toString(),
       );
       if (exactMatch) {
         return exactMatch;
       }
-    } catch (error) {
+    } catch {
       // do nothing
     }
   }
 
-  // 调用 /api/detail 接口
-  const detail = await getDetailFromApi(apiSite, id);
+  // 调用详情接口
+  const detail = await sourceManager.getDetail(apiSite, id);
   if (!detail) {
     throw new Error('获取视频详情失败');
   }

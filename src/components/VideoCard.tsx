@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
-  type Favorite,
   deleteFavorite,
   deletePlayRecord,
+  type Favorite,
   generateStorageKey,
   isFavorited,
   saveFavorite,
@@ -75,7 +75,7 @@ export default function VideoCard({
     });
 
     const getMostFrequent = <T extends string | number>(
-      map: Map<T, number>
+      map: Map<T, number>,
     ) => {
       let maxCount = 0;
       let result: T | undefined;
@@ -100,7 +100,7 @@ export default function VideoCard({
   const actualSource = aggregateData?.first.source ?? source;
   const actualId = aggregateData?.first.id ?? id;
   const actualDoubanId = String(
-    aggregateData?.mostFrequentDoubanId ?? douban_id
+    aggregateData?.mostFrequentDoubanId ?? douban_id,
   );
   const actualEpisodes = aggregateData?.mostFrequentEpisodes ?? episodes;
   const actualYear = aggregateData?.first.year ?? year;
@@ -111,6 +111,30 @@ export default function VideoCard({
       : 'tv'
     : type;
 
+  const initialImageSrc = useMemo(
+    () => processImageUrl(actualPoster),
+    [actualPoster],
+  );
+  const [imageSrc, setImageSrc] = useState(initialImageSrc);
+
+  useEffect(() => {
+    setIsLoading(false);
+    setImageSrc(initialImageSrc);
+  }, [initialImageSrc]);
+
+  const getDoubanProxyFallback = (url: string): string | null => {
+    try {
+      const parsed = new URL(url);
+      const isDouban =
+        parsed.hostname.endsWith('doubanio.com') ||
+        parsed.hostname.endsWith('douban.com');
+      if (!isDouban) return null;
+      return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    } catch {
+      return null;
+    }
+  };
+
   // 获取收藏状态
   useEffect(() => {
     if (from === 'douban' || !actualSource || !actualId) return;
@@ -119,8 +143,8 @@ export default function VideoCard({
       try {
         const fav = await isFavorited(actualSource, actualId);
         setFavorited(fav);
-      } catch (err) {
-        throw new Error('检查收藏状态失败');
+      } catch {
+        // ignore
       }
     };
 
@@ -134,7 +158,7 @@ export default function VideoCard({
         // 检查当前项目是否在新的收藏列表中
         const isNowFavorited = !!newFavorites[storageKey];
         setFavorited(isNowFavorited);
-      }
+      },
     );
 
     return unsubscribe;
@@ -162,8 +186,8 @@ export default function VideoCard({
           });
           setFavorited(true);
         }
-      } catch (err) {
-        throw new Error('切换收藏状态失败');
+      } catch {
+        // ignore
       }
     },
     [
@@ -176,7 +200,7 @@ export default function VideoCard({
       actualPoster,
       actualEpisodes,
       favorited,
-    ]
+    ],
   );
 
   const handleDeleteRecord = useCallback(
@@ -187,11 +211,11 @@ export default function VideoCard({
       try {
         await deletePlayRecord(actualSource, actualId);
         onDelete?.();
-      } catch (err) {
-        throw new Error('删除播放记录失败');
+      } catch {
+        // ignore
       }
     },
-    [from, actualSource, actualId, onDelete]
+    [from, actualSource, actualId, onDelete],
   );
 
   const handleClick = useCallback(() => {
@@ -201,17 +225,17 @@ export default function VideoCard({
           actualYear ? `&year=${actualYear}` : ''
         }${
           actualSearchType ? `&stype=${actualSearchType}` : ''
-        }&prefer=true&stitle=${encodeURIComponent(actualTitle.trim())}`
+        }&prefer=true&stitle=${encodeURIComponent(actualTitle.trim())}`,
       );
     } else if (actualSource && actualId) {
       router.push(
         `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
-          actualTitle
+          actualTitle,
         )}${actualYear ? `&year=${actualYear}` : ''}${
           isAggregate ? '&prefer=true' : ''
         }${
           actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''
-        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`,
       );
     }
   }, [
@@ -248,7 +272,7 @@ export default function VideoCard({
       },
       search: {
         showSourceName: true,
-        showProgress: false,
+        showProgress: true,
         showPlayButton: true,
         showHeart: !isAggregate,
         showCheckCircle: false,
@@ -279,12 +303,20 @@ export default function VideoCard({
         {!isLoading && <ImagePlaceholder aspectRatio='aspect-[2/3]' />}
         {/* 图片 */}
         <Image
-          src={processImageUrl(actualPoster)}
+          src={imageSrc}
           alt={actualTitle}
           fill
+          sizes='(max-width: 475px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 20vw, 11rem'
           className='object-cover'
           referrerPolicy='no-referrer'
           onLoadingComplete={() => setIsLoading(true)}
+          onError={() => {
+            const fallback = getDoubanProxyFallback(actualPoster);
+            if (!fallback) return;
+            if (imageSrc === fallback) return;
+            setIsLoading(false);
+            setImageSrc(fallback);
+          }}
         />
 
         {/* 悬浮遮罩 */}
@@ -301,26 +333,38 @@ export default function VideoCard({
           </div>
         )}
 
-        {/* 操作按钮 */}
+        {/* 操作按钮 - 触摸目标至少 44x44px，移动端增大间距 */}
         {(config.showHeart || config.showCheckCircle) && (
-          <div className='absolute bottom-3 right-3 flex gap-3 opacity-0 translate-y-2 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:translate-y-0'>
+          <div className='absolute bottom-1 right-1 flex gap-2 sm:gap-1 opacity-0 translate-y-2 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:translate-y-0'>
             {config.showCheckCircle && (
-              <CheckCircle
+              <button
+                type='button'
                 onClick={handleDeleteRecord}
-                size={20}
-                className='text-white transition-all duration-300 ease-out hover:stroke-green-500 hover:scale-[1.1]'
-              />
+                className='w-12 h-12 sm:w-11 sm:h-11 flex items-center justify-center rounded-full hover:bg-black/20 transition-all duration-300 ease-out'
+                aria-label='标记为已看'
+              >
+                <CheckCircle
+                  size={20}
+                  className='text-white transition-all duration-300 ease-out hover:stroke-green-500'
+                />
+              </button>
             )}
             {config.showHeart && (
-              <Heart
+              <button
+                type='button'
                 onClick={handleToggleFavorite}
-                size={20}
-                className={`transition-all duration-300 ease-out ${
-                  favorited
-                    ? 'fill-red-600 stroke-red-600'
-                    : 'fill-transparent stroke-white hover:stroke-red-400'
-                } hover:scale-[1.1]`}
-              />
+                className='w-12 h-12 sm:w-11 sm:h-11 flex items-center justify-center rounded-full hover:bg-black/20 transition-all duration-300 ease-out'
+                aria-label={favorited ? '取消收藏' : '添加收藏'}
+              >
+                <Heart
+                  size={20}
+                  className={`transition-all duration-300 ease-out ${
+                    favorited
+                      ? 'fill-red-600 stroke-red-600'
+                      : 'fill-transparent stroke-white hover:stroke-red-400'
+                  }`}
+                />
+              </button>
             )}
           </div>
         )}
@@ -357,12 +401,19 @@ export default function VideoCard({
       </div>
 
       {/* 进度条 */}
-      {config.showProgress && progress !== undefined && (
-        <div className='mt-1 h-1 w-full bg-gray-200 rounded-full overflow-hidden'>
-          <div
-            className='h-full bg-green-500 transition-all duration-500 ease-out'
-            style={{ width: `${progress}%` }}
-          />
+      {config.showProgress && typeof progress === 'number' && progress > 0 && (
+        <div className='mt-1'>
+          <div className='h-1 w-full bg-gray-200 rounded-full overflow-hidden dark:bg-gray-800'>
+            <div
+              className='h-full bg-green-500 transition-all duration-500 ease-out'
+              style={{
+                width: `${Math.max(0, Math.min(progress, 100))}%`,
+              }}
+            />
+          </div>
+          <div className='mt-1 text-[11px] text-gray-600 dark:text-gray-400 text-center'>
+            已观看 {Math.round(Math.max(0, Math.min(progress, 100)))}%
+          </div>
         </div>
       )}
 
@@ -373,7 +424,7 @@ export default function VideoCard({
             {actualTitle}
           </span>
           {/* 自定义 tooltip */}
-          <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-md shadow-lg opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 whitespace-nowrap pointer-events-none'>
+          <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-md shadow-lg opacity-0 invisible peer-hover:opacity-100 peer-hover:visible transition-all duration-200 ease-out delay-100 whitespace-nowrap pointer-events-none z-tooltip'>
             {actualTitle}
             <div className='absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800'></div>
           </div>

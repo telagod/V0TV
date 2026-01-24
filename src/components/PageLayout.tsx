@@ -2,7 +2,7 @@
 
 import { Clover, Film, Home, Search, Tv } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { BackButton } from './BackButton';
@@ -21,25 +21,14 @@ interface PageLayoutProps {
 const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { siteName } = useSite();
 
   const [active, setActive] = useState(activePath);
 
   useEffect(() => {
-    // 优先使用传入的 activePath
-    if (activePath) {
-      setActive(activePath);
-    } else {
-      // 否则使用当前路径
-      const getCurrentFullPath = () => {
-        const queryString = searchParams.toString();
-        return queryString ? `${pathname}?${queryString}` : pathname;
-      };
-      const fullPath = getCurrentFullPath();
-      setActive(fullPath);
-    }
-  }, [activePath, pathname, searchParams]);
+    // 优先使用传入的 activePath（本项目页面通常显式传入）
+    setActive(activePath || pathname);
+  }, [activePath, pathname]);
 
   const handleSearchClick = useCallback(() => {
     router.push('/search');
@@ -76,7 +65,12 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
   // 桌面端：顶部固定导航（fixed）
   // 移动端：不显示此组件，改由底部导航 + 轻量顶部条（非固定）
   return (
-    <nav className='w-full bg-white/40 backdrop-blur-xl border-b border-purple-200/50 shadow-lg dark:bg-gray-900/70 dark:border-purple-700/50 fixed top-0 left-0 right-0 z-40 hidden md:block'>
+    <nav
+      className='w-full bg-white/40 backdrop-blur-xl border-b border-purple-200/50 shadow-lg dark:bg-gray-900/70 dark:border-purple-700/50 fixed top-0 left-0 right-0 z-fixed hidden md:block'
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+      }}
+    >
       <div className='w-full px-8 lg:px-12 xl:px-16'>
         <div className='flex items-center justify-between h-16'>
           {/* Logo区域 - 调整为更靠左 */}
@@ -169,7 +163,13 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
   const isPlayPage = activePath === '/play';
 
   return (
-    <div className='w-full min-h-screen'>
+    <div
+      className='w-full min-h-screen'
+      style={{
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+      }}
+    >
       {/* 移动端头部 (fixed) */}
       <MobileHeader showBackButton={isPlayPage} />
 
@@ -180,7 +180,7 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
       <div className='relative min-w-0 transition-all duration-300 md:pt-16'>
         {/* 桌面端左上角返回按钮 */}
         {isPlayPage && (
-          <div className='absolute top-3 left-1 z-20 hidden md:flex'>
+          <div className='absolute top-3 left-1 z-sticky hidden md:flex'>
             <BackButton />
           </div>
         )}
@@ -198,7 +198,7 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
                 isPlayPage ? 'max-w-[1200px]' : 'max-w-6xl'
               }`}
             >
-              <div className='p-4 sm:p-6 md:p-8 lg:p-10'>{children}</div>
+              <div className='p-3 xs:p-4 sm:p-6 md:p-8 lg:p-10'>{children}</div>
             </div>
           </div>
         </main>

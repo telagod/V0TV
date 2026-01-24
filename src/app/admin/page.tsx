@@ -33,26 +33,18 @@ import {
 import { GripVertical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 import { AdminConfig, AdminConfigResult } from '@/lib/admin.types';
 import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import { RuntimeConfig } from '@/lib/types';
 
 import PageLayout from '@/components/PageLayout';
+import { useConfirmDialog } from '@/components/ui/ConfirmDialog';
 
-// 统一弹窗方法（必须在首次使用前定义）
-const showError = (message: string) =>
-  Swal.fire({ icon: 'error', title: '错误', text: message });
-
-const showSuccess = (message: string) =>
-  Swal.fire({
-    icon: 'success',
-    title: '成功',
-    text: message,
-    timer: 2000,
-    showConfirmButton: false,
-  });
+// 统一提示方法
+const showError = (message: string) => toast.error(message);
+const showSuccess = (message: string) => toast.success(message);
 
 // 新增站点配置类型
 interface SiteConfig {
@@ -84,6 +76,14 @@ type SourceActionPayload =
       api: string;
       detail?: string;
       is_adult?: boolean;
+    }
+  | {
+      action: 'update';
+      key: string;
+      is_adult?: boolean;
+      name?: string;
+      api?: string;
+      detail?: string;
     }
   | { action: 'sort'; order: string[] };
 
@@ -161,6 +161,7 @@ interface UserConfigProps {
 }
 
 const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
+  const { confirm: showConfirm } = useConfirmDialog();
   const [userSettings, setUserSettings] = useState({
     enableRegistration: false,
   });
@@ -247,7 +248,7 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
     await handleUserAction(
       'changePassword',
       changePasswordUser.username,
-      changePasswordUser.password
+      changePasswordUser.password,
     );
     setChangePasswordUser({ username: '', password: '' });
     setShowChangePasswordForm(false);
@@ -260,14 +261,12 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
   };
 
   const handleDeleteUser = async (username: string) => {
-    const { isConfirmed } = await Swal.fire({
+    const isConfirmed = await showConfirm({
       title: '确认删除用户',
-      text: `删除用户 ${username} 将同时删除其搜索历史、播放记录和收藏夹，此操作不可恢复！`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: '确认删除',
-      cancelButtonText: '取消',
-      confirmButtonColor: '#dc2626',
+      message: `删除用户 ${username} 将同时删除其搜索历史、播放记录和收藏夹，此操作不可恢复！`,
+      type: 'warning',
+      confirmText: '确认删除',
+      cancelText: '取消',
     });
 
     if (!isConfirmed) return;
@@ -286,7 +285,7 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
       | 'changePassword'
       | 'deleteUser',
     targetUsername: string,
-    targetPassword?: string
+    targetPassword?: string,
   ) => {
     try {
       const res = await fetch('/api/admin/user', {
@@ -565,15 +564,15 @@ const UserConfig = ({ config, role, refreshConfig }: UserConfigProps) => {
                               user.role === 'owner'
                                 ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
                                 : user.role === 'admin'
-                                ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                  ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                             }`}
                           >
                             {user.role === 'owner'
                               ? '站长'
                               : user.role === 'admin'
-                              ? '管理员'
-                              : '普通用户'}
+                                ? '管理员'
+                                : '普通用户'}
                           </span>
                         </td>
                         <td className='px-6 py-4 whitespace-nowrap'>
@@ -671,12 +670,13 @@ const VideoSourceConfig = ({
   config: AdminConfig | null;
   refreshConfig: () => Promise<void>;
 }) => {
+  const { confirm: showConfirm, alert: showAlert } = useConfirmDialog();
   const [sources, setSources] = useState<DataSource[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [orderChanged, setOrderChanged] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
   const [selectedSources, setSelectedSources] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [newSource, setNewSource] = useState<DataSource>({
     name: '',
@@ -700,7 +700,7 @@ const VideoSourceConfig = ({
         delay: 150, // 长按 150ms 后触发，避免与滚动冲突
         tolerance: 5,
       },
-    })
+    }),
   );
 
   // 初始化
@@ -740,6 +740,19 @@ const VideoSourceConfig = ({
     const action = target.disabled ? 'enable' : 'disable';
     callSourceApi({ action, key }).catch(() => {
       console.error('操作失败', action, key);
+    });
+  };
+
+  const handleSetAdult = (key: string, isAdult: boolean) => {
+    // 乐观更新 UI（失败时回滚）
+    const before = sources;
+    setSources((prev) =>
+      prev.map((s) => (s.key === key ? { ...s, is_adult: isAdult } : s)),
+    );
+
+    callSourceApi({ action: 'update', key, is_adult: isAdult }).catch(() => {
+      console.error('操作失败', 'update', key, isAdult);
+      setSources(before);
     });
   };
 
@@ -803,7 +816,7 @@ const VideoSourceConfig = ({
     if (checked) {
       // 只选择可删除的视频源（排除示例源）
       const deletableSources = sources.filter(
-        (source) => source.from !== 'config'
+        (source) => source.from !== 'config',
       );
       setSelectedSources(new Set(deletableSources.map((source) => source.key)));
     } else {
@@ -818,83 +831,50 @@ const VideoSourceConfig = ({
     }
 
     const selectedArray = Array.from(selectedSources);
-    const result = await Swal.fire({
+    const isConfirmed = await showConfirm({
       title: '确认批量删除',
-      text: `即将删除 ${selectedArray.length} 个视频源，此操作不可撤销！`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: '确认删除',
-      cancelButtonText: '取消',
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
+      message: `即将删除 ${selectedArray.length} 个视频源，此操作不可撤销！`,
+      type: 'warning',
+      confirmText: '确认删除',
+      cancelText: '取消',
     });
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
-    // 批量删除逐个进行，显示进度
+    // 批量删除逐个进行
     let successCount = 0;
     let errorCount = 0;
     const errors: string[] = [];
+    const toastId = toast.loading(`正在删除 0/${selectedArray.length}...`);
 
     for (let i = 0; i < selectedArray.length; i++) {
       const key = selectedArray[i];
       try {
         await callSourceApi({ action: 'delete', key });
         successCount++;
-
-        // 显示进度
-        if (selectedArray.length > 1) {
-          Swal.update({
-            title: '正在删除...',
-            text: `进度: ${i + 1}/${selectedArray.length}`,
-            showConfirmButton: false,
-            showCancelButton: false,
-            allowOutsideClick: false,
-          });
-        }
+        toast.loading(`正在删除 ${i + 1}/${selectedArray.length}...`, {
+          id: toastId,
+        });
       } catch (error) {
         errorCount++;
         const sourceName = sources.find((s) => s.key === key)?.name || key;
         errors.push(
           `${sourceName}: ${
             error instanceof Error ? error.message : '删除失败'
-          }`
+          }`,
         );
       }
     }
 
     // 显示删除结果
     if (errorCount === 0) {
-      showSuccess(`成功删除 ${successCount} 个视频源`);
-      setSelectedSources(new Set()); // 清空选择
-      setBatchMode(false); // 退出批量模式
+      toast.success(`成功删除 ${successCount} 个视频源`, { id: toastId });
+      setSelectedSources(new Set());
+      setBatchMode(false);
     } else {
-      await Swal.fire({
-        title: '删除完成',
-        html: `
-          <div class="text-left">
-            <p class="text-green-600 mb-2">✅ 成功删除: ${successCount} 个</p>
-            <p class="text-red-600 mb-2">❌ 删除失败: ${errorCount} 个</p>
-            ${
-              errors.length > 0
-                ? `
-              <details class="mt-3">
-                <summary class="cursor-pointer text-gray-600">查看错误详情</summary>
-                <div class="mt-2 text-sm text-gray-500 max-h-32 overflow-y-auto">
-                  ${errors
-                    .map((err) => `<div class="py-1">${err}</div>`)
-                    .join('')}
-                </div>
-              </details>
-            `
-                : ''
-            }
-          </div>
-        `,
-        icon: successCount > 0 ? 'warning' : 'error',
-        confirmButtonText: '确定',
+      toast.error(`删除完成：成功 ${successCount} 个，失败 ${errorCount} 个`, {
+        id: toastId,
       });
-
       // 清空已成功删除的选择项
       const failedKeys = new Set(
         errors
@@ -902,7 +882,7 @@ const VideoSourceConfig = ({
             const keyMatch = err.split(':')[0];
             return sources.find((s) => s.name === keyMatch)?.key;
           })
-          .filter((key): key is string => Boolean(key))
+          .filter((key): key is string => Boolean(key)),
       );
       setSelectedSources(failedKeys);
     }
@@ -947,7 +927,7 @@ const VideoSourceConfig = ({
       showSuccess('配置文件已导出到下载文件夹');
     } catch (error) {
       showError(
-        '导出失败: ' + (error instanceof Error ? error.message : '未知错误')
+        '导出失败: ' + (error instanceof Error ? error.message : '未知错误'),
       );
     }
   };
@@ -979,20 +959,17 @@ const VideoSourceConfig = ({
         }
 
         // 确认导入
-        const result = await Swal.fire({
+        const isConfirmed = await showConfirm({
           title: '确认导入',
-          text: `检测到 ${
+          message: `检测到 ${
             Object.keys(importConfig.api_site).length
           } 个视频源，是否继续导入？`,
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonText: '确认导入',
-          cancelButtonText: '取消',
-          confirmButtonColor: '#059669',
-          cancelButtonColor: '#6b7280',
+          type: 'info',
+          confirmText: '确认导入',
+          cancelText: '取消',
         });
 
-        if (!result.isConfirmed) return;
+        if (!isConfirmed) return;
 
         // 批量导入视频源
         let successCount = 0;
@@ -1028,7 +1005,7 @@ const VideoSourceConfig = ({
           } catch (error) {
             errorCount++;
             errors.push(
-              `${key}: ${error instanceof Error ? error.message : '未知错误'}`
+              `${key}: ${error instanceof Error ? error.message : '未知错误'}`,
             );
           }
         }
@@ -1037,36 +1014,39 @@ const VideoSourceConfig = ({
         if (errorCount === 0) {
           showSuccess(`成功导入 ${successCount} 个视频源`);
         } else {
-          await Swal.fire({
+          await showAlert({
             title: '导入完成',
-            html: `
-              <div class="text-left">
-                <p class="text-green-600 mb-2">✅ 成功导入: ${successCount} 个</p>
-                <p class="text-red-600 mb-2">❌ 导入失败: ${errorCount} 个</p>
-                ${
-                  errors.length > 0
-                    ? `
-                  <details class="mt-3">
-                    <summary class="cursor-pointer text-gray-600">查看错误详情</summary>
-                    <div class="mt-2 text-sm text-gray-500 max-h-32 overflow-y-auto">
-                      ${errors
-                        .map((err) => `<div class="py-1">${err}</div>`)
-                        .join('')}
+            message: (
+              <div className='text-left'>
+                <p className='text-green-600 mb-2'>
+                  ✅ 成功导入: {successCount} 个
+                </p>
+                <p className='text-red-600 mb-2'>
+                  ❌ 导入失败: {errorCount} 个
+                </p>
+                {errors.length > 0 && (
+                  <details className='mt-3'>
+                    <summary className='cursor-pointer text-gray-600'>
+                      查看错误详情
+                    </summary>
+                    <div className='mt-2 text-sm text-gray-500 max-h-32 overflow-y-auto'>
+                      {errors.map((err, i) => (
+                        <div key={i} className='py-1'>
+                          {err}
+                        </div>
+                      ))}
                     </div>
                   </details>
-                `
-                    : ''
-                }
+                )}
               </div>
-            `,
-            icon: successCount > 0 ? 'warning' : 'error',
-            confirmButtonText: '确定',
+            ),
+            type: successCount > 0 ? 'warning' : 'error',
           });
         }
       } catch (error) {
         showError(
           '配置文件解析失败: ' +
-            (error instanceof Error ? error.message : '文件格式错误')
+            (error instanceof Error ? error.message : '文件格式错误'),
         );
       }
     };
@@ -1163,6 +1143,19 @@ const VideoSourceConfig = ({
           title={source.detail || '-'}
         >
           {source.detail || '-'}
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+          <label className='inline-flex items-center gap-2'>
+            <input
+              type='checkbox'
+              checked={source.is_adult === true}
+              onChange={(e) => handleSetAdult(source.key, e.target.checked)}
+              className='w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600'
+            />
+            <span className='text-xs text-gray-600 dark:text-gray-300'>
+              {source.is_adult === true ? '🔞' : '—'}
+            </span>
+          </label>
         </td>
         <td className='px-6 py-4 whitespace-nowrap max-w-[1rem]'>
           <span
@@ -1397,6 +1390,9 @@ const VideoSourceConfig = ({
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                 Detail 地址
+              </th>
+              <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+                成人
               </th>
               <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                 状态
@@ -1722,6 +1718,7 @@ const SiteConfigComponent = ({ config }: { config: AdminConfig | null }) => {
 
 function AdminPageClient() {
   const router = useRouter();
+  const { confirm: showConfirm } = useConfirmDialog();
   const [config, setConfig] = useState<AdminConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1746,7 +1743,7 @@ function AdminPageClient() {
       if (!response.ok) {
         const errorPayload = payload as { error?: string };
         throw new Error(
-          `获取配置失败: ${errorPayload.error || response.statusText}`
+          `获取配置失败: ${errorPayload.error || response.statusText}`,
         );
       }
 
@@ -1779,13 +1776,13 @@ function AdminPageClient() {
 
   // 新增: 重置配置处理函数
   const handleResetConfig = async () => {
-    const { isConfirmed } = await Swal.fire({
+    const isConfirmed = await showConfirm({
       title: '确认重置配置',
-      text: '此操作将重置用户封禁和管理员设置、自定义视频源，站点配置将重置为默认值，是否继续？',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+      message:
+        '此操作将重置用户封禁和管理员设置、自定义视频源，站点配置将重置为默认值，是否继续？',
+      type: 'warning',
+      confirmText: '确认',
+      cancelText: '取消',
     });
     if (!isConfirmed) return;
 
@@ -1823,7 +1820,7 @@ function AdminPageClient() {
   }
 
   if (error) {
-    // 错误已通过 SweetAlert2 展示，此处直接返回空
+    // 错误已通过 toast 展示，此处直接返回空
     return null;
   }
 
