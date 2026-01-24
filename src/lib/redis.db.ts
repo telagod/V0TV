@@ -131,7 +131,7 @@ export class RedisStorage implements IStorage {
     const pattern = `u:${userName}:pr:*`;
     const keys: string[] = await withRetry(() => this.client.keys(pattern));
     if (keys.length > 0) {
-      await withRetry(() => this.client.del(...keys));
+      await withRetry(() => this.client.del(keys));
     }
   }
 
@@ -182,7 +182,7 @@ export class RedisStorage implements IStorage {
     const pattern = `u:${userName}:fav:*`;
     const keys: string[] = await withRetry(() => this.client.keys(pattern));
     if (keys.length > 0) {
-      await withRetry(() => this.client.del(...keys));
+      await withRetry(() => this.client.del(keys));
     }
   }
 

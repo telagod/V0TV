@@ -118,7 +118,7 @@ export class UpstashRedisStorage implements IStorage {
     const pattern = `u:${userName}:pr:*`;
     const keys: string[] = await withRetry(() => this.client.keys(pattern));
     if (keys.length > 0) {
-      await withRetry(() => this.client.del(...keys));
+      await withRetry(() => this.client.del(...keys as [string, ...string[]]));
     }
   }
 
@@ -168,7 +168,7 @@ export class UpstashRedisStorage implements IStorage {
     const pattern = `u:${userName}:fav:*`;
     const keys: string[] = await withRetry(() => this.client.keys(pattern));
     if (keys.length > 0) {
-      await withRetry(() => this.client.del(...keys));
+      await withRetry(() => this.client.del(...keys as [string, ...string[]]));
     }
   }
 
@@ -222,7 +222,7 @@ export class UpstashRedisStorage implements IStorage {
       this.client.keys(playRecordPattern),
     );
     if (playRecordKeys.length > 0) {
-      await withRetry(() => this.client.del(...playRecordKeys));
+      await withRetry(() => this.client.del(...playRecordKeys as [string, ...string[]]));
     }
 
     // 删除收藏夹
@@ -231,7 +231,7 @@ export class UpstashRedisStorage implements IStorage {
       this.client.keys(favoritePattern),
     );
     if (favoriteKeys.length > 0) {
-      await withRetry(() => this.client.del(...favoriteKeys));
+      await withRetry(() => this.client.del(...favoriteKeys as [string, ...string[]]));
     }
   }
 
