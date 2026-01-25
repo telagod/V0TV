@@ -298,7 +298,7 @@ export default function VideoCard({
       onClick={handleClick}
     >
       {/* 海报容器 */}
-      <div className='relative aspect-[2/3] overflow-hidden rounded-md bg-bg-elevated'>
+      <div className='relative aspect-[2/3] overflow-hidden rounded-md bg-surface-elevated'>
         {/* 骨架屏 */}
         {!isLoading && <ImagePlaceholder aspectRatio='aspect-[2/3]' />}
         {/* 图片 */}
@@ -340,17 +340,17 @@ export default function VideoCard({
               <button
                 type='button'
                 onClick={handleDeleteRecord}
-                className='w-10 h-10 flex items-center justify-center rounded-full bg-bg-elevated/80 hover:bg-bg-hover transition-all duration-200'
+                className='w-10 h-10 flex items-center justify-center rounded-full bg-surface-elevated/80 hover:bg-surface-hover transition-all duration-200'
                 aria-label='标记为已看'
               >
-                <CheckCircle size={18} className='text-text-primary hover:text-success' />
+                <CheckCircle size={18} className='text-content-primary hover:text-success' />
               </button>
             )}
             {config.showHeart && (
               <button
                 type='button'
                 onClick={handleToggleFavorite}
-                className='w-10 h-10 flex items-center justify-center rounded-full bg-bg-elevated/80 hover:bg-bg-hover transition-all duration-200'
+                className='w-10 h-10 flex items-center justify-center rounded-full bg-surface-elevated/80 hover:bg-surface-hover transition-all duration-200'
                 aria-label={favorited ? '取消收藏' : '添加收藏'}
               >
                 <Heart
@@ -358,7 +358,7 @@ export default function VideoCard({
                   className={`transition-colors duration-200 ${
                     favorited
                       ? 'fill-brand stroke-brand'
-                      : 'fill-transparent stroke-text-primary hover:stroke-brand'
+                      : 'fill-transparent stroke-content-primary hover:stroke-brand'
                   }`}
                 />
               </button>
@@ -375,7 +375,7 @@ export default function VideoCard({
 
         {/* 集数徽章 */}
         {actualEpisodes && actualEpisodes > 1 && (
-          <div className='absolute top-2 right-2 bg-bg-elevated/90 text-text-primary text-xs font-medium px-2 py-0.5 rounded'>
+          <div className='absolute top-2 right-2 bg-surface-elevated/90 text-content-primary text-xs font-medium px-2 py-0.5 rounded'>
             {currentEpisode
               ? `${currentEpisode}/${actualEpisodes}`
               : `${actualEpisodes}集`}
@@ -401,7 +401,7 @@ export default function VideoCard({
       {/* 进度条 */}
       {config.showProgress && typeof progress === 'number' && progress > 0 && (
         <div className='mt-1.5'>
-          <div className='h-0.5 w-full bg-bg-hover rounded-full overflow-hidden'>
+          <div className='h-0.5 w-full bg-surface-hover rounded-full overflow-hidden'>
             <div
               className='h-full bg-brand transition-all duration-500'
               style={{
@@ -414,11 +414,11 @@ export default function VideoCard({
 
       {/* 标题与来源 */}
       <div className='mt-2'>
-        <h3 className='text-sm font-medium text-text-primary truncate group-hover:text-text-secondary transition-colors'>
+        <h3 className='text-sm font-medium text-content-primary truncate group-hover:text-content-secondary transition-colors'>
           {actualTitle}
         </h3>
         {config.showSourceName && source_name && (
-          <p className='text-xs text-text-tertiary mt-0.5 truncate'>
+          <p className='text-xs text-content-tertiary mt-0.5 truncate'>
             {source_name}
           </p>
         )}

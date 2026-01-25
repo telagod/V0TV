@@ -14,7 +14,7 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
   const { siteName } = useSite();
   return (
     <header
-      className='md:hidden relative w-full bg-bg-primary border-b border-border-primary'
+      className='md:hidden relative w-full bg-surface-primary border-b border-stroke-primary'
       style={{
         paddingTop: 'env(safe-area-inset-top)',
       }}
@@ -24,7 +24,7 @@ const MobileHeader = ({ showBackButton = false }: MobileHeaderProps) => {
           {showBackButton && <BackButton />}
           <Link
             href='/'
-            className='text-lg mobile-landscape:text-base font-bold text-text-primary tracking-tight hover:opacity-80 transition-opacity'
+            className='text-lg mobile-landscape:text-base font-bold text-content-primary tracking-tight hover:opacity-80 transition-opacity'
           >
             {siteName}
           </Link>

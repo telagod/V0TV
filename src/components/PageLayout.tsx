@@ -52,7 +52,7 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
   return (
     <nav
       className={`w-full fixed top-0 left-0 right-0 z-fixed hidden md:block transition-colors duration-300 ${
-        scrolled ? 'bg-bg-primary' : 'bg-gradient-to-b from-black/80 to-transparent'
+        scrolled ? 'bg-surface-primary' : 'bg-gradient-to-b from-black/80 to-transparent'
       }`}
       style={{
         paddingTop: 'env(safe-area-inset-top)',
@@ -66,7 +66,7 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
               href='/'
               className='flex items-center select-none hover:opacity-80 transition-opacity duration-200'
             >
-              <span className='text-xl font-bold text-text-primary tracking-tight'>
+              <span className='text-xl font-bold text-content-primary tracking-tight'>
                 {siteName}
               </span>
             </Link>
@@ -99,8 +99,8 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                       }}
                       className={`group flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                         isActive
-                          ? 'text-text-primary'
-                          : 'text-text-secondary hover:text-text-primary'
+                          ? 'text-content-primary'
+                          : 'text-content-secondary hover:text-content-primary'
                       }`}
                     >
                       <Icon className='h-4 w-4 mr-2' />
@@ -116,8 +116,8 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                     onClick={() => setActive(item.href)}
                     className={`group flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                       isActive
-                        ? 'text-text-primary'
-                        : 'text-text-secondary hover:text-text-primary'
+                        ? 'text-content-primary'
+                        : 'text-content-secondary hover:text-content-primary'
                     }`}
                   >
                     <Icon className='h-4 w-4 mr-2' />
@@ -143,7 +143,7 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
 
   return (
     <div
-      className='w-full min-h-screen bg-bg-primary'
+      className='w-full min-h-screen bg-surface-primary'
       style={{
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',

@@ -41,22 +41,22 @@ const config: Config = {
           hover: '#f40612',
           dark: '#b20710',
         },
-        // 背景色
-        bg: {
+        // 背景色 (使用 surface 避免与 bg- 前缀冲突)
+        surface: {
           primary: '#141414',
           secondary: '#1a1a1a',
           tertiary: '#222222',
           elevated: '#2a2a2a',
           hover: '#333333',
         },
-        // 文字色
-        text: {
+        // 文字色 (使用 content 避免与 text- 前缀冲突)
+        content: {
           primary: '#ffffff',
           secondary: '#b3b3b3',
           tertiary: '#808080',
         },
-        // 边框色
-        border: {
+        // 边框色 (使用 stroke 避免与 border- 前缀冲突)
+        stroke: {
           primary: '#333333',
           secondary: '#404040',
         },

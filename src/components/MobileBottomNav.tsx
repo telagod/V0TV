@@ -46,7 +46,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   return (
     <nav
-      className='md:hidden fixed left-0 right-0 z-fixed bg-bg-primary border-t border-border-primary'
+      className='md:hidden fixed left-0 right-0 z-fixed bg-surface-primary border-t border-stroke-primary'
       style={{
         bottom: 0,
         paddingBottom: 'env(safe-area-inset-bottom)',
@@ -69,15 +69,15 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
                 <item.icon
                   className={`h-6 w-6 mobile-landscape:h-5 mobile-landscape:w-5 transition-colors duration-200 ${
                     active
-                      ? 'text-text-primary'
-                      : 'text-text-tertiary hover:text-text-secondary'
+                      ? 'text-content-primary'
+                      : 'text-content-tertiary hover:text-content-secondary'
                   }`}
                 />
                 <span
                   className={`transition-colors duration-200 font-medium mobile-landscape:text-[10px] ${
                     active
-                      ? 'text-text-primary'
-                      : 'text-text-tertiary hover:text-text-secondary'
+                      ? 'text-content-primary'
+                      : 'text-content-tertiary hover:text-content-secondary'
                   }`}
                 >
                   {item.label}

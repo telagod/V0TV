@@ -92,7 +92,7 @@ export default async function RootLayout({
         {/* 禁用/清理已安装的 Service Worker（最小化 worker 开销） */}
         <script dangerouslySetInnerHTML={{ __html: SW_DISABLE_SNIPPET }} />
       </head>
-      <body className='min-h-screen bg-bg-primary text-text-primary font-sans'>
+      <body className='min-h-screen bg-surface-primary text-content-primary font-sans'>
         <ThemeProvider
           attribute='class'
           defaultTheme='dark'
