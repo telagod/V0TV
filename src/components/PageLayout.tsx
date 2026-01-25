@@ -9,7 +9,6 @@ import { BackButton } from './BackButton';
 import MobileBottomNav from './MobileBottomNav';
 import MobileHeader from './MobileHeader';
 import { useSite } from './SiteProvider';
-import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
 
 interface PageLayoutProps {
@@ -17,69 +16,57 @@ interface PageLayoutProps {
   activePath?: string;
 }
 
-// 内联顶部导航栏组件
+// 顶部导航栏组件 - Netflix 风格
 const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { siteName } = useSite();
+  const [scrolled, setScrolled] = useState(false);
 
   const [active, setActive] = useState(activePath);
 
   useEffect(() => {
-    // 优先使用传入的 activePath（本项目页面通常显式传入）
     setActive(activePath || pathname);
   }, [activePath, pathname]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 0);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSearchClick = useCallback(() => {
     router.push('/search');
   }, [router]);
 
   const menuItems = [
-    {
-      icon: Home,
-      label: '首页',
-      href: '/',
-    },
-    {
-      icon: Search,
-      label: '搜索',
-      href: '/search',
-    },
-    {
-      icon: Film,
-      label: '电影',
-      href: '/douban?type=movie',
-    },
-    {
-      icon: Tv,
-      label: '剧集',
-      href: '/douban?type=tv',
-    },
-    {
-      icon: Clover,
-      label: '综艺',
-      href: '/douban?type=show',
-    },
+    { icon: Home, label: '首页', href: '/' },
+    { icon: Search, label: '搜索', href: '/search' },
+    { icon: Film, label: '电影', href: '/douban?type=movie' },
+    { icon: Tv, label: '剧集', href: '/douban?type=tv' },
+    { icon: Clover, label: '综艺', href: '/douban?type=show' },
   ];
 
-  // 桌面端：顶部固定导航（fixed）
-  // 移动端：不显示此组件，改由底部导航 + 轻量顶部条（非固定）
   return (
     <nav
-      className='w-full bg-white/40 backdrop-blur-xl border-b border-purple-200/50 shadow-lg dark:bg-gray-900/70 dark:border-purple-700/50 fixed top-0 left-0 right-0 z-fixed hidden md:block'
+      className={`w-full fixed top-0 left-0 right-0 z-fixed hidden md:block transition-colors duration-300 ${
+        scrolled ? 'bg-bg-primary' : 'bg-gradient-to-b from-black/80 to-transparent'
+      }`}
       style={{
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
       <div className='w-full px-8 lg:px-12 xl:px-16'>
         <div className='flex items-center justify-between h-16'>
-          {/* Logo区域 - 调整为更靠左 */}
+          {/* Logo */}
           <div className='flex-shrink-0 -ml-2'>
             <Link
               href='/'
               className='flex items-center select-none hover:opacity-80 transition-opacity duration-200'
             >
-              <span className='text-xl font-bold v0tv-logo tracking-tight'>
+              <span className='text-xl font-bold text-text-primary tracking-tight'>
                 {siteName}
               </span>
             </Link>
@@ -87,22 +74,17 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
 
           {/* 导航菜单 */}
           <div className='hidden md:block'>
-            <div className='ml-10 flex items-baseline space-x-4'>
+            <div className='ml-10 flex items-baseline space-x-1'>
               {menuItems.map((item) => {
-                // 检查当前路径是否匹配这个菜单项
                 const typeMatch = item.href.match(/type=([^&]+)/)?.[1];
-                const tagMatch = item.href.match(/tag=([^&]+)/)?.[1];
-
-                // 解码URL以进行正确的比较
                 const decodedActive = decodeURIComponent(active);
                 const decodedItemHref = decodeURIComponent(item.href);
 
                 const isActive =
                   decodedActive === decodedItemHref ||
                   (decodedActive.startsWith('/douban') &&
-                    decodedActive.includes(`type=${typeMatch}`) &&
-                    tagMatch &&
-                    decodedActive.includes(`tag=${tagMatch}`));
+                    typeMatch &&
+                    decodedActive.includes(`type=${typeMatch}`));
 
                 const Icon = item.icon;
 
@@ -115,11 +97,10 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                         handleSearchClick();
                         setActive('/search');
                       }}
-                      data-active={isActive}
-                      className={`group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                      className={`group flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                         isActive
-                          ? 'bg-purple-500/20 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400'
-                          : 'text-gray-700 hover:bg-purple-100/30 hover:text-purple-600 dark:text-gray-300 dark:hover:text-purple-400 dark:hover:bg-purple-500/10'
+                          ? 'text-text-primary'
+                          : 'text-text-secondary hover:text-text-primary'
                       }`}
                     >
                       <Icon className='h-4 w-4 mr-2' />
@@ -133,11 +114,10 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                     key={item.label}
                     href={item.href}
                     onClick={() => setActive(item.href)}
-                    data-active={isActive}
-                    className={`group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                    className={`group flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                       isActive
-                        ? 'bg-purple-500/20 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400'
-                        : 'text-gray-700 hover:bg-purple-100/30 hover:text-purple-600 dark:text-gray-300 dark:hover:text-purple-400 dark:hover:bg-purple-500/10'
+                        ? 'text-text-primary'
+                        : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     <Icon className='h-4 w-4 mr-2' />
@@ -148,9 +128,8 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
             </div>
           </div>
 
-          {/* 右侧按钮 - 调整为更靠右，增加间距实现对称效果 */}
+          {/* 右侧用户菜单 */}
           <div className='flex items-center gap-3 -mr-2'>
-            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
@@ -164,19 +143,19 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
 
   return (
     <div
-      className='w-full min-h-screen'
+      className='w-full min-h-screen bg-bg-primary'
       style={{
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       }}
     >
-      {/* 移动端头部 (fixed) */}
+      {/* 移动端头部 */}
       <MobileHeader showBackButton={isPlayPage} />
 
-      {/* 桌面端顶部导航栏 (fixed) */}
+      {/* 桌面端顶部导航栏 */}
       <TopNavbar activePath={activePath} />
 
-      {/* 主内容区域 - 预留桌面端顶部导航高度 64px */}
+      {/* 主内容区域 */}
       <div className='relative min-w-0 transition-all duration-300 md:pt-16'>
         {/* 桌面端左上角返回按钮 */}
         {isPlayPage && (
@@ -185,7 +164,7 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
           </div>
         )}
 
-        {/* 主内容容器 - 为播放页面使用特殊布局（83.33%宽度），其他页面使用默认布局（66.67%宽度） */}
+        {/* 主内容容器 */}
         <main className='mb-14 md:mb-0 md:px-6 lg:px-8'>
           <div
             className='w-full min-h-[calc(100vh-4rem)]'

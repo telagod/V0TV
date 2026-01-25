@@ -24,7 +24,6 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
 
   const activeIndex = options.findIndex((opt) => opt.value === active);
 
-  // 更新指示器位置
   const updateIndicatorPosition = () => {
     if (
       activeIndex >= 0 &&
@@ -47,13 +46,11 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
     }
   };
 
-  // 组件挂载时立即计算初始位置
   useEffect(() => {
     const timeoutId = setTimeout(updateIndicatorPosition, 0);
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // 监听选中项变化
   useEffect(() => {
     const timeoutId = setTimeout(updateIndicatorPosition, 0);
     return () => clearTimeout(timeoutId);
@@ -62,14 +59,14 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative inline-flex bg-gray-300/80 rounded-full p-1 dark:bg-gray-700 ${
+      className={`relative inline-flex bg-bg-tertiary rounded-full p-1 ${
         className || ''
       }`}
     >
       {/* 滑动的白色背景指示器 */}
       {indicatorStyle.width > 0 && (
         <div
-          className='absolute top-1 bottom-1 bg-white dark:bg-gray-500 rounded-full shadow-sm transition-all duration-300 ease-out'
+          className='absolute top-1 bottom-1 bg-text-primary rounded-full shadow-sm transition-all duration-300 ease-out'
           style={{
             left: `${indicatorStyle.left}px`,
             width: `${indicatorStyle.width}px`,
@@ -88,8 +85,8 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
             onClick={() => onChange(opt.value)}
             className={`relative z-10 w-16 px-3 py-1 text-xs sm:w-20 sm:py-2 sm:text-sm rounded-full font-medium transition-all duration-200 cursor-pointer ${
               isActive
-                ? 'text-gray-900 dark:text-gray-100'
-                : 'text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                ? 'text-bg-primary'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             {opt.label}

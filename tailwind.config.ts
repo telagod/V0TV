@@ -35,19 +35,37 @@ const config: Config = {
         primary: ['Inter', ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+        // Netflix 风格深色主题
+        brand: {
+          DEFAULT: '#e50914',
+          hover: '#f40612',
+          dark: '#b20710',
         },
-        dark: '#222222',
+        // 背景色
+        bg: {
+          primary: '#141414',
+          secondary: '#1a1a1a',
+          tertiary: '#222222',
+          elevated: '#2a2a2a',
+          hover: '#333333',
+        },
+        // 文字色
+        text: {
+          primary: '#ffffff',
+          secondary: '#b3b3b3',
+          tertiary: '#808080',
+        },
+        // 边框色
+        border: {
+          primary: '#333333',
+          secondary: '#404040',
+        },
+        // 功能色
+        success: '#46d369',
+        warning: '#f5a623',
+        error: '#e50914',
+        // 保留 dark 兼容
+        dark: '#141414',
       },
       keyframes: {
         flicker: {

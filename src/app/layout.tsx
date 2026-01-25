@@ -44,18 +44,6 @@ const SW_DISABLE_SNIPPET = `
 })();
 `.trim();
 
-// 浮动几何形状组件
-const FloatingShapes = () => {
-  return (
-    <div className='floating-shapes hidden md:block' aria-hidden='true'>
-      <div className='shape'></div>
-      <div className='shape'></div>
-      <div className='shape'></div>
-      <div className='shape'></div>
-    </div>
-  );
-};
-
 export default async function RootLayout({
   children,
 }: {
@@ -104,14 +92,11 @@ export default async function RootLayout({
         {/* 禁用/清理已安装的 Service Worker（最小化 worker 开销） */}
         <script dangerouslySetInnerHTML={{ __html: SW_DISABLE_SNIPPET }} />
       </head>
-      <body className='min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-200 font-sans'>
-        {/* 浮动几何形状装饰 */}
-        <FloatingShapes />
-
+      <body className='min-h-screen bg-bg-primary text-text-primary font-sans'>
         <ThemeProvider
           attribute='class'
-          defaultTheme='system'
-          enableSystem
+          defaultTheme='dark'
+          forcedTheme='dark'
           disableTransitionOnChange
         >
           <ConfirmDialogProvider>
