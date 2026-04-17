@@ -169,104 +169,27 @@ export class D1Storage implements IStorage {
       try {
         console.log('[D1] 开始自动初始化数据库...');
 
-        const initSQL = `
-          -- 用户表
-          CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            created_at INTEGER DEFAULT (unixepoch()),
-            updated_at INTEGER DEFAULT (unixepoch())
-          );
+        const statements = [
+          `CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password TEXT NOT NULL, created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch()))`,
+          `CREATE TABLE IF NOT EXISTS play_records (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, key TEXT NOT NULL, title TEXT NOT NULL, source_name TEXT NOT NULL, cover TEXT, year TEXT, index_episode INTEGER DEFAULT 0, total_episodes INTEGER DEFAULT 0, play_time REAL DEFAULT 0, total_time REAL DEFAULT 0, save_time INTEGER DEFAULT (unixepoch()), search_title TEXT, created_at INTEGER DEFAULT (unixepoch()), UNIQUE(username, key))`,
+          `CREATE TABLE IF NOT EXISTS favorites (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, key TEXT NOT NULL, title TEXT NOT NULL, source_name TEXT NOT NULL, cover TEXT, year TEXT, total_episodes INTEGER DEFAULT 0, save_time INTEGER DEFAULT (unixepoch()), search_title TEXT, created_at INTEGER DEFAULT (unixepoch()), UNIQUE(username, key))`,
+          `CREATE TABLE IF NOT EXISTS search_history (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, keyword TEXT NOT NULL, created_at INTEGER DEFAULT (unixepoch()))`,
+          `CREATE TABLE IF NOT EXISTS skip_configs (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, key TEXT NOT NULL, source TEXT NOT NULL, video_id TEXT NOT NULL, title TEXT NOT NULL, segments TEXT NOT NULL, updated_time INTEGER DEFAULT (unixepoch()), created_at INTEGER DEFAULT (unixepoch()), UNIQUE(username, key))`,
+          `CREATE TABLE IF NOT EXISTS user_settings (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, settings TEXT NOT NULL, updated_time INTEGER DEFAULT (unixepoch()), created_at INTEGER DEFAULT (unixepoch()))`,
+          `CREATE TABLE IF NOT EXISTS admin_configs (id INTEGER PRIMARY KEY AUTOINCREMENT, config_key TEXT UNIQUE NOT NULL, config_value TEXT, description TEXT, created_at INTEGER DEFAULT (unixepoch()), updated_at INTEGER DEFAULT (unixepoch()))`,
+          `CREATE INDEX IF NOT EXISTS idx_play_records_username ON play_records(username)`,
+          `CREATE INDEX IF NOT EXISTS idx_play_records_key ON play_records(key)`,
+          `CREATE INDEX IF NOT EXISTS idx_favorites_username ON favorites(username)`,
+          `CREATE INDEX IF NOT EXISTS idx_favorites_key ON favorites(key)`,
+          `CREATE INDEX IF NOT EXISTS idx_search_history_username ON search_history(username)`,
+          `CREATE INDEX IF NOT EXISTS idx_skip_configs_username ON skip_configs(username)`,
+          `CREATE INDEX IF NOT EXISTS idx_skip_configs_key ON skip_configs(key)`,
+          `CREATE INDEX IF NOT EXISTS idx_user_settings_username ON user_settings(username)`,
+        ];
 
-          -- 播放记录表
-          CREATE TABLE IF NOT EXISTS play_records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            key TEXT NOT NULL,
-            title TEXT NOT NULL,
-            source_name TEXT NOT NULL,
-            cover TEXT,
-            year TEXT,
-            index_episode INTEGER DEFAULT 0,
-            total_episodes INTEGER DEFAULT 0,
-            play_time REAL DEFAULT 0,
-            total_time REAL DEFAULT 0,
-            save_time INTEGER DEFAULT (unixepoch()),
-            search_title TEXT,
-            created_at INTEGER DEFAULT (unixepoch()),
-            UNIQUE(username, key)
-          );
-
-          -- 收藏表
-          CREATE TABLE IF NOT EXISTS favorites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            key TEXT NOT NULL,
-            title TEXT NOT NULL,
-            source_name TEXT NOT NULL,
-            cover TEXT,
-            year TEXT,
-            total_episodes INTEGER DEFAULT 0,
-            save_time INTEGER DEFAULT (unixepoch()),
-            search_title TEXT,
-            created_at INTEGER DEFAULT (unixepoch()),
-            UNIQUE(username, key)
-          );
-
-          -- 搜索历史表
-          CREATE TABLE IF NOT EXISTS search_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            keyword TEXT NOT NULL,
-            created_at INTEGER DEFAULT (unixepoch())
-          );
-
-          -- 跳过配置表
-          CREATE TABLE IF NOT EXISTS skip_configs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            key TEXT NOT NULL,
-            source TEXT NOT NULL,
-            video_id TEXT NOT NULL,
-            title TEXT NOT NULL,
-            segments TEXT NOT NULL,
-            updated_time INTEGER DEFAULT (unixepoch()),
-            created_at INTEGER DEFAULT (unixepoch()),
-            UNIQUE(username, key)
-          );
-
-          -- 用户设置表
-          CREATE TABLE IF NOT EXISTS user_settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            settings TEXT NOT NULL,
-            updated_time INTEGER DEFAULT (unixepoch()),
-            created_at INTEGER DEFAULT (unixepoch())
-          );
-
-          -- 管理员配置表
-          CREATE TABLE IF NOT EXISTS admin_configs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            config_key TEXT UNIQUE NOT NULL,
-            config_value TEXT,
-            description TEXT,
-            created_at INTEGER DEFAULT (unixepoch()),
-            updated_at INTEGER DEFAULT (unixepoch())
-          );
-
-          -- 创建索引以提高查询性能
-          CREATE INDEX IF NOT EXISTS idx_play_records_username ON play_records(username);
-          CREATE INDEX IF NOT EXISTS idx_play_records_key ON play_records(key);
-          CREATE INDEX IF NOT EXISTS idx_favorites_username ON favorites(username);
-          CREATE INDEX IF NOT EXISTS idx_favorites_key ON favorites(key);
-          CREATE INDEX IF NOT EXISTS idx_search_history_username ON search_history(username);
-          CREATE INDEX IF NOT EXISTS idx_skip_configs_username ON skip_configs(username);
-          CREATE INDEX IF NOT EXISTS idx_skip_configs_key ON skip_configs(key);
-          CREATE INDEX IF NOT EXISTS idx_user_settings_username ON user_settings(username);
-        `;
-
-        await this.db!.exec(initSQL);
+        for (const sql of statements) {
+          await this.db!.exec(sql);
+        }
 
         D1Storage.initialized = true;
         console.log('[D1] 数据库初始化完成');
