@@ -46,7 +46,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   return (
     <nav
-      className='md:hidden fixed left-0 right-0 z-fixed bg-surface-primary border-t border-stroke-primary'
+      className='md:hidden fixed left-0 right-0 z-fixed glass-panel border-t border-white/[0.04]'
       style={{
         bottom: 0,
         paddingBottom: 'env(safe-area-inset-bottom)',
@@ -59,25 +59,25 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
             <li key={item.href} className='flex-shrink-0 w-1/5'>
               <Link
                 href={item.href}
-                className='flex flex-col items-center justify-center w-full h-14 mobile-landscape:h-11 gap-1 mobile-landscape:gap-0.5 text-xs transition-all duration-200 relative'
+                className='flex flex-col items-center justify-center w-full h-14 mobile-landscape:h-11 gap-1 mobile-landscape:gap-0.5 text-xs transition-all duration-300 relative'
               >
-                {/* 激活状态红色下划线 */}
+                {/* 激活状态 — 小圆点 */}
                 {active && (
-                  <div className='absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-brand rounded-full'></div>
+                  <div className='absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent'></div>
                 )}
 
                 <item.icon
-                  className={`h-6 w-6 mobile-landscape:h-5 mobile-landscape:w-5 transition-colors duration-200 ${
+                  className={`h-5 w-5 mobile-landscape:h-4 mobile-landscape:w-4 transition-colors duration-300 ${
                     active
                       ? 'text-content-primary'
-                      : 'text-content-tertiary hover:text-content-secondary'
+                      : 'text-content-tertiary'
                   }`}
                 />
                 <span
-                  className={`transition-colors duration-200 font-medium mobile-landscape:text-[10px] ${
+                  className={`transition-colors duration-300 tracking-wider mobile-landscape:text-[10px] ${
                     active
-                      ? 'text-content-primary'
-                      : 'text-content-tertiary hover:text-content-secondary'
+                      ? 'text-content-primary font-medium'
+                      : 'text-content-tertiary font-light'
                   }`}
                 >
                   {item.label}

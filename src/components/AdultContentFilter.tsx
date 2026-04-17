@@ -108,21 +108,21 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
   };
 
   return (
-    <div className='bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6'>
+    <div className='bg-surface-tertiary rounded-lg shadow-sm border border-stroke-primary p-6'>
       <div className='flex items-start justify-between'>
         <div className='flex items-center space-x-3'>
-          <div className='flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900'>
+          <div className='flex items-center justify-center w-10 h-10 rounded-full bg-accent-muted'>
             {isEnabled ? (
-              <Shield className='w-5 h-5 text-blue-600 dark:text-blue-400' />
+              <Shield className='w-5 h-5 text-accent' />
             ) : (
-              <ShieldOff className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+              <ShieldOff className='w-5 h-5 text-content-tertiary' />
             )}
           </div>
           <div className='flex-1'>
-            <h3 className='text-lg font-medium text-gray-900 dark:text-white'>
+            <h3 className='text-lg font-medium text-content-primary'>
               成人内容过滤
             </h3>
-            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+            <p className='text-sm text-content-tertiary mt-1'>
               {isEnabled
                 ? '已开启过滤，将自动隐藏所有标记为"成人"的资源站及其内容'
                 : '已关闭过滤，成人内容将在搜索结果中单独分组显示'}
@@ -135,8 +135,8 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
             onClick={handleToggle}
             disabled={isLoading || (storageType === 'localstorage' && !userName)}
             className={`
-              relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
-              ${isEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
+              relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 focus:ring-offset-surface-primary disabled:opacity-50 disabled:cursor-not-allowed
+              ${isEnabled ? 'bg-accent' : 'bg-surface-hover'}
             `}
           >
             <span
@@ -149,28 +149,28 @@ const AdultContentFilter: React.FC<AdultContentFilterProps> = ({
 
           {isLoading && (
             <div className='w-5 h-5'>
-              <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600'></div>
+              <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-accent'></div>
             </div>
           )}
         </div>
       </div>
 
       {error && (
-        <div className='mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md'>
-          <p className='text-sm text-red-600 dark:text-red-400'>{error}</p>
+        <div className='mt-4 p-3 bg-error/10 border border-error/20 rounded-md'>
+          <p className='text-sm text-error'>{error}</p>
         </div>
       )}
 
-      <div className='mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md'>
+      <div className='mt-4 p-4 bg-accent-muted border border-accent/20 rounded-md'>
         <div className='flex items-start'>
           <div className='flex-shrink-0'>
-            <Shield className='w-5 h-5 text-amber-600 dark:text-amber-400' />
+            <Shield className='w-5 h-5 text-accent' />
           </div>
           <div className='ml-3'>
-            <h4 className='text-sm font-medium text-amber-800 dark:text-amber-200'>
+            <h4 className='text-sm font-medium text-accent'>
               安全提示
             </h4>
-            <p className='mt-1 text-sm text-amber-700 dark:text-amber-300'>
+            <p className='mt-1 text-sm text-accent/80'>
               为了确保良好的使用体验和遵守相关法规，建议保持成人内容过滤开启。如需访问相关内容，请确保您已年满18周岁并承担相应法律责任。
             </p>
           </div>

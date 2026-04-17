@@ -415,14 +415,14 @@ function SearchPageClient() {
               <label htmlFor='searchInput' className='sr-only'>
                 搜索电影、电视剧
               </label>
-              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500' />
+              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-content-tertiary' />
               <input
                 id='searchInput'
                 type='text'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder='搜索电影、电视剧...'
-                className='w-full h-12 rounded-lg bg-gray-50/80 py-3 pl-10 pr-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
+                className='w-full h-12 rounded-lg bg-surface-tertiary py-3 pl-10 pr-4 text-base text-content-primary placeholder-content-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:bg-surface-elevated border border-stroke-secondary shadow-sm'
               />
             </div>
           </form>
@@ -435,18 +435,18 @@ function SearchPageClient() {
               {/* 标题 + 聚合开关 */}
               <div className='mb-8 flex items-center justify-between'>
                 <div className='flex items-center gap-3'>
-                  <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                  <h2 className='text-xl font-bold text-content-primary'>
                     搜索结果
                   </h2>
                   {(isLoading || isCompleting) && (
-                    <span className='text-xs text-gray-500 dark:text-gray-400'>
+                    <span className='text-xs text-content-tertiary'>
                       {isLoading ? '搜索中…' : '正在补全更多源…'}
                     </span>
                   )}
                 </div>
                 <div className='flex items-center gap-4'>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
-                    <span className='text-sm text-gray-700 dark:text-gray-300'>
+                    <span className='text-sm text-content-secondary'>
                       过滤不可用源
                     </span>
                     <div className='relative'>
@@ -468,14 +468,14 @@ function SearchPageClient() {
                           setVisibleCount(RESULTS_PAGE_SIZE);
                         }}
                       />
-                      <div className='w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors dark:bg-gray-600'></div>
+                      <div className='w-9 h-5 bg-surface-hover rounded-full peer-checked:bg-accent transition-colors'></div>
                       <div className='absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4'></div>
                     </div>
                   </label>
 
                   {/* 聚合开关 */}
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
-                    <span className='text-sm text-gray-700 dark:text-gray-300'>
+                    <span className='text-sm text-content-secondary'>
                       聚合
                     </span>
                     <div className='relative'>
@@ -488,7 +488,7 @@ function SearchPageClient() {
                           setVisibleCount(RESULTS_PAGE_SIZE);
                         }}
                       />
-                      <div className='w-9 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors dark:bg-gray-600'></div>
+                      <div className='w-9 h-5 bg-surface-hover rounded-full peer-checked:bg-accent transition-colors'></div>
                       <div className='absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4'></div>
                     </div>
                   </label>
@@ -497,7 +497,7 @@ function SearchPageClient() {
 
               {isLoading && searchResults.length === 0 && (
                 <div className='flex justify-center items-center h-40'>
-                  <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-green-500'></div>
+                  <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-accent'></div>
                 </div>
               )}
 
@@ -505,7 +505,7 @@ function SearchPageClient() {
               {groupedResults && groupedResults.adult.length > 0 && (
                 <div className='mb-6'>
                   <div className='flex items-center justify-center mb-4'>
-                    <div className='inline-flex p-1 bg-gray-100 dark:bg-gray-800 rounded-lg'>
+                    <div className='inline-flex p-1 bg-surface-tertiary rounded-lg'>
                       <button
                         onClick={() => {
                           setActiveTab('regular');
@@ -513,8 +513,8 @@ function SearchPageClient() {
                         }}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                           activeTab === 'regular'
-                            ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            ? 'bg-surface-elevated text-accent shadow-sm'
+                            : 'text-content-tertiary hover:text-content-primary'
                         }`}
                       >
                         常规结果 ({groupedResults.regular.length})
@@ -526,8 +526,8 @@ function SearchPageClient() {
                         }}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                           activeTab === 'adult'
-                            ? 'bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 shadow-sm'
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            ? 'bg-surface-elevated text-error shadow-sm'
+                            : 'text-content-tertiary hover:text-content-primary'
                         }`}
                       >
                         成人内容 ({groupedResults.adult.length})
@@ -535,8 +535,8 @@ function SearchPageClient() {
                     </div>
                   </div>
                   {activeTab === 'adult' && (
-                    <div className='mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md'>
-                      <p className='text-sm text-red-600 dark:text-red-400 text-center'>
+                    <div className='mb-4 p-3 bg-error/10 border border-error/20 rounded-md'>
+                      <p className='text-sm text-error text-center'>
                         ⚠️ 以下内容可能包含成人资源，请确保您已年满18周岁
                       </p>
                     </div>
@@ -571,7 +571,7 @@ function SearchPageClient() {
                         );
                       })}
                     {(aggregatedResults ?? []).length === 0 && !isLoading && (
-                      <div className='col-span-full text-center text-gray-500 py-8 dark:text-gray-400'>
+                      <div className='col-span-full text-center text-content-tertiary py-8'>
                         未找到相关结果
                       </div>
                     )}
@@ -583,7 +583,7 @@ function SearchPageClient() {
                         onClick={() =>
                           setVisibleCount((c) => c + RESULTS_PAGE_SIZE)
                         }
-                        className='px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 transition-colors'
+                        className='px-4 py-2 rounded-lg bg-surface-tertiary hover:bg-surface-hover text-sm text-content-primary transition-colors'
                       >
                         加载更多（已显示{' '}
                         {Math.min(visibleCount, (aggregatedResults ?? []).length)}{' '}
@@ -628,7 +628,7 @@ function SearchPageClient() {
                       );
                     })}
                     {healthRankedResults.length === 0 && !isLoading && (
-                      <div className='col-span-full text-center text-gray-500 py-8 dark:text-gray-400'>
+                      <div className='col-span-full text-center text-content-tertiary py-8'>
                         未找到相关结果
                       </div>
                     )}
@@ -638,7 +638,7 @@ function SearchPageClient() {
                       <button
                         type='button'
                         onClick={() => setVisibleCount((c) => c + RESULTS_PAGE_SIZE)}
-                        className='px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 transition-colors'
+                        className='px-4 py-2 rounded-lg bg-surface-tertiary hover:bg-surface-hover text-sm text-content-primary transition-colors'
                       >
                         加载更多（已显示 {Math.min(visibleCount, healthRankedResults.length)} / {healthRankedResults.length}）
                       </button>
@@ -650,14 +650,14 @@ function SearchPageClient() {
           ) : searchHistory.length > 0 ? (
             // 搜索历史
             <section className='mb-12'>
-              <h2 className='mb-4 text-lg sm:text-xl font-bold text-gray-800 text-left dark:text-gray-200'>
+              <h2 className='mb-4 text-lg sm:text-xl font-bold text-content-primary text-left'>
                 搜索历史
                 {searchHistory.length > 0 && (
                   <button
                     onClick={() => {
                       clearSearchHistory(); // 事件监听会自动更新界面
                     }}
-                    className='ml-3 text-sm text-gray-600 hover:text-red-500 transition-colors dark:text-gray-400 dark:hover:text-red-500'
+                    className='ml-3 text-sm text-content-tertiary hover:text-error transition-colors'
                   >
                     清空
                   </button>
@@ -673,7 +673,7 @@ function SearchPageClient() {
                           `/search?q=${encodeURIComponent(item.trim())}`,
                         );
                       }}
-                      className='px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-500/10 hover:bg-gray-300 rounded-full text-xs sm:text-sm text-gray-700 transition-colors duration-200 dark:bg-gray-700/50 dark:hover:bg-gray-600 dark:text-gray-300'
+                      className='px-3 py-1.5 sm:px-4 sm:py-2 bg-surface-hover/30 hover:bg-surface-hover rounded-full text-xs sm:text-sm text-content-secondary transition-colors duration-200'
                     >
                       {item}
                     </button>
@@ -685,7 +685,7 @@ function SearchPageClient() {
                         e.preventDefault();
                         deleteSearchHistory(item); // 事件监听会自动更新界面
                       }}
-                      className='absolute -top-1.5 -right-1.5 sm:-top-1 sm:-right-1 w-5 h-5 sm:w-4 sm:h-4 opacity-0 group-hover:opacity-100 bg-gray-400 hover:bg-red-500 text-white rounded-full flex items-center justify-center transition-colors'
+                      className='absolute -top-1.5 -right-1.5 sm:-top-1 sm:-right-1 w-5 h-5 sm:w-4 sm:h-4 opacity-0 group-hover:opacity-100 bg-surface-hover hover:bg-error text-white rounded-full flex items-center justify-center transition-colors'
                     >
                       <X className='w-3 h-3' />
                     </button>
@@ -700,7 +700,7 @@ function SearchPageClient() {
       {/* 返回顶部悬浮按钮 */}
       <button
         onClick={scrollToTop}
-        className={`fixed right-4 sm:right-6 z-fixed w-11 h-11 sm:w-12 sm:h-12 bg-green-500/90 hover:bg-green-500 text-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out flex items-center justify-center group ${
+        className={`fixed right-4 sm:right-6 z-fixed w-11 h-11 sm:w-12 sm:h-12 bg-accent/90 hover:bg-accent text-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out flex items-center justify-center group ${
           showBackToTop
             ? 'opacity-100 translate-y-0 pointer-events-auto'
             : 'opacity-0 translate-y-4 pointer-events-none'

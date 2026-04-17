@@ -7,7 +7,7 @@ interface SkeletonProps {
 export function Skeleton({ className = '' }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse bg-purple-200 dark:bg-purple-800 rounded ${className}`}
+      className={`animate-pulse bg-surface-tertiary rounded ${className}`}
     />
   );
 }
@@ -15,10 +15,10 @@ export function Skeleton({ className = '' }: SkeletonProps) {
 export function VideoCardSkeleton() {
   return (
     <div className='w-full'>
-      <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-purple-200 animate-pulse dark:bg-purple-800'>
-        <div className='absolute inset-0 bg-purple-300 dark:bg-purple-700'></div>
+      <div className='relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-tertiary animate-pulse'>
+        <div className='absolute inset-0 bg-surface-elevated'></div>
       </div>
-      <div className='mt-2 h-4 bg-purple-200 rounded animate-pulse dark:bg-purple-800'></div>
+      <div className='mt-2 h-4 bg-surface-tertiary rounded animate-pulse'></div>
     </div>
   );
 }

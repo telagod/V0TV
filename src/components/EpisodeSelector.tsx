@@ -599,7 +599,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                                     videoInfo.quality,
                                   );
                                   const textColorClasses = isUltraHigh
-                                    ? 'text-purple-400'
+                                    ? 'text-accent'
                                     : isHigh
                                       ? 'text-success'
                                       : 'text-warning';

@@ -76,7 +76,7 @@ export function VideoInfo(props: VideoInfoProps) {
       <div className='md:col-span-3'>
         <div className='p-6 flex flex-col min-h-0'>
           {/* 标题 */}
-          <h1 className='text-3xl font-bold mb-2 tracking-wide flex items-center flex-shrink-0 text-center md:text-left w-full'>
+          <h1 className='text-3xl font-serif font-medium mb-2 tracking-wide flex items-center flex-shrink-0 text-center md:text-left w-full'>
             {title || '影片标题'}
             {onToggleFavorite && (
               <FavoriteButton
@@ -89,15 +89,15 @@ export function VideoInfo(props: VideoInfoProps) {
           </h1>
 
           {/* 关键信息行 */}
-          <div className='flex flex-wrap items-center gap-3 text-base mb-4 opacity-80 flex-shrink-0'>
+          <div className='flex flex-wrap items-center gap-3 text-sm mb-4 text-content-secondary flex-shrink-0 font-light tracking-wider'>
             {detail?.class && (
-              <span className='text-green-600 font-semibold'>
+              <span className='text-accent font-semibold'>
                 {detail.class}
               </span>
             )}
             {(detail?.year || year) && <span>{detail?.year || year}</span>}
             {detail?.source_name && (
-              <span className='border border-gray-500/60 px-2 py-[1px] rounded'>
+              <span className='border border-stroke-secondary px-2 py-[1px] rounded'>
                 {detail.source_name}
               </span>
             )}
@@ -107,7 +107,7 @@ export function VideoInfo(props: VideoInfoProps) {
           {/* 剧情简介 */}
           {detail?.desc && (
             <div
-              className='mt-0 text-base leading-relaxed opacity-90 overflow-y-auto pr-2 flex-1 min-h-0 scrollbar-hide'
+              className='mt-0 text-sm leading-relaxed text-content-secondary font-light overflow-y-auto pr-2 flex-1 min-h-0 scrollbar-hide'
               style={{ whiteSpace: 'pre-line' }}
             >
               {detail.desc}
@@ -119,7 +119,7 @@ export function VideoInfo(props: VideoInfoProps) {
       {/* 封面展示 */}
       <div className='hidden md:block md:col-span-1 md:order-first'>
         <div className='pl-0 py-4 pr-6'>
-          <div className='relative bg-gray-300 dark:bg-gray-700 aspect-[2/3] flex items-center justify-center rounded-xl overflow-hidden'>
+          <div className='relative bg-surface-secondary aspect-[2/3] flex items-center justify-center rounded-sm overflow-hidden'>
             {cover ? (
               <Image
                 src={coverSrc}
@@ -137,7 +137,7 @@ export function VideoInfo(props: VideoInfoProps) {
                 }}
               />
             ) : (
-              <span className='text-gray-600 dark:text-gray-400'>封面图片</span>
+              <span className='text-content-tertiary'>封面图片</span>
             )}
           </div>
         </div>

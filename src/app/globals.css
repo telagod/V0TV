@@ -1,30 +1,31 @@
-/* Netflix 风格深色主题 CSS 变量 */
+/* 暗室观影 — 克制优雅设计系统 */
 :root {
-  /* 背景色 */
-  --bg-primary: #141414;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #222222;
-  --bg-elevated: #2a2a2a;
-  --bg-hover: #333333;
+  /* 背景色 — 微暖近黑 */
+  --bg-primary: #0a0a0b;
+  --bg-secondary: #111113;
+  --bg-tertiary: #18181b;
+  --bg-elevated: #1c1c20;
+  --bg-hover: #242428;
 
-  /* 文字色 */
-  --text-primary: #ffffff;
-  --text-secondary: #b3b3b3;
-  --text-tertiary: #808080;
+  /* 文字色 — 奶油白 */
+  --text-primary: #f0ede8;
+  --text-secondary: #9a9590;
+  --text-tertiary: #5c5856;
 
-  /* 边框色 */
-  --border-primary: #333333;
-  --border-secondary: #404040;
+  /* 边框色 — 几乎不可见 */
+  --border-primary: #1e1e22;
+  --border-secondary: #2a2a2e;
 
-  /* 品牌色 - Netflix 红 */
-  --brand-primary: #e50914;
-  --brand-primary-hover: #f40612;
-  --brand-primary-dark: #b20710;
+  /* 品牌色 — 暖金，极少量使用 */
+  --brand-primary: #c8a97e;
+  --brand-primary-hover: #d4b88e;
+  --brand-primary-dark: #a8895e;
+  --brand-muted: rgba(200, 169, 126, 0.15);
 
   /* 功能色 */
   --color-success: #46d369;
   --color-warning: #f5a623;
-  --color-error: #e50914;
+  --color-error: #dc2626;
 
   /* Z-index 层级规范 */
   --z-dropdown: 10;
@@ -34,6 +35,12 @@
   --z-modal: 50;
   --z-tooltip: 60;
   --z-toast: 70;
+
+  /* 动效 — 电影感 */
+  --ease-cinema: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 300ms;
+  --duration-normal: 500ms;
+  --duration-slow: 700ms;
 }
 
 /* 基础样式 */
@@ -68,15 +75,15 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 
-/* 页面进入动画 */
+/* 页面进入动画 — 电影感 */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -85,14 +92,43 @@
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
+  animation: fadeInUp 0.6s var(--ease-cinema) both;
 }
 
-/* Logo 样式 - 简洁白色文字 */
+/* 卡片交错入场 */
+.stagger-enter > * {
+  animation: fadeInUp 0.6s var(--ease-cinema) both;
+}
+.stagger-enter > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-enter > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-enter > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-enter > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-enter > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-enter > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-enter > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-enter > *:nth-child(8) { animation-delay: 420ms; }
+.stagger-enter > *:nth-child(n+9) { animation-delay: 480ms; }
+
+/* Logo 样式 — 衬线体，字距宽 */
 .v0tv-logo {
+  font-family: var(--font-serif), 'Noto Serif SC', Georgia, serif;
   color: var(--text-primary);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+}
+
+/* 暗色玻璃面板 */
+.glass-panel {
+  background: rgba(10, 10, 11, 0.75);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-nav {
+  background: rgba(10, 10, 11, 0.6);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
 }
 
 /* Player sizing safety-net */
@@ -107,10 +143,10 @@
   object-fit: contain;
 }
 
-/* 自定义滚动条 - 深色主题 */
+/* 自定义滚动条 — 几乎隐形 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -118,12 +154,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* 基础样式重置 */
@@ -136,9 +172,7 @@ html {
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
@@ -169,16 +203,16 @@ img {
   height: auto;
 }
 
-/* 选择文本样式 - Netflix 红 */
+/* 选择文本样式 — 暖金 */
 ::selection {
-  background: rgba(229, 9, 20, 0.3);
+  background: rgba(200, 169, 126, 0.25);
   color: inherit;
 }
 
-/* 焦点样式 - Netflix 红 */
+/* 焦点样式 — 克制 */
 :focus {
-  outline: 2px solid rgba(229, 9, 20, 0.5);
-  outline-offset: 2px;
+  outline: 1px solid rgba(200, 169, 126, 0.4);
+  outline-offset: 3px;
 }
 
 :focus:not(:focus-visible) {
@@ -186,8 +220,8 @@ img {
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
+  outline: 1px solid rgba(200, 169, 126, 0.4);
+  outline-offset: 3px;
 }
 
 /* 减少动画偏好 */

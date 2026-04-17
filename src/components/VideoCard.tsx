@@ -294,20 +294,20 @@ export default function VideoCard({
 
   return (
     <div
-      className='group relative w-full cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 hover:z-[500]'
+      className='group relative w-full cursor-pointer'
       onClick={handleClick}
     >
-      {/* 海报容器 */}
-      <div className='relative aspect-[2/3] overflow-hidden rounded-md bg-surface-elevated'>
+      {/* 海报容器 — 锐利圆角，电影感 */}
+      <div className='relative aspect-[2/3] overflow-hidden rounded-sm bg-surface-secondary'>
         {/* 骨架屏 */}
         {!isLoading && <ImagePlaceholder aspectRatio='aspect-[2/3]' />}
-        {/* 图片 */}
+        {/* 图片 — 慢缩放，降亮 */}
         <Image
           src={imageSrc}
           alt={actualTitle}
           fill
           sizes='(max-width: 475px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 20vw, 11rem'
-          className='object-cover transition-opacity duration-300 group-hover:opacity-40'
+          className='object-cover transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:brightness-[0.6]'
           referrerPolicy='no-referrer'
           onLoadingComplete={() => setIsLoading(true)}
           onError={() => {
@@ -319,46 +319,45 @@ export default function VideoCard({
           }}
         />
 
-        {/* 悬浮遮罩 */}
-        <div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
-
-        {/* 播放按钮 */}
+        {/* 播放按钮 — 圆形玻璃 */}
         {config.showPlayButton && (
-          <div className='absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-300 group-hover:opacity-100'>
-            <PlayCircleIcon
-              size={50}
-              strokeWidth={0.8}
-              className='text-white fill-transparent transition-all duration-300 hover:fill-brand hover:scale-110'
-            />
+          <div className='absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500'>
+            <div className='w-12 h-12 rounded-full border border-white/40 flex items-center justify-center backdrop-blur-sm bg-white/10'>
+              <PlayCircleIcon
+                size={24}
+                strokeWidth={1.5}
+                className='text-white ml-0.5'
+              />
+            </div>
           </div>
         )}
 
-        {/* 操作按钮 */}
+        {/* 操作按钮 — hover 时浮现 */}
         {(config.showHeart || config.showCheckCircle) && (
-          <div className='absolute bottom-2 right-2 flex gap-1 opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0'>
+          <div className='absolute bottom-3 right-3 flex gap-1.5 opacity-0 transition-all duration-500 group-hover:opacity-100'>
             {config.showCheckCircle && (
               <button
                 type='button'
                 onClick={handleDeleteRecord}
-                className='w-10 h-10 flex items-center justify-center rounded-full bg-surface-elevated/80 hover:bg-surface-hover transition-all duration-200'
+                className='w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all duration-300'
                 aria-label='标记为已看'
               >
-                <CheckCircle size={18} className='text-content-primary hover:text-success' />
+                <CheckCircle size={14} className='text-white/80' />
               </button>
             )}
             {config.showHeart && (
               <button
                 type='button'
                 onClick={handleToggleFavorite}
-                className='w-10 h-10 flex items-center justify-center rounded-full bg-surface-elevated/80 hover:bg-surface-hover transition-all duration-200'
+                className='w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all duration-300'
                 aria-label={favorited ? '取消收藏' : '添加收藏'}
               >
                 <Heart
-                  size={18}
-                  className={`transition-colors duration-200 ${
+                  size={14}
+                  className={`transition-colors duration-300 ${
                     favorited
-                      ? 'fill-brand stroke-brand'
-                      : 'fill-transparent stroke-content-primary hover:stroke-brand'
+                      ? 'fill-accent stroke-accent'
+                      : 'fill-transparent stroke-white/80 hover:stroke-accent'
                   }`}
                 />
               </button>
@@ -366,44 +365,48 @@ export default function VideoCard({
           </div>
         )}
 
-        {/* 评分徽章 */}
+        {/* 评分 — hover 时显示，文字形态 */}
         {config.showRating && rate && (
-          <div className='absolute top-2 right-2 bg-brand text-white text-xs font-bold px-1.5 py-0.5 rounded'>
-            {rate}
+          <div className='absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500'>
+            <span className='text-xs font-sans text-accent tracking-wider'>
+              {rate}
+            </span>
           </div>
         )}
 
-        {/* 集数徽章 */}
+        {/* 集数 — 右上角，克制 */}
         {actualEpisodes && actualEpisodes > 1 && (
-          <div className='absolute top-2 right-2 bg-surface-elevated/90 text-content-primary text-xs font-medium px-2 py-0.5 rounded'>
-            {currentEpisode
-              ? `${currentEpisode}/${actualEpisodes}`
-              : `${actualEpisodes}集`}
+          <div className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500'>
+            <span className='text-[10px] font-sans text-content-secondary tracking-wider'>
+              {currentEpisode
+                ? `${currentEpisode}/${actualEpisodes}`
+                : `${actualEpisodes}集`}
+            </span>
           </div>
         )}
 
-        {/* 豆瓣链接 */}
+        {/* 豆瓣链接 — hover 时显示 */}
         {config.showDoubanLink && actualDoubanId && (
           <a
             href={`https://movie.douban.com/subject/${actualDoubanId}`}
             target='_blank'
             rel='noopener noreferrer'
             onClick={(e) => e.stopPropagation()}
-            className='absolute top-2 left-2 opacity-0 transition-all duration-300 group-hover:opacity-100'
+            className='absolute bottom-3 left-3 opacity-0 transition-all duration-500 group-hover:opacity-100'
           >
-            <div className='bg-success text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center hover:bg-success/80 transition-colors'>
-              <Link size={14} />
+            <div className='w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-black/60 transition-colors duration-300'>
+              <Link size={12} className='text-white/80' />
             </div>
           </a>
         )}
       </div>
 
-      {/* 进度条 */}
+      {/* 进度条 — 纤细 */}
       {config.showProgress && typeof progress === 'number' && progress > 0 && (
-        <div className='mt-1.5'>
-          <div className='h-0.5 w-full bg-surface-hover rounded-full overflow-hidden'>
+        <div className='mt-2'>
+          <div className='h-[2px] w-full bg-white/[0.06] rounded-full overflow-hidden'>
             <div
-              className='h-full bg-brand transition-all duration-500'
+              className='h-full bg-accent/60 transition-all duration-700'
               style={{
                 width: `${Math.max(0, Math.min(progress, 100))}%`,
               }}
@@ -412,13 +415,13 @@ export default function VideoCard({
         </div>
       )}
 
-      {/* 标题与来源 */}
-      <div className='mt-2'>
-        <h3 className='text-sm font-medium text-content-primary truncate group-hover:text-content-secondary transition-colors'>
+      {/* 标题与来源 — 衬线标题 */}
+      <div className='mt-3 space-y-1'>
+        <h3 className='font-serif text-sm text-content-primary truncate tracking-wide leading-tight'>
           {actualTitle}
         </h3>
         {config.showSourceName && source_name && (
-          <p className='text-xs text-content-tertiary mt-0.5 truncate'>
+          <p className='text-[11px] text-content-tertiary font-sans font-light tracking-wider'>
             {source_name}
           </p>
         )}

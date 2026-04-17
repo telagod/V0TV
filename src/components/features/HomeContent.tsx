@@ -1,6 +1,5 @@
 'use client';
 
-import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 import { useHomeData } from '@/hooks/useHomeData';
@@ -19,17 +18,19 @@ interface MediaSectionProps {
 
 function MediaSection({ title, href, children }: MediaSectionProps) {
   return (
-    <section className='mb-8'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
-          {title}
-        </h2>
+    <section className='mb-16 lg:mb-20'>
+      <div className='mb-6 lg:mb-8 flex items-end justify-between'>
+        <div>
+          <h2 className='font-serif text-2xl lg:text-3xl text-content-primary tracking-wide'>
+            {title}
+          </h2>
+          <div className='mt-2 w-8 h-px bg-accent/40' />
+        </div>
         <Link
           href={href}
-          className='flex items-center text-sm text-gray-500 hover:text-purple-700 dark:text-gray-400 dark:hover:text-purple-300 transition-colors'
+          className='text-xs text-content-tertiary hover:text-accent tracking-[0.2em] uppercase font-sans transition-colors duration-300'
         >
           查看更多
-          <ChevronRight className='w-4 h-4 ml-1' />
         </Link>
       </div>
       {children}

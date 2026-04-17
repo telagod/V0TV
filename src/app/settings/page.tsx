@@ -34,7 +34,7 @@ export default function UserSettingsPage() {
     return (
       <PageLayout activePath='/settings'>
         <div className='flex items-center justify-center min-h-[40vh]'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-green-500'></div>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-accent'></div>
         </div>
       </PageLayout>
     );
@@ -51,26 +51,26 @@ export default function UserSettingsPage() {
         <div className='flex items-start gap-4'>
           <button
             onClick={() => router.back()}
-            className='mt-0.5 flex items-center justify-center w-10 h-10 rounded-full bg-white/80 dark:bg-gray-800/70 border border-gray-200/70 dark:border-gray-700/70 hover:bg-white dark:hover:bg-gray-800 transition-colors'
+            className='mt-0.5 flex items-center justify-center w-10 h-10 rounded-full bg-surface-secondary/80 border border-stroke-primary hover:bg-surface-tertiary transition-colors'
             aria-label='返回'
             type='button'
           >
-            <ArrowLeft className='w-5 h-5 text-gray-600 dark:text-gray-300' />
+            <ArrowLeft className='w-5 h-5 text-content-secondary' />
           </button>
           <div>
-            <h1 className='text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center'>
-              <Settings className='w-7 h-7 mr-3 text-green-600 dark:text-green-400' />
+            <h1 className='text-2xl sm:text-3xl font-bold text-content-primary flex items-center'>
+              <Settings className='w-7 h-7 mr-3 text-accent' />
               用户设置
             </h1>
-            <p className='text-gray-600 dark:text-gray-400 mt-2'>
+            <p className='text-content-secondary mt-2'>
               管理您的个人偏好与隐私选项
             </p>
           </div>
         </div>
 
-        <div className='flex items-center gap-3 px-4 py-2 bg-white/80 dark:bg-gray-800/70 rounded-lg border border-gray-200/70 dark:border-gray-700/70 w-fit'>
-          <User className='w-5 h-5 text-gray-600 dark:text-gray-300' />
-          <span className='text-sm font-medium text-gray-900 dark:text-white'>
+        <div className='flex items-center gap-3 px-4 py-2 bg-surface-secondary/80 rounded-lg border border-stroke-primary w-fit'>
+          <User className='w-5 h-5 text-content-secondary' />
+          <span className='text-sm font-medium text-content-primary'>
             {authInfo.userName}
           </span>
         </div>
@@ -79,7 +79,7 @@ export default function UserSettingsPage() {
       {/* 设置区域 */}
       <div className='mt-8 space-y-8'>
         <div>
-          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
+          <h2 className='text-lg font-semibold text-content-primary mb-4'>
             内容过滤
           </h2>
           <AdultContentFilter
@@ -89,17 +89,17 @@ export default function UserSettingsPage() {
         </div>
 
         <div>
-          <h2 className='text-lg font-semibold text-gray-900 dark:text-white mb-4'>
+          <h2 className='text-lg font-semibold text-content-primary mb-4'>
             其他设置
           </h2>
-          <div className='rounded-xl bg-white/70 dark:bg-gray-900/40 border border-gray-200/70 dark:border-gray-700/70 p-6'>
-            <p className='text-gray-500 dark:text-gray-400 text-center py-6'>
+          <div className='rounded-xl bg-surface-secondary/70 border border-stroke-primary p-6'>
+            <p className='text-content-secondary text-center py-6'>
               更多设置选项即将推出...
             </p>
           </div>
         </div>
 
-        <div className='text-center text-sm text-gray-500 dark:text-gray-400'>
+        <div className='text-center text-sm text-content-tertiary'>
           <p>设置会自动保存并在设备间同步</p>
         </div>
       </div>

@@ -346,7 +346,7 @@ export const UserMenu: React.FC = () => {
               <span
                 className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${
                   (authInfo?.role || 'user') === 'owner'
-                    ? 'bg-purple-900/30 text-purple-300'
+                    ? 'bg-accent-muted text-accent'
                     : (authInfo?.role || 'user') === 'admin'
                       ? 'bg-blue-900/30 text-blue-300'
                       : 'bg-success/20 text-success'

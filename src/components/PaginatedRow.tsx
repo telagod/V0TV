@@ -114,7 +114,7 @@ export default function PaginatedRow({
             {canGoPrev && (
               <button
                 onClick={handlePrevPage}
-                className={`absolute left-2 md:-left-12 z-20 w-9 h-9 md:w-10 md:h-10 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 ${
+                className={`absolute left-2 md:-left-12 z-20 w-9 h-9 md:w-10 md:h-10 bg-surface-primary/80 backdrop-blur-sm border border-white/[0.06] hover:bg-surface-elevated hover:border-white/[0.1] rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-500 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 focus:ring-offset-surface-primary ${
                   showControls ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
@@ -123,7 +123,7 @@ export default function PaginatedRow({
                 }}
                 aria-label='上一页'
               >
-                <ChevronLeft className='w-5 h-5 text-white' />
+                <ChevronLeft className='w-5 h-5 text-content-secondary' />
               </button>
             )}
 
@@ -132,7 +132,7 @@ export default function PaginatedRow({
               <button
                 onClick={handleNextPage}
                 disabled={isLoading}
-                className={`absolute right-2 md:-right-12 z-20 w-9 h-9 md:w-10 md:h-10 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`absolute right-2 md:-right-12 z-20 w-9 h-9 md:w-10 md:h-10 bg-surface-primary/80 backdrop-blur-sm border border-white/[0.06] hover:bg-surface-elevated hover:border-white/[0.1] rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-500 hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2 focus:ring-offset-surface-primary disabled:opacity-50 disabled:cursor-not-allowed ${
                   showControls ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
@@ -144,7 +144,7 @@ export default function PaginatedRow({
                 {isLoading ? (
                   <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin' />
                 ) : (
-                  <ChevronRight className='w-5 h-5 text-white' />
+                  <ChevronRight className='w-5 h-5 text-content-secondary' />
                 )}
               </button>
             )}

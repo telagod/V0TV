@@ -28,23 +28,23 @@ export default function ConfigPage() {
 
   return (
     <PageLayout activePath='/config'>
-      <h1 className='text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-8'>
+      <h1 className='text-2xl sm:text-3xl font-bold text-content-primary mb-8'>
         TVBox 配置
       </h1>
 
-      <div className='rounded-xl bg-white/70 dark:bg-gray-900/40 border border-gray-200/70 dark:border-gray-700/70 p-6 mb-6'>
-        <h2 className='text-lg font-semibold mb-4 text-gray-900 dark:text-white'>
+      <div className='rounded-xl bg-surface-secondary/70 border border-stroke-primary p-6 mb-6'>
+        <h2 className='text-lg font-semibold mb-4 text-content-primary'>
           配置链接
         </h2>
 
         <div className='mb-4'>
-          <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+          <label className='block text-sm font-medium text-content-secondary mb-2'>
             格式类型
           </label>
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as 'json' | 'base64')}
-            className='w-full p-2 border border-gray-300/70 dark:border-gray-600/70 rounded-md bg-white/80 dark:bg-gray-800/70 text-gray-900 dark:text-white'
+            className='w-full p-2 border border-stroke-secondary rounded-md bg-surface-tertiary text-content-primary'
           >
             <option value='json'>JSON 格式</option>
             <option value='base64'>Base64 格式</option>
@@ -56,14 +56,14 @@ export default function ConfigPage() {
             type='text'
             readOnly
             value={getConfigUrl()}
-            className='flex-1 p-3 border border-gray-300/70 dark:border-gray-600/70 rounded-md bg-gray-50/80 dark:bg-gray-800/70 text-gray-900 dark:text-white font-mono text-sm'
+            className='flex-1 p-3 border border-stroke-secondary rounded-md bg-surface-tertiary text-content-primary font-mono text-sm'
           />
           <button
             onClick={handleCopy}
             className={`px-4 py-3 rounded-md font-medium transition-colors ${
               copied
-                ? 'bg-green-500 text-white'
-                : 'bg-green-600 hover:bg-green-700 text-white'
+                ? 'bg-accent text-surface-primary'
+                : 'bg-accent hover:bg-accent-hover text-surface-primary'
             }`}
             type='button'
           >
@@ -72,12 +72,12 @@ export default function ConfigPage() {
         </div>
       </div>
 
-      <div className='rounded-xl bg-white/70 dark:bg-gray-900/40 border border-gray-200/70 dark:border-gray-700/70 p-6 mb-6'>
-        <h2 className='text-lg font-semibold mb-4 text-gray-900 dark:text-white'>
+      <div className='rounded-xl bg-surface-secondary/70 border border-stroke-primary p-6 mb-6'>
+        <h2 className='text-lg font-semibold mb-4 text-content-primary'>
           使用说明
         </h2>
 
-        <div className='space-y-4 text-gray-700 dark:text-gray-300'>
+        <div className='space-y-4 text-content-secondary'>
           <div>
             <h3 className='font-semibold mb-2'>1. 获取配置链接</h3>
             <p>复制上方的配置链接，支持 JSON 和 Base64 两种格式。</p>
@@ -95,17 +95,17 @@ export default function ConfigPage() {
         </div>
       </div>
 
-      <div className='rounded-xl bg-white/70 dark:bg-gray-900/40 border border-gray-200/70 dark:border-gray-700/70 p-6'>
-        <h2 className='text-lg font-semibold mb-4 text-gray-900 dark:text-white'>
+      <div className='rounded-xl bg-surface-secondary/70 border border-stroke-primary p-6'>
+        <h2 className='text-lg font-semibold mb-4 text-content-primary'>
           支持功能
         </h2>
 
         <div className='grid md:grid-cols-2 gap-4'>
           <div className='space-y-2'>
-            <h3 className='font-semibold text-gray-900 dark:text-white'>
+            <h3 className='font-semibold text-content-primary'>
               视频解析
             </h3>
-            <ul className='text-sm text-gray-600 dark:text-gray-400 space-y-1'>
+            <ul className='text-sm text-content-secondary space-y-1'>
               <li>• 支持多种视频源</li>
               <li>• 自动解析视频链接</li>
               <li>• 高清视频播放</li>
@@ -113,10 +113,10 @@ export default function ConfigPage() {
           </div>
 
           <div className='space-y-2'>
-            <h3 className='font-semibold text-gray-900 dark:text-white'>
+            <h3 className='font-semibold text-content-primary'>
               兼容性
             </h3>
-            <ul className='text-sm text-gray-600 dark:text-gray-400 space-y-1'>
+            <ul className='text-sm text-content-secondary space-y-1'>
               <li>• 完全兼容 TVBox</li>
               <li>• 支持自定义配置</li>
               <li>• 实时更新内容</li>

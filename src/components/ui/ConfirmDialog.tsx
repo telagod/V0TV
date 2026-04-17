@@ -28,7 +28,7 @@ const iconMap = {
   info: <Info className='h-6 w-6 text-blue-500' />,
   success: <CheckCircle className='h-6 w-6 text-green-500' />,
   warning: <AlertTriangle className='h-6 w-6 text-yellow-500' />,
-  error: <XCircle className='h-6 w-6 text-red-500' />,
+  error: <XCircle className='h-6 w-6 text-error' />,
 };
 
 export function ConfirmDialogProvider({
@@ -72,7 +72,7 @@ export function ConfirmDialogProvider({
       <Dialog open={isOpen} onClose={() => handleClose(false)}>
         <DialogBackdrop className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50' />
         <div className='fixed inset-0 flex items-center justify-center p-4 z-50'>
-          <DialogPanel className='w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl'>
+          <DialogPanel className='w-full max-w-md rounded-xl bg-surface-secondary border border-stroke-primary p-6 shadow-xl'>
             {options && (
               <>
                 <div className='flex items-start gap-4'>
@@ -80,10 +80,10 @@ export function ConfirmDialogProvider({
                     {iconMap[options.type || 'info']}
                   </div>
                   <div className='flex-1'>
-                    <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
+                    <h3 className='text-lg font-semibold text-content-primary'>
                       {options.title}
                     </h3>
-                    <div className='mt-2 text-sm text-gray-600 dark:text-gray-300'>
+                    <div className='mt-2 text-sm text-content-secondary'>
                       {typeof options.message === 'string' ? (
                         <p>{options.message}</p>
                       ) : (
@@ -96,7 +96,7 @@ export function ConfirmDialogProvider({
                   {options.showCancel !== false && (
                     <button
                       onClick={() => handleClose(false)}
-                      className='px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
+                      className='px-4 py-2 text-sm font-medium text-content-secondary bg-surface-tertiary rounded-lg hover:bg-surface-hover transition-colors'
                     >
                       {options.cancelText || '取消'}
                     </button>
@@ -105,8 +105,8 @@ export function ConfirmDialogProvider({
                     onClick={() => handleClose(true)}
                     className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
                       options.type === 'error' || options.type === 'warning'
-                        ? 'bg-red-600 hover:bg-red-700'
-                        : 'bg-purple-600 hover:bg-purple-700'
+                        ? 'bg-error hover:bg-error/80'
+                        : 'bg-accent hover:bg-accent-hover'
                     }`}
                   >
                     {options.confirmText || '确定'}

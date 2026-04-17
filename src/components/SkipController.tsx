@@ -503,7 +503,7 @@ export default function SkipController({
     <div className='skip-controller'>
       {/* 倒计时显示 - 片尾自动跳转下一集 */}
       {showCountdown && (
-        <div className='fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] bg-blue-600/90 text-white px-6 py-3 rounded-lg backdrop-blur-sm border border-white/20 shadow-lg animate-fade-in'>
+        <div className='fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] bg-accent/90 text-white px-6 py-3 rounded-lg backdrop-blur-sm border border-white/20 shadow-lg animate-fade-in'>
           <div className='flex items-center space-x-3'>
             <svg
               className='w-5 h-5 animate-spin'
@@ -528,7 +528,7 @@ export default function SkipController({
                   clearInterval(countdownIntervalRef.current);
                 }
               }}
-              className='px-2 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition-colors'
+              className='px-2 py-1 bg-white/10 hover:bg-white/20 rounded text-xs transition-colors'
             >
               取消
             </button>
@@ -547,7 +547,7 @@ export default function SkipController({
             </span>
             <button
               onClick={handleSkip}
-              className='px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-medium transition-colors'
+              className='px-3 py-1 bg-success hover:bg-success/80 rounded text-sm font-medium transition-colors'
             >
               跳过
             </button>
@@ -558,13 +558,13 @@ export default function SkipController({
       {/* 设置模式面板 - 增强版批量设置 */}
       {isSettingMode && (
         <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4'>
-          <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
-            <h3 className='text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100'>
+          <div className='bg-surface-secondary rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto'>
+            <h3 className='text-lg font-semibold mb-4 text-content-primary'>
               智能跳过设置
             </h3>
 
             {/* 全局开关 */}
-            <div className='bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6'>
+            <div className='bg-accent-muted p-4 rounded-lg mb-6'>
               <div className='flex items-center justify-between mb-2'>
                 <label className='flex items-center space-x-2'>
                   <input
@@ -578,7 +578,7 @@ export default function SkipController({
                     }
                     className='rounded'
                   />
-                  <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                  <span className='text-sm font-medium text-content-primary'>
                     启用自动跳过
                   </span>
                 </label>
@@ -596,12 +596,12 @@ export default function SkipController({
                     }
                     className='rounded'
                   />
-                  <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                  <span className='text-sm font-medium text-content-primary'>
                     片尾自动播放下一集
                   </span>
                 </label>
               </div>
-              <p className='text-xs text-gray-600 dark:text-gray-400 mt-2'>
+              <p className='text-xs text-content-tertiary mt-2'>
                 开启后将自动跳过设定的片头片尾，无需手动点击
               </p>
             </div>
@@ -609,12 +609,12 @@ export default function SkipController({
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               {/* 片头设置 */}
               <div className='space-y-4'>
-                <h4 className='font-medium text-gray-900 dark:text-gray-100 border-b pb-2'>
+                <h4 className='font-medium text-content-primary border-b pb-2'>
                   🎬 片头设置
                 </h4>
 
                 <div>
-                  <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                  <label className='block text-sm font-medium mb-1 text-content-primary'>
                     开始时间 (分:秒)
                   </label>
                   <input
@@ -626,16 +626,16 @@ export default function SkipController({
                         openingStart: e.target.value,
                       })
                     }
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                     placeholder='0:00'
                   />
-                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
+                  <p className='text-xs text-content-tertiary mt-1'>
                     格式: 分:秒 (如 0:00)
                   </p>
                 </div>
 
                 <div>
-                  <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                  <label className='block text-sm font-medium mb-1 text-content-primary'>
                     结束时间 (分:秒)
                   </label>
                   <input
@@ -647,10 +647,10 @@ export default function SkipController({
                         openingEnd: e.target.value,
                       })
                     }
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                     placeholder='1:30'
                   />
-                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
+                  <p className='text-xs text-content-tertiary mt-1'>
                     格式: 分:秒 (如 1:30)
                   </p>
                 </div>
@@ -658,13 +658,13 @@ export default function SkipController({
 
               {/* 片尾设置 */}
               <div className='space-y-4'>
-                <h4 className='font-medium text-gray-900 dark:text-gray-100 border-b pb-2'>
+                <h4 className='font-medium text-content-primary border-b pb-2'>
                   🎭 片尾设置
                 </h4>
 
                 {/* 片尾模式选择 */}
                 <div>
-                  <label className='block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300'>
+                  <label className='block text-sm font-medium mb-2 text-content-primary'>
                     计时模式
                   </label>
                   <div className='flex gap-4'>
@@ -701,7 +701,7 @@ export default function SkipController({
                       绝对时间
                     </label>
                   </div>
-                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
+                  <p className='text-xs text-content-tertiary mt-1'>
                     {batchSettings.endingMode === 'remaining'
                       ? '基于剩余时间倒计时（如：还剩2分钟时开始）'
                       : '基于播放时间（如：播放到第20分钟时开始）'}
@@ -709,7 +709,7 @@ export default function SkipController({
                 </div>
 
                 <div>
-                  <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                  <label className='block text-sm font-medium mb-1 text-content-primary'>
                     {batchSettings.endingMode === 'remaining'
                       ? '剩余时间 (分:秒)'
                       : '开始时间 (分:秒)'}
@@ -723,14 +723,14 @@ export default function SkipController({
                         endingStart: e.target.value,
                       })
                     }
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                     placeholder={
                       batchSettings.endingMode === 'remaining'
                         ? '2:00'
                         : '20:00'
                     }
                   />
-                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
+                  <p className='text-xs text-content-tertiary mt-1'>
                     {batchSettings.endingMode === 'remaining'
                       ? '当剩余时间达到此值时开始倒计时'
                       : '从视频开始播放此时间后开始检测片尾'}
@@ -738,7 +738,7 @@ export default function SkipController({
                 </div>
 
                 <div>
-                  <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                  <label className='block text-sm font-medium mb-1 text-content-primary'>
                     结束时间 (分:秒) - 可选
                   </label>
                   <input
@@ -750,18 +750,18 @@ export default function SkipController({
                         endingEnd: e.target.value,
                       })
                     }
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                     placeholder='留空直接跳下一集'
                   />
-                  <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
+                  <p className='text-xs text-content-tertiary mt-1'>
                     空白=直接跳下一集
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className='mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg'>
-              <div className='text-sm text-gray-600 dark:text-gray-400 space-y-1'>
+            <div className='mt-6 p-4 bg-surface-tertiary rounded-lg'>
+              <div className='text-sm text-content-tertiary space-y-1'>
                 <p>
                   <strong>当前播放时间:</strong> {secondsToTime(currentTime)}
                 </p>
@@ -770,7 +770,7 @@ export default function SkipController({
                     <strong>视频总长度:</strong> {secondsToTime(duration)}
                   </p>
                 )}
-                <div className='text-xs mt-2 text-gray-600 dark:text-gray-400 space-y-1'>
+                <div className='text-xs mt-2 text-content-tertiary space-y-1'>
                   <p>
                     💡 <strong>片头示例:</strong> 从 0:00 自动跳到 1:30
                   </p>
@@ -786,7 +786,7 @@ export default function SkipController({
             <div className='flex space-x-3 mt-6'>
               <button
                 onClick={handleSaveBatchSettings}
-                className='flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium transition-colors'
+                className='flex-1 px-4 py-2 bg-success hover:bg-success/80 text-white rounded font-medium transition-colors'
               >
                 保存智能配置
               </button>
@@ -803,23 +803,23 @@ export default function SkipController({
                     autoNextEpisode: true,
                   });
                 }}
-                className='flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded font-medium transition-colors'
+                className='flex-1 px-4 py-2 bg-surface-hover hover:bg-surface-elevated text-white rounded font-medium transition-colors'
               >
                 取消
               </button>
             </div>
 
             {/* 分割线 */}
-            <div className='my-6 border-t border-gray-200 dark:border-gray-600'></div>
+            <div className='my-6 border-t border-stroke-primary'></div>
 
             {/* 传统单个设置模式 */}
             <details className='mb-4'>
-              <summary className='cursor-pointer text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'>
+              <summary className='cursor-pointer text-sm font-medium text-content-tertiary hover:text-content-primary'>
                 高级设置：添加单个片段
               </summary>
-              <div className='mt-4 space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-600'>
+              <div className='mt-4 space-y-4 pl-4 border-l-2 border-stroke-primary'>
                 <div>
-                  <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                  <label className='block text-sm font-medium mb-1 text-content-primary'>
                     类型
                   </label>
                   <select
@@ -830,7 +830,7 @@ export default function SkipController({
                         type: e.target.value as 'opening' | 'ending',
                       })
                     }
-                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                   >
                     <option value=''>选择类型</option>
                     <option value='opening'>片头</option>
@@ -840,7 +840,7 @@ export default function SkipController({
 
                 <div className='grid grid-cols-2 gap-4'>
                   <div>
-                    <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                    <label className='block text-sm font-medium mb-1 text-content-primary'>
                       开始时间 (秒)
                     </label>
                     <input
@@ -852,12 +852,12 @@ export default function SkipController({
                           start: parseFloat(e.target.value),
                         })
                       }
-                      className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                      className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                     />
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300'>
+                    <label className='block text-sm font-medium mb-1 text-content-primary'>
                       结束时间 (秒)
                     </label>
                     <input
@@ -869,14 +869,14 @@ export default function SkipController({
                           end: parseFloat(e.target.value),
                         })
                       }
-                      className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                      className='w-full px-3 py-2 border border-stroke-primary rounded bg-surface-elevated text-content-primary'
                     />
                   </div>
                 </div>
 
                 <button
                   onClick={handleSaveSegment}
-                  className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors'
+                  className='px-4 py-2 bg-accent hover:bg-accent-hover text-surface-primary rounded text-sm font-medium transition-colors'
                 >
                   添加片段
                 </button>
@@ -891,9 +891,9 @@ export default function SkipController({
         skipConfig.segments &&
         skipConfig.segments.length > 0 &&
         !isSettingMode && (
-          <div className='fixed bottom-4 left-4 z-[9998] max-w-sm bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 animate-fade-in'>
+          <div className='fixed bottom-4 left-4 z-[9998] max-w-sm bg-surface-secondary backdrop-blur-sm rounded-lg shadow-lg border border-stroke-primary animate-fade-in'>
             <div className='p-3'>
-              <h4 className='font-medium mb-2 text-gray-900 dark:text-gray-100 text-sm flex items-center'>
+              <h4 className='font-medium mb-2 text-content-primary text-sm flex items-center'>
                 <svg
                   className='w-4 h-4 mr-1'
                   fill='none'
@@ -913,25 +913,25 @@ export default function SkipController({
                 {skipConfig.segments.map((segment, index) => (
                   <div
                     key={index}
-                    className='flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs'
+                    className='flex items-center justify-between p-2 bg-surface-tertiary rounded text-xs'
                   >
-                    <span className='text-gray-800 dark:text-gray-200 flex-1 mr-2'>
+                    <span className='text-content-primary flex-1 mr-2'>
                       <span className='font-medium'>
                         {segment.type === 'opening' ? '🎬片头' : '🎭片尾'}
                       </span>
                       <br />
-                      <span className='text-gray-600 dark:text-gray-400'>
+                      <span className='text-content-tertiary'>
                         {formatTime(segment.start)} - {formatTime(segment.end)}
                       </span>
                       {segment.autoSkip && (
-                        <span className='ml-1 px-1 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 rounded text-xs'>
+                        <span className='ml-1 px-1 bg-success/20 text-success rounded text-xs'>
                           自动
                         </span>
                       )}
                     </span>
                     <button
                       onClick={() => handleDeleteSegment(index)}
-                      className='px-1.5 py-0.5 bg-red-500 hover:bg-red-600 text-white rounded text-xs transition-colors flex-shrink-0'
+                      className='px-1.5 py-0.5 bg-error hover:bg-error/80 text-white rounded text-xs transition-colors flex-shrink-0'
                       title='删除'
                     >
                       ×
@@ -939,10 +939,10 @@ export default function SkipController({
                   </div>
                 ))}
               </div>
-              <div className='mt-2 pt-2 border-t border-gray-200 dark:border-gray-600'>
+              <div className='mt-2 pt-2 border-t border-stroke-primary'>
                 <button
                   onClick={() => onSettingModeChange?.(true)}
-                  className='w-full px-2 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded text-xs transition-colors'
+                  className='w-full px-2 py-1 bg-accent-muted hover:bg-accent/25 text-accent rounded text-xs transition-colors'
                 >
                   修改配置
                 </button>
@@ -975,7 +975,7 @@ export function SkipSettingsButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className='flex items-center space-x-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-sm text-gray-700 dark:text-gray-300 transition-colors'
+      className='flex items-center space-x-1 px-3 py-1.5 bg-surface-elevated hover:bg-surface-hover rounded text-sm text-content-primary transition-colors'
       title='设置跳过片头片尾'
     >
       <svg

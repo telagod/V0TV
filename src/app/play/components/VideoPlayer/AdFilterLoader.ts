@@ -9,7 +9,7 @@ import { logInfo } from '@/lib/logger';
 
 /**
  * 从M3U8内容中过滤广告
- * 支持多种广告特征检测
+ * 仅过滤明确的广告URL特征，保留 DISCONTINUITY 标记以避免破坏正常视频
  */
 function filterAdsFromM3U8(m3u8Content: string): string {
   if (!m3u8Content) return '';
@@ -17,97 +17,115 @@ function filterAdsFromM3U8(m3u8Content: string): string {
   // 按行分割M3U8内容
   const lines = m3u8Content.split('\n');
   const filteredLines: string[] = [];
-  let skipNext = false; // 标记是否跳过下一个片段
   let removedCount = 0;
+  let skipNextSegment = false; // 是否跳过下一个视频片段（及其 EXTINF）
 
-  // 广告URL特征关键词
+  // 广告URL特征关键词（更严格的匹配）
   const adKeywords = [
-    'ad.',
-    'ads.',
-    'adv.',
-    'advert',
-    'commercial',
-    'preroll',
-    'midroll',
-    'sponsor',
-    'promotion',
+    '/ad/',
+    '/ads/',
+    '/advert/',
+    '/commercial/',
+    '/preroll/',
+    '/midroll/',
+    '/sponsor/',
+    'advertisement',
   ];
 
-  // 广告URL正则模式
+  // 广告URL正则模式（更精确）
   const adPatterns = [
-    /ad[_-]?\d+/i, // ad_1, ad-2, ad3
-    /advert[_-]?\d+/i, // advert_1, advert-2
-    /commercial[_-]?\d+/i, // commercial_1
-    /-ad-/i, // xxx-ad-xxx
-    /\/ad\//i, // xxx/ad/xxx
+    /\/ad[_-]?\d+\//i, // /ad_1/, /ad-2/
+    /\/advert[_-]?\d+\//i, // /advert_1/
+    /\/commercial[_-]?\d+\//i, // /commercial_1/
+    /[?&]ad[_=]/i, // ?ad= 或 &ad_
   ];
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i].trim();
     const lineLower = line.toLowerCase();
 
-    // 1. 过滤 #EXT-X-DISCONTINUITY 标记（主要广告分隔符）
-    if (line.includes('#EXT-X-DISCONTINUITY')) {
-      skipNext = true; // 标记下一个.ts片段可能是广告
-      removedCount++;
+    // 空行直接保留
+    if (!line) {
+      filteredLines.push(lines[i]);
       continue;
     }
 
-    // 2. 检测广告URL特征关键词
-    const hasAdKeyword = adKeywords.some((keyword) =>
-      lineLower.includes(keyword),
-    );
-    if (hasAdKeyword && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
-      if (process.env.NODE_ENV === 'development') {
-        logInfo(`[广告过滤] 关键词匹配: ${line.substring(0, 50)}...`);
+    // 检测是否为视频片段URL（.ts 或 .m3u8 结尾，或包含这些扩展名后跟查询参数）
+    const isSegmentUrl =
+      /\.(ts|m3u8)($|\?)/i.test(line) && !line.startsWith('#');
+
+    if (isSegmentUrl) {
+      // 检测广告URL特征关键词
+      const hasAdKeyword = adKeywords.some((keyword) =>
+        lineLower.includes(keyword),
+      );
+
+      // 检测广告URL正则模式
+      const matchesAdPattern = adPatterns.some((pattern) =>
+        pattern.test(lineLower),
+      );
+
+      if (hasAdKeyword || matchesAdPattern) {
+        if (process.env.NODE_ENV === 'development') {
+          logInfo(`[广告过滤] 移除广告片段: ${line.substring(0, 60)}...`);
+        }
+        removedCount++;
+        // 同时需要移除前面的 #EXTINF 行（如果已添加）
+        if (
+          filteredLines.length > 0 &&
+          filteredLines[filteredLines.length - 1].startsWith('#EXTINF:')
+        ) {
+          filteredLines.pop();
+        }
+        continue;
       }
-      removedCount++;
-      continue;
-    }
 
-    // 3. 检测广告URL正则模式
-    const matchesAdPattern = adPatterns.some((pattern) =>
-      pattern.test(lineLower),
-    );
-    if (matchesAdPattern && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
-      if (process.env.NODE_ENV === 'development') {
-        logInfo(`[广告过滤] 正则匹配: ${line.substring(0, 50)}...`);
+      // 如果标记了跳过下一个片段
+      if (skipNextSegment) {
+        if (process.env.NODE_ENV === 'development') {
+          logInfo(`[广告过滤] 跳过标记片段: ${line.substring(0, 60)}...`);
+        }
+        removedCount++;
+        skipNextSegment = false;
+        // 同时移除前面的 #EXTINF 行
+        if (
+          filteredLines.length > 0 &&
+          filteredLines[filteredLines.length - 1].startsWith('#EXTINF:')
+        ) {
+          filteredLines.pop();
+        }
+        continue;
       }
-      removedCount++;
-      continue;
     }
 
-    // 4. 如果上一行是 DISCONTINUITY，且当前是视频片段，可能是广告
-    if (skipNext && (line.endsWith('.ts') || line.endsWith('.m3u8'))) {
-      // 只跳过第一个片段，避免误删
-      if (process.env.NODE_ENV === 'development') {
-        logInfo(`[广告过滤] DISCONTINUITY后片段: ${line.substring(0, 50)}...`);
-      }
-      skipNext = false;
-      removedCount++;
-      continue;
-    }
-
-    // 5. 检测 #EXTINF 标签中的短时长（广告通常较短）
+    // 检测 #EXTINF 标签：仅当片段时长极短（<1秒）且后续URL包含广告特征时才跳过
     if (line.startsWith('#EXTINF:')) {
       const match = line.match(/#EXTINF:([\d.]+)/);
       if (match) {
         const duration = parseFloat(match[1]);
-        // 如果片段时长小于3秒，可能是广告或片头
-        if (duration > 0 && duration < 3) {
-          // 标记下一行可能需要跳过
-          skipNext = true;
+        // 检查下一行是否是广告URL
+        const nextLine = lines[i + 1]?.toLowerCase() || '';
+        const nextIsAd =
+          adKeywords.some((k) => nextLine.includes(k)) ||
+          adPatterns.some((p) => p.test(nextLine));
+
+        // 仅当时长极短且下一行是广告时才跳过
+        if (duration > 0 && duration < 1 && nextIsAd) {
+          skipNextSegment = true;
+          removedCount++;
+          continue;
         }
       }
     }
 
-    skipNext = false;
-    filteredLines.push(line);
+    // 保留 #EXT-X-DISCONTINUITY 标记（这是正常的HLS标记，不应删除）
+    // 保留所有其他行
+    filteredLines.push(lines[i]);
   }
 
   // 开发环境输出统计信息
   if (process.env.NODE_ENV === 'development' && removedCount > 0) {
-    logInfo(`[广告过滤] 共移除 ${removedCount} 个广告相关标记/片段`);
+    logInfo(`[广告过滤] 共移除 ${removedCount} 个广告相关片段`);
   }
 
   return filteredLines.join('\n');

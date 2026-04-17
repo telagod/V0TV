@@ -79,13 +79,9 @@ export function IOSCompatibility({ children }: IOSCompatibilityProps) {
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
         }
-        
-        .ios-safari .bg-white\\/90 {
-          background-color: rgba(255, 255, 255, 0.95) !important;
-        }
-        
-        .ios-safari .dark .bg-zinc-900\\/90 {
-          background-color: rgba(24, 24, 27, 0.95) !important;
+
+        .ios-safari .bg-surface-primary\\/75 {
+          background-color: rgba(10, 10, 11, 0.95) !important;
         }
       `;
       document.head.appendChild(style);

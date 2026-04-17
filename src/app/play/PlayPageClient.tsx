@@ -95,6 +95,7 @@ export default function PlayPageClient() {
     sources: availableSources,
     loading: sourceSearchLoading,
     error: sourceSearchError,
+    searchSources,
     switchSource,
   } = useSourceSelection({
     searchTitle: urlParams.searchTitle || videoData.videoTitle,
@@ -349,6 +350,16 @@ export default function PlayPageClient() {
   }, [urlParams.initialEpisode, videoData.totalEpisodes, updateEpisodeIndex]);
 
   // ============================================================================
+  // 自动搜索可用源（视频标题就绪后触发）
+  // ============================================================================
+  useEffect(() => {
+    const title = urlParams.searchTitle || videoData.videoTitle;
+    if (title && videoData.currentSource) {
+      searchSources();
+    }
+  }, [videoData.videoTitle, videoData.currentSource, urlParams.searchTitle, searchSources]);
+
+  // ============================================================================
   // 同步URL参数
   // ============================================================================
   const currentVideoState = useMemo(
@@ -427,12 +438,12 @@ export default function PlayPageClient() {
         <div className='flex items-center justify-center min-h-screen'>
           <div className='text-center'>
             <h1 className='text-2xl font-bold mb-4'>加载失败</h1>
-            <p className='text-gray-600 dark:text-gray-400 mb-4'>
+            <p className='text-content-tertiary mb-4'>
               {dataError || '缺少必要参数'}
             </p>
             <button
               onClick={() => router.push('/')}
-              className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+              className='px-4 py-2 bg-accent text-surface-primary rounded hover:bg-accent-hover'
             >
               返回首页
             </button>
@@ -450,10 +461,10 @@ export default function PlayPageClient() {
       <div className='flex flex-col gap-3 py-4 px-5 lg:px-[3rem] 2xl:px-20'>
         {/* 第一行：影片标题和操作按钮 */}
         <div className='py-1 flex items-center justify-between'>
-          <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
+          <h1 className='text-xl font-serif font-medium tracking-wide text-content-primary'>
             {videoData.videoTitle || '影片标题'}
             {videoData.totalEpisodes > 1 && (
-              <span className='text-gray-500 dark:text-gray-400'>
+              <span className='text-content-secondary font-sans font-light'>
                 {` > 第 ${videoData.currentEpisodeIndex + 1} 集`}
               </span>
             )}
@@ -473,13 +484,13 @@ export default function PlayPageClient() {
               onClick={() =>
                 setIsEpisodeSelectorCollapsed(!isEpisodeSelectorCollapsed)
               }
-              className='group relative flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-800 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all duration-200'
+              className='group relative flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-surface-secondary/80 hover:bg-surface-secondary border border-stroke-primary/50 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm'
               title={
                 isEpisodeSelectorCollapsed ? '显示选集面板' : '隐藏选集面板'
               }
             >
               <svg
-                className={`w-3.5 h-3.5 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+                className={`w-3.5 h-3.5 text-content-secondary transition-transform duration-200 ${
                   isEpisodeSelectorCollapsed ? 'rotate-180' : 'rotate-0'
                 }`}
                 fill='none'
@@ -493,7 +504,7 @@ export default function PlayPageClient() {
                   d='M9 5l7 7-7 7'
                 />
               </svg>
-              <span className='text-xs font-medium text-gray-600 dark:text-gray-300'>
+              <span className='text-xs font-medium text-content-secondary'>
                 {isEpisodeSelectorCollapsed ? '显示' : '隐藏'}
               </span>
 
@@ -501,8 +512,8 @@ export default function PlayPageClient() {
               <div
                 className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-200 ${
                   isEpisodeSelectorCollapsed
-                    ? 'bg-orange-400 animate-pulse'
-                    : 'bg-green-400'
+                    ? 'bg-accent animate-pulse'
+                    : 'bg-accent/60'
                 }`}
               />
             </button>
@@ -517,7 +528,7 @@ export default function PlayPageClient() {
           >
             {/* 播放器 */}
             <div
-              className={`h-full transition-all duration-300 ease-in-out rounded-xl border border-white/0 dark:border-white/30 ${
+              className={`h-full transition-all duration-300 ease-in-out rounded-xl border border-stroke-primary ${
                 isEpisodeSelectorCollapsed ? 'col-span-1' : 'md:col-span-3'
               }`}
             >

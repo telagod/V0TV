@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
 
-// import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 
 import { BRAND_CONTACT, BRAND_NAME } from '@/lib/brand';
@@ -12,7 +12,19 @@ import { ConfirmDialogProvider } from '@/components/ui/ConfirmDialog';
 import { SiteProvider } from '../components/SiteProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
 
-// const inter = Inter({ subsets: ['latin'] });
+const sans = Inter({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-sans',
+  weight: ['300', '400', '500'],
+  display: 'swap',
+});
+
+const serif = Playfair_Display({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-serif',
+  weight: ['400', '500', '600'],
+  display: 'swap',
+});
 
 // 动态生成 metadata，支持配置更新后的标题变化
 export async function generateMetadata(): Promise<Metadata> {
@@ -80,7 +92,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang='zh-CN' suppressHydrationWarning>
+    <html lang='zh-CN' className={`${sans.variable} ${serif.variable}`} suppressHydrationWarning>
       <head>
         {/* 将配置序列化后直接写入脚本，浏览器端可通过 window.RUNTIME_CONFIG 获取 */}
         {}

@@ -1,6 +1,5 @@
 'use client';
 
-import { Clover, Film, Home, Search, Tv } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -16,7 +15,7 @@ interface PageLayoutProps {
   activePath?: string;
 }
 
-// 顶部导航栏组件 - Netflix 风格
+// 顶部导航栏 — 奢侈品风纯文字导航
 const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,39 +41,39 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
   }, [router]);
 
   const menuItems = [
-    { icon: Home, label: '首页', href: '/' },
-    { icon: Search, label: '搜索', href: '/search' },
-    { icon: Film, label: '电影', href: '/douban?type=movie' },
-    { icon: Tv, label: '剧集', href: '/douban?type=tv' },
-    { icon: Clover, label: '综艺', href: '/douban?type=show' },
+    { label: '首页', href: '/' },
+    { label: '搜索', href: '/search' },
+    { label: '电影', href: '/douban?type=movie' },
+    { label: '剧集', href: '/douban?type=tv' },
+    { label: '综艺', href: '/douban?type=show' },
   ];
 
   return (
     <nav
-      className={`w-full fixed top-0 left-0 right-0 z-fixed hidden md:block transition-colors duration-300 ${
-        scrolled ? 'bg-surface-primary' : 'bg-gradient-to-b from-black/80 to-transparent'
+      className={`w-full fixed top-0 left-0 right-0 z-fixed hidden md:block transition-all duration-500 ${
+        scrolled ? 'glass-nav' : 'bg-transparent'
       }`}
       style={{
         paddingTop: 'env(safe-area-inset-top)',
       }}
     >
-      <div className='w-full px-8 lg:px-12 xl:px-16'>
+      <div className='w-full px-8 lg:px-16'>
         <div className='flex items-center justify-between h-16'>
-          {/* Logo */}
-          <div className='flex-shrink-0 -ml-2'>
+          {/* Logo — 衬线体 */}
+          <div className='flex-shrink-0'>
             <Link
               href='/'
-              className='flex items-center select-none hover:opacity-80 transition-opacity duration-200'
+              className='flex items-center select-none hover:opacity-80 transition-opacity duration-500'
             >
-              <span className='text-xl font-bold text-content-primary tracking-tight'>
+              <span className='v0tv-logo text-lg'>
                 {siteName}
               </span>
             </Link>
           </div>
 
-          {/* 导航菜单 */}
+          {/* 导航菜单 — 纯文字，大写，字距宽 */}
           <div className='hidden md:block'>
-            <div className='ml-10 flex items-baseline space-x-1'>
+            <div className='flex items-center gap-8'>
               {menuItems.map((item) => {
                 const typeMatch = item.href.match(/type=([^&]+)/)?.[1];
                 const decodedActive = decodeURIComponent(active);
@@ -86,8 +85,6 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                     typeMatch &&
                     decodedActive.includes(`type=${typeMatch}`));
 
-                const Icon = item.icon;
-
                 if (item.href === '/search') {
                   return (
                     <button
@@ -97,13 +94,12 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                         handleSearchClick();
                         setActive('/search');
                       }}
-                      className={`group flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                      className={`text-xs tracking-[0.15em] uppercase font-sans transition-colors duration-300 ${
                         isActive
                           ? 'text-content-primary'
-                          : 'text-content-secondary hover:text-content-primary'
+                          : 'text-content-tertiary hover:text-content-secondary'
                       }`}
                     >
-                      <Icon className='h-4 w-4 mr-2' />
                       {item.label}
                     </button>
                   );
@@ -114,13 +110,12 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
                     key={item.label}
                     href={item.href}
                     onClick={() => setActive(item.href)}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                    className={`text-xs tracking-[0.15em] uppercase font-sans transition-colors duration-300 ${
                       isActive
                         ? 'text-content-primary'
-                        : 'text-content-secondary hover:text-content-primary'
+                        : 'text-content-tertiary hover:text-content-secondary'
                     }`}
                   >
-                    <Icon className='h-4 w-4 mr-2' />
                     {item.label}
                   </Link>
                 );
@@ -129,7 +124,7 @@ const TopNavbar = ({ activePath = '/' }: { activePath?: string }) => {
           </div>
 
           {/* 右侧用户菜单 */}
-          <div className='flex items-center gap-3 -mr-2'>
+          <div className='flex items-center gap-3'>
             <UserMenu />
           </div>
         </div>
@@ -164,8 +159,8 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
           </div>
         )}
 
-        {/* 主内容容器 */}
-        <main className='mb-14 md:mb-0 md:px-6 lg:px-8'>
+        {/* 主内容容器 — 宽边距，呼吸感 */}
+        <main className='mb-14 md:mb-0 px-4 md:px-8 lg:px-12 xl:px-16'>
           <div
             className='w-full min-h-[calc(100vh-4rem)]'
             style={{
@@ -174,7 +169,7 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
           >
             <div
               className={`w-full mx-auto ${
-                isPlayPage ? 'max-w-[1200px]' : 'max-w-6xl'
+                isPlayPage ? 'max-w-[1200px]' : 'max-w-[1400px]'
               }`}
             >
               {children}

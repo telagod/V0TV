@@ -136,6 +136,16 @@ export function VideoPlayer(props: VideoPlayerProps) {
     }
   }, [player, resumeTime, localResumeTime, seek]);
 
+  // 使用 ref 存储恢复时间，避免作为 useEffect 依赖导致重复初始化
+  const pendingResumeTimeRef = useRef<number | null>(null);
+
+  // 当 localResumeTime 变化时更新 ref
+  useEffect(() => {
+    if (localResumeTime !== null && localResumeTime > 0) {
+      pendingResumeTimeRef.current = localResumeTime;
+    }
+  }, [localResumeTime]);
+
   // 原生播放器模式：最小依赖 + 保底 controls（适配 Artplayer/CSS/初始化失败场景）
   useEffect(() => {
     if (!fallbackEnabled) return;
@@ -144,7 +154,6 @@ export function VideoPlayer(props: VideoPlayerProps) {
 
     const isM3u8 = /\.m3u8(\?|$)/i.test(url);
     const canPlayNativeHls = video.canPlayType('application/vnd.apple.mpegurl');
-    const targetTime = (localResumeTime ?? resumeTime) ?? null;
 
     video.controls = true;
     video.playsInline = true;
@@ -161,10 +170,15 @@ export function VideoPlayer(props: VideoPlayerProps) {
 
     const handleNativeCanPlay = () => {
       setPlayerError(null);
+      // 从 ref 或 props 获取恢复时间
+      const targetTime = pendingResumeTimeRef.current ?? resumeTime ?? null;
       if (targetTime && targetTime > 0) {
         try {
           video.currentTime = targetTime;
-          if (localResumeTime) setLocalResumeTime(null);
+          logInfo('原生播放器恢复进度到', targetTime);
+          // 清除待恢复时间
+          pendingResumeTimeRef.current = null;
+          setLocalResumeTime(null);
         } catch {
           // ignore
         }
@@ -224,7 +238,6 @@ export function VideoPlayer(props: VideoPlayerProps) {
     poster,
     blockAdEnabled,
     resumeTime,
-    localResumeTime,
   ]);
 
   return (

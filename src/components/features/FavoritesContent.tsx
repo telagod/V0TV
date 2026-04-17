@@ -86,12 +86,12 @@ export default function FavoritesContent() {
     <>
       <section className='mb-8'>
         <div className='mb-4 flex items-center justify-between'>
-          <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+          <h2 className='text-xl font-bold text-content-primary'>
             我的收藏
           </h2>
           {favoriteItems.length > 0 && (
             <button
-              className='text-sm text-gray-500 hover:text-purple-700 dark:text-gray-400 dark:hover:text-purple-300 transition-colors'
+              className='text-sm text-content-tertiary hover:text-accent transition-colors'
               onClick={handleClearAll}
             >
               清空
@@ -111,7 +111,7 @@ export default function FavoritesContent() {
             </div>
           ))}
           {favoriteItems.length === 0 && (
-            <div className='col-span-full text-center text-gray-500 py-8 dark:text-gray-400'>
+            <div className='col-span-full text-center text-content-tertiary py-8'>
               暂无收藏内容
             </div>
           )}
