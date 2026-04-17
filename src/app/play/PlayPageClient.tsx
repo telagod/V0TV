@@ -119,7 +119,7 @@ export default function PlayPageClient() {
     },
     onError: (error) => {
       logError('换源失败', error);
-      alert(`换源失败: ${error}`);
+      logError('换源失败', error);
     },
   });
 
@@ -350,11 +350,13 @@ export default function PlayPageClient() {
   }, [urlParams.initialEpisode, videoData.totalEpisodes, updateEpisodeIndex]);
 
   // ============================================================================
-  // 自动搜索可用源（视频标题就绪后触发）
+  // 自动搜索可用源（视频标题就绪后触发，仅一次）
   // ============================================================================
+  const sourceSearchedRef = useRef(false);
   useEffect(() => {
     const title = urlParams.searchTitle || videoData.videoTitle;
-    if (title && videoData.currentSource) {
+    if (title && videoData.currentSource && !sourceSearchedRef.current) {
+      sourceSearchedRef.current = true;
       searchSources();
     }
   }, [videoData.videoTitle, videoData.currentSource, urlParams.searchTitle, searchSources]);
