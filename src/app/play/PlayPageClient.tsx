@@ -75,6 +75,7 @@ export default function PlayPageClient() {
   const {
     data: videoData,
     loading: dataLoading,
+    loadingStage,
     error: dataError,
     updateEpisodeIndex,
     updateSource,
@@ -353,9 +354,12 @@ export default function PlayPageClient() {
   // 自动搜索可用源（视频标题就绪后触发，仅一次）
   // ============================================================================
   const sourceSearchedRef = useRef(false);
+  const lastSearchKeyRef = useRef('');
   useEffect(() => {
     const title = urlParams.searchTitle || videoData.videoTitle;
-    if (title && videoData.currentSource && !sourceSearchedRef.current) {
+    const searchKey = `${title}-${videoData.currentSource}`;
+    if (title && videoData.currentSource && searchKey !== lastSearchKeyRef.current) {
+      lastSearchKeyRef.current = searchKey;
       sourceSearchedRef.current = true;
       searchSources();
     }
@@ -419,12 +423,20 @@ export default function PlayPageClient() {
   // 加载中状态
   // ============================================================================
   if (dataLoading) {
+    const stageText: Record<string, string> = {
+      searching: '搜索可用源...',
+      preferring: '测速优选中...',
+      fetching: '获取详情...',
+      ready: '准备就绪',
+    };
     return (
       <PageLayout activePath='/play'>
         <div className='flex items-center justify-center min-h-screen'>
-          <div className='text-center'>
-            <div className='inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]' />
-            <p className='mt-4 text-lg'>加载中...</p>
+          <div className='text-center space-y-4'>
+            <div className='inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-accent border-r-transparent' />
+            <p className='text-sm text-content-secondary tracking-wider'>
+              {stageText[loadingStage] || '加载中...'}
+            </p>
           </div>
         </div>
       </PageLayout>

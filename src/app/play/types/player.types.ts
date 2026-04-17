@@ -228,6 +228,7 @@ export interface UseFavoriteReturn {
 export interface UseVideoDataReturn {
   data: VideoData;
   loading: boolean;
+  loadingStage: LoadingStage;
   error: string | null;
   updateEpisodeIndex: (index: number) => void;
   updateSource: (source: string, id: string) => void;

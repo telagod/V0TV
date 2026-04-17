@@ -52,7 +52,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
   });
 
   const [loading, setLoading] = useState(true);
-  const [_loadingStage, setLoadingStage] = useState<LoadingStage>('searching');
+  const [loadingStage, setLoadingStage] = useState<LoadingStage>('searching');
   const [error, setError] = useState<string | null>(null);
 
   const fetchJson = useCallback(async (url: string) => {
@@ -181,18 +181,56 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
         } else {
           // 直接获取详情
           setLoadingStage('fetching');
-          const detail = await fetchJson(
-            `/api/detail?source=${encodeURIComponent(initialSource)}&id=${encodeURIComponent(initialId)}`,
-          );
+          try {
+            const detail = await fetchJson(
+              `/api/detail?source=${encodeURIComponent(initialSource)}&id=${encodeURIComponent(initialId)}`,
+            );
 
-          setData((prev) => ({
-            ...prev,
-            detail,
-            videoTitle: detail.title,
-            videoYear: detail.year,
-            videoCover: detail.poster,
-            totalEpisodes: detail.episodes?.length || 0,
-          }));
+            setData((prev) => ({
+              ...prev,
+              detail,
+              videoTitle: String(detail.title || initialTitle),
+              videoYear: String(detail.year || initialYear),
+              videoCover: String(detail.poster || ''),
+              totalEpisodes: detail.episodes?.length || 0,
+            }));
+          } catch (detailErr) {
+            // detail 失败，fallback 到搜索
+            const fallbackTitle = searchTitle || initialTitle;
+            if (fallbackTitle) {
+              setLoadingStage('searching');
+              const searchData = await fetchJson(
+                `/api/search?q=${encodeURIComponent(fallbackTitle)}`,
+              );
+              const allResults = [
+                ...(searchData?.regular_results ?? searchData?.results ?? []),
+                ...(searchData?.adult_results ?? []),
+              ];
+
+              if (allResults.length > 0) {
+                const best = allResults[0];
+                setLoadingStage('fetching');
+                const detail = await fetchJson(
+                  `/api/detail?source=${encodeURIComponent(best.source)}&id=${encodeURIComponent(best.id)}`,
+                );
+
+                setData((prev) => ({
+                  ...prev,
+                  currentSource: best.source,
+                  currentId: best.id,
+                  detail,
+                  videoTitle: String(detail.title || fallbackTitle),
+                  videoYear: String(detail.year || initialYear),
+                  videoCover: String(detail.poster || ''),
+                  totalEpisodes: detail.episodes?.length || 0,
+                }));
+              } else {
+                throw detailErr;
+              }
+            } else {
+              throw detailErr;
+            }
+          }
         }
 
         setLoadingStage('ready');
@@ -227,6 +265,7 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
   return {
     data,
     loading,
+    loadingStage,
     error,
     updateEpisodeIndex,
     updateSource,
