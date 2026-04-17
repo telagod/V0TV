@@ -5,9 +5,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { smartSpeedTest } from '@/lib/client-speed-test';
-import { logError } from '@/lib/logger';
-import { getVideoResolutionFromM3u8 } from '@/lib/utils';
+import { logError, logInfo } from '@/lib/logger';
 
 import type {
   LoadingStage,
@@ -108,55 +106,32 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
 
           setLoadingStage('preferring');
 
-          // 智能测速优选
-          const speedTestResults = await smartSpeedTest(
-            allResults,
-            async (source) => {
-              try {
-                if (!source.episodes || source.episodes.length === 0) {
-                  return {
-                    quality: '未知',
-                    loadSpeed: '0',
-                    pingTime: 0,
-                    score: 0,
-                  };
-                }
+          // 基于源站数据快速优选（不做客户端测速，避免 CORS 问题）
+          const scored = allResults.map((result) => {
+            let score = 0;
+            const eps = Array.isArray(result.episodes) ? result.episodes : [];
+            // 有播放链接的优先
+            if (eps.length > 0 && eps[0]) score += 50;
+            // m3u8 链接优先
+            if (eps[0] && String(eps[0]).includes('.m3u8')) score += 20;
+            // 有海报的优先
+            if (result.poster) score += 10;
+            // 有豆瓣 ID 的优先
+            if (result.douban_id) score += 5;
+            // 标题完全匹配优先
+            const titleNorm = String(result.title || '').replace(/\s/g, '');
+            const searchNorm = String(searchTitle || '').replace(/\s/g, '');
+            if (titleNorm === searchNorm) score += 30;
+            else if (titleNorm.includes(searchNorm)) score += 15;
+            return { ...result, score };
+          });
 
-                const testUrl = source.episodes[0];
-                const info = await getVideoResolutionFromM3u8(testUrl);
+          scored.sort((a, b) => b.score - a.score);
 
-                return {
-                  quality: info.quality || '未知',
-                  loadSpeed: info.loadSpeed || '0',
-                  pingTime: info.pingTime || 0,
-                  score: calculateScore(info),
-                };
-              } catch {
-                return {
-                  quality: '未知',
-                  loadSpeed: '0',
-                  pingTime: 0,
-                  score: 0,
-                };
-              }
-            },
-          );
+          logInfo(`[优选] ${scored.length} 个结果，最佳: ${scored[0]?.source}-${scored[0]?.id} (score=${scored[0]?.score})`);
 
-          // 按评分排序，选择最佳源
-          const sortedResults = allResults
-            .map((result) => {
-              const testResult = speedTestResults.get(
-                `${result.source}-${result.id}`,
-              );
-              return {
-                ...result,
-                score: testResult?.score || 0,
-              };
-            })
-            .sort((a, b) => b.score - a.score);
-
-          if (sortedResults.length > 0) {
-            const bestSource = sortedResults[0];
+          if (scored.length > 0) {
+            const bestSource = scored[0];
             setData((prev) => ({
               ...prev,
               currentSource: bestSource.source,
@@ -270,42 +245,4 @@ export function useVideoData(options: UseVideoDataOptions): UseVideoDataReturn {
     updateEpisodeIndex,
     updateSource,
   };
-}
-
-/**
- * 计算视频源评分
- */
-function calculateScore(info: {
-  quality?: string;
-  loadSpeed?: string;
-  pingTime?: number;
-}): number {
-  let score = 0;
-
-  // 分辨率评分（40%）
-  const quality = String(info.quality ?? '').toLowerCase();
-  if (quality.includes('4k') || quality.includes('2160')) score += 40;
-  else if (quality.includes('2k') || quality.includes('1440')) score += 34;
-  else if (quality.includes('1080')) score += 30;
-  else if (quality.includes('720')) score += 24;
-  else if (quality.includes('480')) score += 16;
-  else score += 10;
-
-  // 速度评分（40%）
-  const speed = parseFloat(info.loadSpeed || '0');
-  if (speed > 5) score += 40;
-  else if (speed > 3) score += 32;
-  else if (speed > 1) score += 24;
-  else if (speed > 0.5) score += 16;
-  else score += 8;
-
-  // 延迟评分（20%）
-  const latency = info.pingTime || 999;
-  if (latency < 100) score += 20;
-  else if (latency < 200) score += 16;
-  else if (latency < 300) score += 12;
-  else if (latency < 500) score += 8;
-  else score += 4;
-
-  return score;
 }
