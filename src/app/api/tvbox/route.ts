@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
         // 4. 其他情况默认为JSON类型 (type=1)，因为现在大部分都是JSON
         let type = 1; // 默认为JSON类型
 
-        const apiLower = source.api.toLowerCase();
+        const apiLower = String(source.api || '').toLowerCase();
         if (apiLower.includes('at/xml') || apiLower.endsWith('.xml')) {
           type = 0; // XML类型
         }

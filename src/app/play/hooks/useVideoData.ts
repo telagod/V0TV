@@ -283,7 +283,7 @@ function calculateScore(info: {
   let score = 0;
 
   // 分辨率评分（40%）
-  const quality = info.quality?.toLowerCase() || '';
+  const quality = String(info.quality ?? '').toLowerCase();
   if (quality.includes('4k') || quality.includes('2160')) score += 40;
   else if (quality.includes('2k') || quality.includes('1440')) score += 34;
   else if (quality.includes('1080')) score += 30;

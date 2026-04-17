@@ -95,16 +95,16 @@ export default function VideoCard({
     };
   }, [isAggregate, items]);
 
-  const actualTitle = aggregateData?.first.title ?? title;
-  const actualPoster = aggregateData?.first.poster ?? poster;
+  const actualTitle = String(aggregateData?.first.title ?? title ?? '');
+  const actualPoster = String(aggregateData?.first.poster ?? poster ?? '');
   const actualSource = aggregateData?.first.source ?? source;
   const actualId = aggregateData?.first.id ?? id;
   const actualDoubanId = String(
-    aggregateData?.mostFrequentDoubanId ?? douban_id,
+    aggregateData?.mostFrequentDoubanId ?? douban_id ?? '',
   );
   const actualEpisodes = aggregateData?.mostFrequentEpisodes ?? episodes;
-  const actualYear = aggregateData?.first.year ?? year;
-  const actualQuery = query || '';
+  const actualYear = String(aggregateData?.first.year ?? year ?? '');
+  const actualQuery = String(query ?? '');
   const actualSearchType = isAggregate
     ? aggregateData?.first.episodes?.length === 1
       ? 'movie'

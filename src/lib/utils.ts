@@ -2,6 +2,11 @@
 
 import Hls from 'hls.js';
 
+/** 安全转 string，防止对 number/null/undefined 调用字符串方法 */
+export function safeStr(val: unknown): string {
+  return val == null ? '' : String(val);
+}
+
 /**
  * 获取图片代理 URL 设置
  */
@@ -33,10 +38,11 @@ export function getImageProxyUrl(): string | null {
  */
 export function processImageUrl(originalUrl: string): string {
   if (!originalUrl) return originalUrl;
+  let url = safeStr(originalUrl);
 
-  // 避免 HTTPS 页面出现 Mixed Content（浏览器也会自动升级，但会刷控制台警告）
-  if (originalUrl.startsWith('http://')) {
-    originalUrl = `https://${originalUrl.slice('http://'.length)}`;
+  // 避免 HTTPS 页面出现 Mixed Content
+  if (url.startsWith('http://')) {
+    url = `https://${url.slice('http://'.length)}`;
   }
 
   // 本地显式关闭图片代理时，尊重用户选择
@@ -45,7 +51,7 @@ export function processImageUrl(originalUrl: string): string {
     if (enableImageProxy !== null) {
       try {
         if (!JSON.parse(enableImageProxy) as boolean) {
-          return originalUrl;
+          return url;
         }
       } catch {
         // ignore malformed localStorage
@@ -54,9 +60,9 @@ export function processImageUrl(originalUrl: string): string {
   }
 
   const proxyUrl = getImageProxyUrl();
-  if (proxyUrl) return `${proxyUrl}${encodeURIComponent(originalUrl)}`;
+  if (proxyUrl) return `${proxyUrl}${encodeURIComponent(url)}`;
 
-  return originalUrl;
+  return url;
 }
 
 /**

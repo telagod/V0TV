@@ -78,7 +78,7 @@ export const isValidM3u8Url = isValidPlayUrl;
  * 计算播放源优先级
  */
 export function calculatePriority(sourceName: string): number {
-  const lowerName = sourceName.toLowerCase();
+  const lowerName = String(sourceName || '').toLowerCase();
 
   for (const rule of PRIORITY_RULES) {
     if (rule.keywords.some((kw) => lowerName.includes(kw))) {
@@ -94,8 +94,8 @@ export function calculatePriority(sourceName: string): number {
  * 去除前缀 $、括号内容等
  */
 export function cleanM3u8Link(link: string): string {
-  // 去掉开头的 $
-  let cleaned = link.startsWith('$') ? link.substring(1) : link;
+  const safeLink = typeof link === 'string' ? link : String(link || '');
+  let cleaned = safeLink.startsWith('$') ? safeLink.substring(1) : safeLink;
 
   // 去掉括号及后面的内容
   const parenIndex = cleaned.indexOf('(');

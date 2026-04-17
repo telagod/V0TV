@@ -60,11 +60,11 @@ export default function SkipController({
 
   // 时间格式转换函数
   const timeToSeconds = useCallback((timeStr: string): number => {
-    if (!timeStr || timeStr.trim() === '') return 0;
+    const s = String(timeStr ?? '');
+    if (!s || s.trim() === '') return 0;
 
-    // 支持多种格式: "2:10", "2:10.5", "130", "130.5"
-    if (timeStr.includes(':')) {
-      const parts = timeStr.split(':');
+    if (s.includes(':')) {
+      const parts = s.split(':');
       const minutes = parseInt(parts[0]) || 0;
       const seconds = parseFloat(parts[1]) || 0;
       return minutes * 60 + seconds;

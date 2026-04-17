@@ -114,7 +114,7 @@ function SearchPageClient() {
       map.set(key, arr);
     });
     return Array.from(map.entries()).sort((a, b) => {
-      const queryNorm = searchQuery.trim().replaceAll(' ', '');
+      const queryNorm = String(searchQuery || '').trim().replaceAll(' ', '');
       const aTitle = String(a[1][0].title || '').replaceAll(' ', '');
       const bTitle = String(b[1][0].title || '').replaceAll(' ', '');
       const aExactMatch = aTitle.includes(queryNorm);
@@ -128,7 +128,7 @@ function SearchPageClient() {
       const bYear = String(b[1][0].year || 'unknown');
 
       if (aYear === bYear) {
-        return a[0].localeCompare(b[0]);
+        return String(a[0] || '').localeCompare(String(b[0] || ''));
       }
 
       if (aYear === 'unknown' && bYear === 'unknown') {

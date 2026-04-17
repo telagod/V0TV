@@ -110,7 +110,7 @@ export async function fetchDoubanCategories(
       title: item.title,
       poster: item.pic?.normal || item.pic?.large || '',
       rate: item.rating?.value ? item.rating.value.toFixed(1) : '',
-      year: item.card_subtitle?.match(/(\d{4})/)?.[1] || '',
+      year: String(item.card_subtitle ?? '').match(/(\d{4})/)?.[1] || '',
     }));
 
     return {
