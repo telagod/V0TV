@@ -6,7 +6,7 @@
 'use client';
 
 import Hls from 'hls.js';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { logInfo } from '@/lib/logger';
 import { recordUrlHealth } from '@/lib/source-health';
@@ -78,6 +78,15 @@ export function VideoPlayer(props: VideoPlayerProps) {
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [localResumeTime, setLocalResumeTime] = useState<number | null>(null);
 
+  // m3u8 链接走服务端代理，解决 CORS 问题
+  const proxiedUrl = useMemo(() => {
+    if (!url) return url;
+    if (/\.m3u8(\?|$)/i.test(url)) {
+      return `/api/proxy?url=${encodeURIComponent(url)}`;
+    }
+    return url;
+  }, [url]);
+
   const handlePlayerError = useCallback(
     (error: Error | string) => {
       const message = error instanceof Error ? error.message : String(error);
@@ -94,7 +103,7 @@ export function VideoPlayer(props: VideoPlayerProps) {
 
   const { player, seek, destroy, isReady } = useVideoPlayer({
     enabled: !fallbackEnabled,
-    url,
+    url: proxiedUrl,
     poster,
     title,
     containerRef,
@@ -213,11 +222,11 @@ export function VideoPlayer(props: VideoPlayerProps) {
           : Hls.DefaultConfig.loader) as unknown as typeof Hls.DefaultConfig.loader,
       });
 
-      hls.loadSource(url);
+      hls.loadSource(proxiedUrl);
       hls.attachMedia(video);
       (video as HTMLVideoElement & { hls?: Hls }).hls = hls;
     } else {
-      video.src = url;
+      video.src = proxiedUrl;
     }
 
     return () => {
