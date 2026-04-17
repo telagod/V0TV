@@ -140,8 +140,9 @@ export function extractPlaySources(
 ): PlaySource[] {
   if (!vodPlayUrl) return [];
 
-  const playSources = vodPlayUrl.split('$$$');
-  const sourceNames = vodPlayFrom?.split('$$$') || [];
+  const playUrlStr = String(vodPlayUrl);
+  const playSources = playUrlStr.split('$$$');
+  const sourceNames = vodPlayFrom ? String(vodPlayFrom).split('$$$') : [];
   const results: PlaySource[] = [];
 
   playSources.forEach((source, index) => {

@@ -16,10 +16,11 @@ import { ISourceAdapter, PlaySource, SearchResultItem } from '../types';
 /**
  * 从年份字符串中提取有效年份
  */
-export function extractYear(vodYear: string | null | undefined): string {
-  if (!vodYear) return '';
+export function extractYear(vodYear: string | number | null | undefined): string {
+  if (vodYear === null || vodYear === undefined) return '';
+  const str = String(vodYear);
 
-  const years = vodYear.match(/\d{4}/g);
+  const years = str.match(/\d{4}/g);
   if (!years || years.length === 0) return '';
 
   const currentYear = new Date().getFullYear();
@@ -58,17 +59,17 @@ export function mapToSearchResult(
   const episodes = playSources[0]?.episodes || [];
 
   return {
-    id: item.vod_id.toString(),
-    title: item.vod_name.trim().replace(/\s+/g, ' '),
-    poster: item.vod_pic,
+    id: String(item.vod_id ?? ''),
+    title: String(item.vod_name ?? '').trim().replace(/\s+/g, ' '),
+    poster: String(item.vod_pic ?? ''),
     playSources,
     episodes,
     source: apiSite.key,
     source_name: apiSite.name,
-    class: item.vod_class,
+    class: item.vod_class ? String(item.vod_class) : undefined,
     year: extractYear(item.vod_year),
-    desc: cleanHtmlTags(item.vod_content || ''),
-    type_name: item.type_name,
+    desc: cleanHtmlTags(String(item.vod_content ?? '')),
+    type_name: item.type_name ? String(item.type_name) : undefined,
     douban_id: item.vod_douban_id,
   };
 }
