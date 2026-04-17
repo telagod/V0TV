@@ -105,42 +105,40 @@ function SearchPageClient() {
   const aggregateResults = (results: SearchResult[]) => {
     const map = new Map<string, SearchResult[]>();
     results.forEach((item) => {
-      // 使用 title + year + type 作为键
-      const key = `${item.title.replaceAll(' ', '')}-${
-        item.year || 'unknown'
-      }-${item.episodes.length === 1 ? 'movie' : 'tv'}`;
+      const title = String(item.title || '').replaceAll(' ', '');
+      const year = String(item.year || 'unknown');
+      const epLen = Array.isArray(item.episodes) ? item.episodes.length : 0;
+      const key = `${title}-${year}-${epLen === 1 ? 'movie' : 'tv'}`;
       const arr = map.get(key) || [];
       arr.push(item);
       map.set(key, arr);
     });
     return Array.from(map.entries()).sort((a, b) => {
-      // 优先排序：标题与搜索词完全一致的排在前面
-      const aExactMatch = a[1][0].title
-        .replaceAll(' ', '')
-        .includes(searchQuery.trim().replaceAll(' ', ''));
-      const bExactMatch = b[1][0].title
-        .replaceAll(' ', '')
-        .includes(searchQuery.trim().replaceAll(' ', ''));
+      const queryNorm = searchQuery.trim().replaceAll(' ', '');
+      const aTitle = String(a[1][0].title || '').replaceAll(' ', '');
+      const bTitle = String(b[1][0].title || '').replaceAll(' ', '');
+      const aExactMatch = aTitle.includes(queryNorm);
+      const bExactMatch = bTitle.includes(queryNorm);
 
       if (aExactMatch && !bExactMatch) return -1;
       if (!aExactMatch && bExactMatch) return 1;
 
       // 年份排序
-      if (a[1][0].year === b[1][0].year) {
-        return a[0].localeCompare(b[0]);
-      } else {
-        const aYear = a[1][0].year;
-        const bYear = b[1][0].year;
+      const aYear = String(a[1][0].year || 'unknown');
+      const bYear = String(b[1][0].year || 'unknown');
 
-        if (aYear === 'unknown' && bYear === 'unknown') {
-          return 0;
-        } else if (aYear === 'unknown') {
-          return 1;
-        } else if (bYear === 'unknown') {
-          return -1;
-        } else {
-          return aYear > bYear ? -1 : 1;
-        }
+      if (aYear === bYear) {
+        return a[0].localeCompare(b[0]);
+      }
+
+      if (aYear === 'unknown' && bYear === 'unknown') {
+        return 0;
+      } else if (aYear === 'unknown') {
+        return 1;
+      } else if (bYear === 'unknown') {
+        return -1;
+      } else {
+        return aYear > bYear ? -1 : 1;
       }
     });
   };
