@@ -100,31 +100,31 @@ export class StandardSourceAdapter extends BaseSourceAdapter {
 
     // 提取播放源
     let playSources = extractPlaySources(
-      item.vod_play_url || '',
-      item.vod_play_from,
-      true, // 验证链接
+      String(item.vod_play_url ?? ''),
+      item.vod_play_from ? String(item.vod_play_from) : undefined,
+      true,
     );
 
     // 降级：从内容中提取
     if (playSources.length === 0 && item.vod_content) {
-      const fallbackEpisodes = extractM3u8Fallback(item.vod_content);
+      const fallbackEpisodes = extractM3u8Fallback(String(item.vod_content));
       playSources = createFallbackPlaySource('内容提取', fallbackEpisodes);
     }
 
     const episodes = playSources[0]?.episodes || [];
 
     return {
-      id: id.toString(),
-      title: item.vod_name,
-      poster: item.vod_pic,
+      id: String(id),
+      title: String(item.vod_name ?? '').trim().replace(/\s+/g, ' '),
+      poster: String(item.vod_pic ?? ''),
       playSources,
       episodes,
       source: apiSite.key,
       source_name: apiSite.name,
-      class: item.vod_class,
+      class: item.vod_class ? String(item.vod_class) : undefined,
       year: extractYear(item.vod_year),
-      desc: cleanHtmlTags(item.vod_content || ''),
-      type_name: item.type_name,
+      desc: cleanHtmlTags(String(item.vod_content ?? '')),
+      type_name: item.type_name ? String(item.type_name) : undefined,
       douban_id: item.vod_douban_id,
     };
   }
