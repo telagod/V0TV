@@ -97,8 +97,9 @@ export async function GET(request: NextRequest) {
     });
     return addCorsHeaders(response);
   } catch (error) {
+    logError('[detail] 获取详情失败', { source: sourceCode, id, error: (error as Error).message, stack: (error as Error).stack });
     const response = NextResponse.json(
-      { error: (error as Error).message },
+      { error: (error as Error).message, detail: (error as Error).stack?.split('\n').slice(0, 3).join(' | ') },
       { status: 500 },
     );
     return addCorsHeaders(response);

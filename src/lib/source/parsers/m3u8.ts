@@ -111,15 +111,17 @@ export function cleanM3u8Link(link: string): string {
 // ============================================================================
 
 function extractEpisodeUrlsFromSourceChunk(chunk: string): string[] {
+  const safeChunk = typeof chunk === 'string' ? chunk : String(chunk ?? '');
+  if (!safeChunk) return [];
   const urls: string[] = [];
-  // 常见格式：第1集$https://...m3u8#第2集$https://...m3u8
-  for (const part of chunk.split('#')) {
-    const lastDollarIndex = part.lastIndexOf('$');
-    if (lastDollarIndex >= 0 && lastDollarIndex < part.length - 1) {
-      urls.push(part.slice(lastDollarIndex + 1).trim());
+  for (const part of safeChunk.split('#')) {
+    const p = String(part ?? '');
+    const lastDollarIndex = p.lastIndexOf('$');
+    if (lastDollarIndex >= 0 && lastDollarIndex < p.length - 1) {
+      urls.push(p.slice(lastDollarIndex + 1).trim());
       continue;
     }
-    const any = part.match(ANY_URL_PATTERN) || [];
+    const any = p.match(ANY_URL_PATTERN) || [];
     urls.push(...any);
   }
   return urls.filter(Boolean);
@@ -185,29 +187,27 @@ export function extractM3u8WithPattern(
   pattern: RegExp,
   fallbackPattern?: RegExp,
 ): string[] {
-  // 尝试主正则
-  let matches = html.match(pattern) || [];
+  const safeHtml = typeof html === 'string' ? html : String(html ?? '');
+  if (!safeHtml) return [];
 
-  // 降级尝试
+  let matches = safeHtml.match(pattern) || [];
+
   if (matches.length === 0 && fallbackPattern) {
-    matches = html.match(fallbackPattern) || [];
+    matches = safeHtml.match(fallbackPattern) || [];
   }
 
-  // 通用降级：抓取页面内所有 URL，再做白名单校验
   if (matches.length === 0) {
-    matches = html.match(ANY_URL_PATTERN) || [];
+    matches = safeHtml.match(ANY_URL_PATTERN) || [];
   }
 
-  // 清理、去重、验证
   const cleaned = Array.from(new Set(matches)).map(cleanM3u8Link);
   return cleaned.filter(isValidPlayUrl);
 }
 
-/**
- * 从内容中降级提取 M3U8 (当主方式失败时)
- */
 export function extractM3u8Fallback(content: string): string[] {
-  const matches = content.match(ANY_URL_PATTERN) || [];
-  const cleaned = matches.map((link) => link.replace(/^\$/, ''));
+  const safeContent = typeof content === 'string' ? content : String(content ?? '');
+  if (!safeContent) return [];
+  const matches = safeContent.match(ANY_URL_PATTERN) || [];
+  const cleaned = matches.map((link) => String(link).replace(/^\$/, ''));
   return cleaned.filter(isValidPlayUrl);
 }

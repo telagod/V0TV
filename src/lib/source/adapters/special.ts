@@ -109,11 +109,24 @@ export class SpecialSourceAdapter extends BaseSourceAdapter {
     const detailUrl = this.buildDetailUrl(apiSite, id, config);
 
     // 获取 HTML
-    const html = await requestManager.fetch<string>(detailUrl, {
+    const rawResponse = await requestManager.fetch<string | object>(detailUrl, {
       headers: API_CONFIG.detail.headers,
       timeout: DETAIL_TIMEOUT,
       retryOptions: { maxRetries: 2 },
     });
+
+    // requestManager 可能自动将 JSON 响应解析为对象
+    // 如果返回的是 JSON 对象（标准 API 响应），走标准适配器逻辑
+    if (typeof rawResponse === 'object' && rawResponse !== null) {
+      const data = rawResponse as { list?: Array<Record<string, unknown>> };
+      if (data.list?.length) {
+        const { StandardSourceAdapter } = await import('./standard');
+        const standardAdapter = new StandardSourceAdapter();
+        return standardAdapter.getDetail(apiSite, id);
+      }
+    }
+
+    const html = typeof rawResponse === 'string' ? rawResponse : String(rawResponse ?? '');
 
     // 提取 M3U8 链接
     const episodes = this.extractEpisodes(html, config);
